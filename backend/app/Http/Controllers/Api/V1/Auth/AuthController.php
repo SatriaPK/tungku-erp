@@ -60,4 +60,13 @@ class AuthController extends Controller
     {
         return new UserResource($request->user());
     }
+
+    public function revokeCrmConsent(Request $request): Response
+    {
+        $user = $request->user();
+        $user->crm_consent_at = null;
+        $user->save();
+
+        return response()->noContent();
+    }
 }

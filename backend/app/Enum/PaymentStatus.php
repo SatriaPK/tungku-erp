@@ -7,18 +7,22 @@ enum PaymentStatus: string
     use HasOptions, HasTransitions;
 
     case Pending = 'pending';
+    case PendingManualConfirmation = 'pending_manual_confirmation';
     case Paid = 'paid';
     case Failed = 'failed';
     case Expired = 'expired';
+    case Cancelled = 'cancelled';
     case Refunded = 'refunded';
 
     public function label(): string
     {
         return match ($this) {
             self::Pending => 'Pending',
+            self::PendingManualConfirmation => 'Menunggu Konfirmasi Manual',
             self::Paid => 'Lunas',
             self::Failed => 'Gagal',
             self::Expired => 'Kedaluwarsa',
+            self::Cancelled => 'Dibatalkan',
             self::Refunded => 'Dikembalikan',
         };
     }
@@ -34,8 +38,9 @@ enum PaymentStatus: string
     {
         return match ($this) {
             self::Pending => [self::Paid, self::Failed, self::Expired],
+            self::PendingManualConfirmation => [self::Paid, self::Cancelled],
             self::Paid => [self::Refunded],
-            self::Failed, self::Expired, self::Refunded => [],
+            self::Failed, self::Expired, self::Cancelled, self::Refunded => [],
         };
     }
 

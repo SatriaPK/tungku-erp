@@ -33,9 +33,9 @@ class PackageResource extends JsonResource
             'auto_price' => $this->auto_price,
             'manual_price' => $this->manual_price,
             'is_price_manual' => $this->is_price_manual,
-            'price' => $this->price,
+            'price' => $this->resource->price,
             'is_active' => $this->is_active,
-            'created_at' => $this->created_at,
+            'created_at' => $this->created_at?->copy()->setTimezone(config('app.timezone'))->toIso8601String(),
         ];
     }
 }

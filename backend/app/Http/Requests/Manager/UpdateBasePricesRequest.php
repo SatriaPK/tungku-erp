@@ -23,7 +23,7 @@ class UpdateBasePricesRequest extends FormRequest
         $stages = StageType::values();
 
         $rules = [
-            'prices' => ['required', 'array:' . implode(',', $stages)],
+            'prices' => ['required', 'array:'.implode(',', $stages)],
         ];
 
         foreach ($stages as $stage) {

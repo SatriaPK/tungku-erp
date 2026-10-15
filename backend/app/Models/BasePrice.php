@@ -9,24 +9,19 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 class BasePrice extends Model
 {
+    /** @var array<string, string> */
+    protected $casts = [
+        'stage' => StageType::class,
+        'unit' => PriceUnit::class,
+        'price' => 'integer',
+    ];
+
     protected $fillable = [
         'stage',
         'unit',
         'price',
         'updated_by',
     ];
-
-    /**
-     * @return array<string, string>
-     */
-    protected function casts(): array
-    {
-        return [
-            'stage' => StageType::class,
-            'unit' => PriceUnit::class,
-            'price' => 'integer',
-        ];
-    }
 
     public function updater(): BelongsTo
     {

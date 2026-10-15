@@ -22,7 +22,7 @@ class BasePriceResource extends JsonResource
             'unit' => $this->unit->value,
             'unit_label' => $this->unit->label(),
             'price' => $this->price,
-            'updated_at' => $this->updated_at,
+            'updated_at' => $this->updated_at?->copy()->setTimezone(config('app.timezone'))->toIso8601String(),
         ];
     }
 }

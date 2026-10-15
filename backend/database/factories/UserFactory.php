@@ -23,7 +23,7 @@ class UserFactory extends Factory
         return [
             'name' => fake()->name(),
             'email' => fake()->unique()->safeEmail(),
-            'phone' => '628' . fake()->numerify('#########'),
+            'phone' => '628'.fake()->numerify('#########'),
             'email_verified_at' => now(),
             'password' => static::$password ??= Hash::make('password'),
             'role' => Role::Client,
@@ -31,6 +31,11 @@ class UserFactory extends Factory
             'is_active' => true,
             'remember_token' => Str::random(10),
         ];
+    }
+
+    public function client(): static
+    {
+        return $this->state(fn () => ['role' => Role::Client]);
     }
 
     public function manager(): static

@@ -11,5 +11,6 @@ Route::prefix('auth')->group(function () {
         // Logout tidak diberi middleware active, supaya akun nonaktif tetap bisa keluar
         Route::post('logout', [AuthController::class, 'logout']);
         Route::get('me', [AuthController::class, 'me'])->middleware('active');
+        Route::delete('crm-consent', [AuthController::class, 'revokeCrmConsent'])->middleware('active')->name('auth.crm-consent.destroy');
     });
 });

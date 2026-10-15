@@ -16,6 +16,7 @@ class DatabaseSeeder extends Seeder
             BasePriceSeeder::class,
             ExpenseCategorySeeder::class,
             InventoryCategorySeeder::class,
+            StudioSettingSeeder::class,
             UserSeeder::class,
         ]);
     }

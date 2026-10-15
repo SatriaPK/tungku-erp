@@ -25,3 +25,37 @@ _ide_helper.php
 Homestead.json
 Homestead.yaml
 Thumbs.db
+
+# Local AI agents, instructions and working notes
+/.ai/
+/.agents/
+/.claude/
+/.kiro/
+/.github/copilot-instructions.md
+/.github/instructions/
+/.github/prompts/
+/.scratch/
+AGENTS.md
+CLAUDE.md
+GEMINI.md
+/.cursorrules
+/.cursorignore
+/.mcp.json
+/boost.json
+/docs/agents/
+/Plan.md
+/Task.md
+
+# Local environment variants (keep shareable templates)
+.env.*
+!.env.example
+!.env.*.example
+
+# Generated analysis, test and debug reports
+/phpstan-*.txt
+/phpstan-*.json
+/results.xml
+/coverage/
+/.phpstan.cache/
+/error.md
+/error2.md

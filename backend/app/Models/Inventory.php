@@ -3,11 +3,17 @@
 namespace App\Models;
 
 use App\Enum\InventoryStatus;
+use Carbon\Carbon;
 use Carbon\CarbonInterface;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\SoftDeletes;
 
+/**
+ * @property InventoryStatus $status
+ * @property Carbon $purchase_date
+ * @property Carbon|null $disposed_on
+ */
 class Inventory extends Model
 {
     use SoftDeletes;
@@ -35,15 +41,18 @@ class Inventory extends Model
     /**
      * @return array<string, string>
      */
-    protected $casts = [
-        'purchase_date' => 'date',
-        'purchase_price' => 'integer',
-        'residual_value' => 'integer',
-        'useful_life_months' => 'integer',
-        'status' => InventoryStatus::class,
-        'disposed_on' => 'date',
-        'disposal_value' => 'integer',
-    ];
+    protected function casts(): array
+    {
+        return [
+            'purchase_date' => 'date',
+            'purchase_price' => 'integer',
+            'residual_value' => 'integer',
+            'useful_life_months' => 'integer',
+            'status' => InventoryStatus::class,
+            'disposed_on' => 'date',
+            'disposal_value' => 'integer',
+        ];
+    }
 
     /**
      * Penyusutan garis lurus per bulan, dalam rupiah.
@@ -66,13 +75,27 @@ class Inventory extends Model
      */
     public function bookValue(?CarbonInterface $asOf = null): int
     {
-        $end = $asOf ?? now();
+        $purchaseDate = $this->purchase_date->copy()->startOfMonth();
+        $end = ($asOf ?? now())->toDateString();
 
-        if ($this->status->isGone() && $this->disposed_on !== null) {
-            $end = $this->disposed_on;
+        if ($this->status->isGone()) {
+            // A terminal asset is valued only through its disposal date. A
+            // missing disposal date is invalid domain data, so do not accrue
+            // depreciation beyond purchase month in that case.
+            $end = $this->disposed_on?->toDateString() ?? $this->purchase_date->toDateString();
         }
 
-        $months = (int) $this->purchase_date->diffInMonths($end);
+        $endDate = Carbon::parse($end)->startOfMonth();
+        $monthIndex = ($endDate->year * 12) + $endDate->month;
+        $purchaseMonthIndex = ($purchaseDate->year * 12) + $purchaseDate->month;
+        $months = $monthIndex - $purchaseMonthIndex;
+
+        // Active assets depreciate for the purchase month; terminal assets
+        // do not depreciate for the disposal month.
+        if (! $this->status->isGone() && $endDate >= $purchaseDate) {
+            $months++;
+        }
+
         $months = max(0, min($this->useful_life_months, $months));
 
         $value = $this->purchase_price - ($this->monthlyDepreciation() * $months);

@@ -7,13 +7,19 @@
     "license": "MIT",
     "require": {
         "php": "^8.3",
+        "barryvdh/laravel-dompdf": "^3.1",
         "laravel/framework": "^13.17",
         "laravel/sanctum": "^4.0",
-        "laravel/tinker": "^3.0"
+        "laravel/tinker": "^3.0",
+        "midtrans/midtrans-php": "*",
+        "resend/resend-laravel": "^1.6",
+        "svix/svix": "^2.8",
+        "xendit/xendit-php": "*"
     },
     "require-dev": {
         "fakerphp/faker": "^1.23",
         "larastan/larastan": "^3.12",
+        "laravel/boost": "^2.10",
         "laravel/pail": "^1.2.5",
         "laravel/pint": "^1.27",
         "mockery/mockery": "^1.6",
@@ -50,6 +56,15 @@
         "test": [
             "@php artisan config:clear --ansi @no_additional_args",
             "@php artisan test"
+        ],
+        "lint": [
+            "vendor/bin/pint"
+        ],
+        "lint:check": [
+            "vendor/bin/pint --test"
+        ],
+        "analyse": [
+            "vendor/bin/phpstan analyse"
         ],
         "post-autoload-dump": [
             "Illuminate\\Foundation\\ComposerScripts::postAutoloadDump",

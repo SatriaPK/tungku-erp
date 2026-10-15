@@ -7,7 +7,17 @@ use App\Enum\StageType;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Support\Carbon;
 
+/**
+ * @property StageType $stage
+ * @property StageStatus $status
+ * @property Carbon|null $deadline_at
+ * @property Carbon|null $assigned_at
+ * @property Carbon|null $started_at
+ * @property Carbon|null $completed_at
+ * @property int|null $operator_id
+ */
 class ProjectStage extends Model
 {
     protected $fillable = [
@@ -25,15 +35,18 @@ class ProjectStage extends Model
     /**
      * @return array<string, string>
      */
-    protected $casts = [
-        'stage' => StageType::class,
-        'sequence' => 'integer',
-        'status' => StageStatus::class,
-        'deadline_at' => 'datetime',
-        'assigned_at' => 'datetime',
-        'started_at' => 'datetime',
-        'completed_at' => 'datetime',
-    ];
+    protected function casts(): array
+    {
+        return [
+            'stage' => StageType::class,
+            'sequence' => 'integer',
+            'status' => StageStatus::class,
+            'deadline_at' => 'datetime',
+            'assigned_at' => 'datetime',
+            'started_at' => 'datetime',
+            'completed_at' => 'datetime',
+        ];
+    }
 
     public function isOverdue(): bool
     {
@@ -42,11 +55,13 @@ class ProjectStage extends Model
             && $this->deadline_at->isPast();
     }
 
+    /** @return BelongsTo<Project, $this> */
     public function project(): BelongsTo
     {
         return $this->belongsTo(Project::class);
     }
 
+    /** @return BelongsTo<User, $this> */
     public function operator(): BelongsTo
     {
         return $this->belongsTo(User::class, 'operator_id');

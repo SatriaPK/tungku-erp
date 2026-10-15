@@ -23,7 +23,7 @@ class RegisterRequest extends FormRequest
         $digits = preg_replace('/\D+/', '', (string) $this->input('phone'));
 
         if (str_starts_with($digits, '0')) {
-            $digits = '62' . substr($digits, 1);
+            $digits = '62'.substr($digits, 1);
         }
 
         $this->merge([
@@ -56,7 +56,7 @@ class RegisterRequest extends FormRequest
             'email.unique' => 'Email ini sudah terdaftar.',
             'phone.regex' => 'Gunakan nomor seluler Indonesia, misalnya 081234567890.',
             'password.confirmed' => 'Konfirmasi kata sandi tidak cocok.',
-            'crm_consent.required' => 'Pilihan persetujuan dihubungi kembali wajib diisi.',
+            'crm_consent.required' => 'Pilihan persetujuan menerima email promosi CRM wajib diisi.',
         ];
     }
 }

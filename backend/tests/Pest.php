@@ -14,9 +14,15 @@ use Tests\TestCase;
 |
 */
 
-pest()->extend(Tests\TestCase::class)
-    ->use(Illuminate\Foundation\Testing\RefreshDatabase::class)
+pest()->extend(TestCase::class)
+    ->use(RefreshDatabase::class)
     ->in('Feature');
+
+// Unit tests also need TestCase for Laravel features (facades, config, etc.)
+// Unit tests that touch database should also use RefreshDatabase
+pest()->extend(TestCase::class)
+    ->use(RefreshDatabase::class)
+    ->in('Unit');
 
 /*
 |--------------------------------------------------------------------------

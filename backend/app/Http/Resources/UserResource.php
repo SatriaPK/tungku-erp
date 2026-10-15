@@ -26,7 +26,7 @@ class UserResource extends JsonResource
             'role' => $this->role->value,
             'role_label' => $this->role->label(),
             'crm_consent' => $this->crm_consent_at !== null,
-            'created_at' => $this->created_at,
+            'created_at' => $this->created_at?->copy()->setTimezone(config('app.timezone'))->toIso8601String(),
         ];
     }
 }

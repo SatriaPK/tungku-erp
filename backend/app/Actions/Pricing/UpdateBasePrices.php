@@ -9,9 +9,7 @@ use Illuminate\Support\Facades\DB;
 
 class UpdateBasePrices
 {
-    public function __construct(private readonly CalculatePackagePrice $calculator)
-    {
-    }
+    public function __construct(private readonly CalculatePackagePrice $calculator) {}
 
     /**
      * Memperbarui harga dasar, lalu menghitung ulang harga otomatis semua paket

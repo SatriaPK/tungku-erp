@@ -6,15 +6,40 @@ use App\Enum\PaymentStatus;
 use App\Enum\ProjectStatus;
 use App\Enum\SessionStatus;
 use App\Enum\StageStatus;
+use App\Enum\StageType;
 use App\Enum\TrackProgressStatus;
 use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\HasOne;
+use Illuminate\Support\Carbon;
 
+/**
+ * @property-read User|null $client
+ * @property ProjectStatus $status
+ * @property int $price
+ * @property int $po_amount
+ * @property int|null $final_payment_amount
+ * @property Carbon|null $completed_at
+ * @property-read Package|null $package
+ * @property-read Quotation|null $quotation
+ */
 class Project extends Model
 {
+    use HasFactory;
+
+    /** @var array<string, string> */
+    protected $casts = [
+        'package_snapshot' => 'array',
+        'price' => 'integer',
+        'po_amount' => 'integer',
+        'final_payment_amount' => 'integer',
+        'status' => ProjectStatus::class,
+        'completed_at' => 'datetime',
+    ];
+
     protected $fillable = [
         'code',
         'client_id',
@@ -24,23 +49,10 @@ class Project extends Model
         'package_snapshot',
         'price',
         'po_amount',
+        'final_payment_amount',
         'status',
         'completed_at',
     ];
-
-    /**
-     * @return array<string, string>
-     */
-    protected function casts(): array
-    {
-        return [
-            'package_snapshot' => 'array',
-            'price' => 'integer',
-            'po_amount' => 'integer',
-            'status' => ProjectStatus::class,
-            'completed_at' => 'datetime',
-        ];
-    }
 
     /**
      * Project yang PO-nya sudah lunas dan belum berakhir.
@@ -74,6 +86,7 @@ class Project extends Model
         return $this->hasMany(ProjectTrack::class)->orderBy('position');
     }
 
+    /** @return HasMany<ProjectStage, $this> */
     public function stages(): HasMany
     {
         return $this->hasMany(ProjectStage::class)->orderBy('sequence');
@@ -153,8 +166,16 @@ class Project extends Model
      */
     public function progressPercent(): int
     {
+        $includedStages = $this->includedStageValues();
+
+        if ($includedStages === []) {
+            return 0;
+        }
+
         $stats = TrackStageProgress::query()
-            ->whereHas('stage', fn (Builder $query) => $query->where('project_id', $this->id))
+            ->whereHas('stage', fn (Builder $query) => $query
+                ->where('project_id', $this->id)
+                ->whereIn('stage', $includedStages))
             ->selectRaw(
                 'COUNT(*) as total, COALESCE(SUM(status = ?), 0) as approved',
                 [TrackProgressStatus::Approved->value],
@@ -167,5 +188,28 @@ class Project extends Model
         }
 
         return (int) round(((int) $stats->approved) / (int) $stats->total * 100);
+    }
+
+    /**
+     * @return array<int, string>
+     */
+    public function includedStageValues(): array
+    {
+        $snapshot = $this->getAttribute('package_snapshot') ?? [];
+
+        if (isset($snapshot['stages']) && is_array($snapshot['stages'])) {
+            return array_values(array_unique(array_map(
+                static fn (string|StageType $stage): string => $stage instanceof StageType ? $stage->value : $stage,
+                $snapshot['stages'],
+            )));
+        }
+
+        return array_values(array_map(
+            static fn (StageType $stage): string => $stage->value,
+            array_filter(
+                StageType::cases(),
+                static fn (StageType $stage): bool => (bool) ($snapshot[$stage->includeColumn()] ?? false),
+            ),
+        ));
     }
 }

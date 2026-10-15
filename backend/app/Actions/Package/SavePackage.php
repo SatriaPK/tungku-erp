@@ -9,9 +9,7 @@ use App\Models\User;
 
 class SavePackage
 {
-    public function __construct(private readonly CalculatePackagePrice $calculator)
-    {
-    }
+    public function __construct(private readonly CalculatePackagePrice $calculator) {}
 
     /**
      * Membuat paket baru, atau memperbarui paket yang diberikan.
@@ -29,7 +27,7 @@ class SavePackage
 
         $manualPrice = $data['manual_price'] ?? null;
 
-        $package ??= new Package();
+        $package ??= new Package;
 
         $attributes = [
             'name' => $data['name'],

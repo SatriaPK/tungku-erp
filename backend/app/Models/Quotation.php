@@ -9,10 +9,31 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\HasOne;
+use Illuminate\Support\Carbon;
 
+/**
+ * @property QuotationStatus $status
+ * @property string|null $name
+ * @property Carbon|null $closed_at
+ */
 class Quotation extends Model
 {
+    /** @var array<string, string> */
+    protected $casts = [
+        'track_count' => 'integer',
+        'recording_hours' => 'integer',
+        'include_recording' => 'boolean',
+        'include_editing' => 'boolean',
+        'include_mixing' => 'boolean',
+        'include_mastering' => 'boolean',
+        'status' => QuotationStatus::class,
+        'auto_price' => 'integer',
+        'agreed_price' => 'integer',
+        'closed_at' => 'datetime',
+    ];
+
     protected $fillable = [
+        'name',
         'client_id',
         'track_count',
         'recording_hours',
@@ -29,22 +50,6 @@ class Quotation extends Model
     ];
 
     /**
-     * @return array<string, string>
-     */
-    protected $casts = [
-        'track_count' => 'integer',
-        'recording_hours' => 'integer',
-        'include_recording' => 'boolean',
-        'include_editing' => 'boolean',
-        'include_mixing' => 'boolean',
-        'include_mastering' => 'boolean',
-        'status' => QuotationStatus::class,
-        'auto_price' => 'integer',
-        'agreed_price' => 'integer',
-        'closed_at' => 'datetime',
-    ];
-
-    /**
      * @return array<int, StageType>
      */
     public function includedStages(): array
@@ -55,6 +60,11 @@ class Quotation extends Model
         ));
     }
 
+    public function packageDisplayName(): string
+    {
+        return $this->name ?? 'Penawaran Kustom #'.$this->id;
+    }
+
     /**
      * Apakah sekarang giliran pihak ini untuk bertindak.
      */
@@ -63,6 +73,7 @@ class Quotation extends Model
         return $this->status->awaitedSide() === $side;
     }
 
+    /** @return BelongsTo<User, $this> */
     public function client(): BelongsTo
     {
         return $this->belongsTo(User::class, 'client_id');

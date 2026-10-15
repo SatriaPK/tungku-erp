@@ -29,11 +29,13 @@ class PayrollItem extends Model
         ];
     }
 
+    /** @return BelongsTo<Payroll, $this> */
     public function payroll(): BelongsTo
     {
         return $this->belongsTo(Payroll::class);
     }
 
+    /** @return BelongsTo<User, $this> */
     public function operator(): BelongsTo
     {
         return $this->belongsTo(User::class, 'operator_id');

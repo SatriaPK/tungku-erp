@@ -5,14 +5,36 @@ namespace App\Models;
 use App\Enum\StageType;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Casts\Attribute;
+use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\SoftDeletes;
+use Illuminate\Support\Carbon;
 
+/**
+ * @property int $price
+ * @property int $auto_price
+ * @property int|null $manual_price
+ * @property-read Carbon|null $deleted_at
+ */
 class Package extends Model
 {
-    use SoftDeletes;
+    use HasFactory, SoftDeletes;
+
+    /** @var array<string, string> */
+    protected $casts = [
+        'track_count' => 'integer',
+        'recording_hours' => 'integer',
+        'include_recording' => 'boolean',
+        'include_editing' => 'boolean',
+        'include_mixing' => 'boolean',
+        'include_mastering' => 'boolean',
+        'auto_price' => 'integer',
+        'manual_price' => 'integer',
+        'is_price_manual' => 'boolean',
+        'is_active' => 'boolean',
+    ];
 
     protected $fillable = [
         'name',
@@ -27,27 +49,7 @@ class Package extends Model
         'manual_price',
         'is_price_manual',
         'is_active',
-        'created_by',
     ];
-
-    /**
-     * @return array<string, string>
-     */
-    protected function casts(): array
-    {
-        return [
-            'track_count' => 'integer',
-            'recording_hours' => 'integer',
-            'include_recording' => 'boolean',
-            'include_editing' => 'boolean',
-            'include_mixing' => 'boolean',
-            'include_mastering' => 'boolean',
-            'auto_price' => 'integer',
-            'manual_price' => 'integer',
-            'is_price_manual' => 'boolean',
-            'is_active' => 'boolean',
-        ];
-    }
 
     /**
      * Harga yang berlaku: harga manual kalau dipakai, selain itu harga otomatis.
