@@ -72,7 +72,7 @@ class ReviewTrackResult
             $progress->setRelation('submissions', collect([$submission]));
 
             return $progress;
-        });
+        }, 3);
     }
 
     private function completeStageAndUnlockNext(Project $project, ProjectStage $stage): void

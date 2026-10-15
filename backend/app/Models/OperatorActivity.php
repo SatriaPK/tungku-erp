@@ -11,6 +11,8 @@ use Illuminate\Database\Eloquent\Model;
 use LogicException;
 
 /**
+ * @property OperatorActivityType $type
+ * @property StageType $stage
  * @property CarbonImmutable|null $deadline_at
  * @property CarbonImmutable $occurred_at
  * @property CarbonImmutable $recorded_at
