@@ -1,4 +1,4 @@
-import { useState } from "react";
+import GlobalSearch from "../GlobalSearch";
 import { sections, home } from "../../config/navigation";
 import navigate from "../../lib/navigation";
 import DesignIcon from "../DesignIcon";
@@ -10,7 +10,6 @@ export default function ClientNavbar({
   onLogout,
   logoutBusy,
 }) {
-  const [search, setSearch] = useState("");
   return (
     <header className="client-navbar">
       <a
@@ -42,24 +41,7 @@ export default function ClientNavbar({
             </a>
           ))}
       </nav>
-      <form
-        className="search client-navbar-search"
-        onSubmit={(event) => {
-          event.preventDefault();
-          window.dispatchEvent(
-            new CustomEvent("workspace-search", { detail: search }),
-          );
-          if (search && window.find) window.find(search);
-        }}
-      >
-        <DesignIcon name="search" />
-        <input
-          aria-label="Cari pada halaman aktif"
-          placeholder="Cari project..."
-          value={search}
-          onChange={(event) => setSearch(event.target.value)}
-        />
-      </form>
+      <GlobalSearch role="client" className="client-navbar-search" />
       <div className="client-account">
         <button
           className="icon-button bell"

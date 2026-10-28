@@ -17,6 +17,7 @@ import ActionModal from "./components/ActionModal.jsx";
 import AuthPage from "./pages/auth/AuthPage.jsx";
 import Sidebar from "./components/layout/Sidebar.jsx";
 import Topbar from "./components/layout/Topbar.jsx";
+import SearchResults from "./pages/shared/SearchResults.jsx";
 
 const roleViews = {
   manager: ManagerView,
@@ -178,14 +179,14 @@ export default function App() {
     );
   const RoleView = roleViews[role];
   const allowed =
-    sections[role].some(([key]) => key === page) ||
+    page === 'search' || sections[role].some(([key]) => key === page) ||
     (role === "manager" &&
       ["expense-categories", "inventory-categories"].includes(page)) ||
     (role === "client" && page === "payment");
   const title =
     sections[role].find(([key]) => key === page)?.[1] ||
     resourceConfigs[page]?.title ||
-    (page === "payment" ? "Pembayaran Saya" : "Halaman");
+    (page === 'search' ? 'Hasil Pencarian' : page === "payment" ? "Pembayaran Saya" : "Halaman");
   return (
     <div
       className={`app-shell role-${role} page-${page} ${menuOpen ? "menu-open" : ""}`}
@@ -227,7 +228,7 @@ export default function App() {
                 Kembali ke Workspace
               </button>
             </>
-          ) : (
+          ) : page === 'search' ? <SearchResults key={path} role={role} /> : (
             <RoleView
               key={path}
               page={page}

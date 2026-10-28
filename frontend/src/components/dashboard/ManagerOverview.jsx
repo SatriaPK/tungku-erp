@@ -12,9 +12,15 @@ const colors = [
   "var(--ts-success)",
   "var(--ts-warning)",
 ];
-function Metric({ label, value, detail, icon, tone }) {
+function comparisonLabel(metric) {
+  return metric?.percentage == null
+    ? 'Belum ada pembanding'
+    : `${new Intl.NumberFormat('id-ID', { maximumFractionDigits: 1 }).format(metric.percentage)}% dari bulan lalu`;
+}
+function Metric({ label, value, detail, icon, tone, path }) {
   return (
-    <section className={`overview-metric ${tone}`}>
+    <a className={`overview-metric ${tone}`} href={path} aria-label={`Buka ${label}`}
+      onClick={event => { if (!event.ctrlKey && !event.metaKey && !event.shiftKey && !event.altKey) { event.preventDefault(); navigate(path); } }}>
       <div className="metric-caption">
         <small>{detail}</small>
         <ArrowRight size={16} />
@@ -28,7 +34,7 @@ function Metric({ label, value, detail, icon, tone }) {
           <DesignIcon name={icon} />
         </span>
       </div>
-    </section>
+    </a>
   );
 }
 function Panel({ title, path, children, className = "", onRefresh }) {
@@ -145,11 +151,10 @@ function MonthlyChart({ rows }) {
 function Distribution({ items, labelKey, valueKey, donut }) {
   const positive = items.filter((row) => Number(row[valueKey]) > 0);
   const total = positive.reduce((sum, row) => sum + Number(row[valueKey]), 0);
-  let end = 0;
   const gradient = positive
     .map((row, i) => {
-      const start = end;
-      end += (Number(row[valueKey]) / total) * 100;
+      const start = positive.slice(0, i).reduce((sum, item) => sum + Number(item[valueKey]), 0) / total * 100;
+      const end = start + (Number(row[valueKey]) / total) * 100;
       return `${colors[i % colors.length]} ${start}% ${end}%`;
     })
     .join(",");
@@ -190,24 +195,16 @@ export default function ManagerOverview({ data, reload }) {
         <Metric
           label="Pendapatan Bulan Ini"
           value={money(data.revenue?.current)}
-          detail={
-            data.revenue?.percentage == null
-              ? data.revenue?.percentage_reason ||
-                "Belum ada pembanding bulan lalu"
-              : `${data.revenue.percentage}% dari bulan lalu`
-          }
+          detail={comparisonLabel(data.revenue)}
+          path="/manager/reports"
           icon="dashboard-trendingup"
           tone="green"
         />
         <Metric
           label="Pengeluaran Bulan Ini"
           value={money(data.expense?.current)}
-          detail={
-            data.expense?.percentage == null
-              ? data.expense?.percentage_reason ||
-                "Belum ada pembanding bulan lalu"
-              : `${data.expense.percentage}% dari bulan lalu`
-          }
+          detail={comparisonLabel(data.expense)}
+          path="/manager/expenses"
           icon="dashboard-trendingdown1"
           tone="red"
         />
@@ -215,6 +212,7 @@ export default function ManagerOverview({ data, reload }) {
           label="Pembayaran Belum Lunas"
           value={money(data.awaiting_final_payment?.amount)}
           detail={`${data.awaiting_final_payment?.project_count || 0} Project`}
+          path="/manager/payments"
           icon="dashboard-accountbalancewallet"
           tone="blue"
         />
@@ -222,6 +220,7 @@ export default function ManagerOverview({ data, reload }) {
           label="Project Aktif"
           value={data.in_progress_projects?.count || 0}
           detail={`${data.in_progress_projects?.track_count || 0} Lagu`}
+          path="/manager/project"
           icon="dashboard-folder1"
           tone="purple"
         />
@@ -231,6 +230,7 @@ export default function ManagerOverview({ data, reload }) {
             data.quotations?.open_count ?? data.quotation_progress?.length ?? 0
           }
           detail={`${data.quotations?.awaiting_studio_count || 0} Menunggu Studio`}
+          path="/manager/quotation"
           icon="dashboard-handshake1"
           tone="orange"
         />

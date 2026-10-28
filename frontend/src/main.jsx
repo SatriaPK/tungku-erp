@@ -6,6 +6,7 @@ import "./figma.css";
 import "./typography.css";
 import "./theme.css";
 import "./layouts.css";
+import "./search.css";
 import App from "./App.jsx";
 
 createRoot(document.getElementById("root")).render(

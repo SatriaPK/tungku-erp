@@ -2,6 +2,14 @@
 
 Referensi endpoint, request, dan response API Laravel. Panduan instalasi dan deployment tersedia di [README](../../README.md).
 
+## Pencarian global
+
+`GET /api/v1/search` memerlukan session login dan akun aktif. Parameter: `q` (nama/kode proyek atau nama klien, maksimal 100 karakter), `client_id`, `project_id`, `page`, dan `per_page` (1–30, default 15). Tanpa kata kunci atau pilihan ID, hasil kosong.
+
+Respons berisi `data.projects`, `data.clients`, serta `meta.current_page`, `last_page`, `total`, dan `per_page` untuk proyek. Setiap proyek memiliki `id`, `code`, `name`, `status`, `status_label`, `client: {id, name}`, dan `stage_id`. Hasil klien hanya tersedia untuk Manager dan tidak memuat email, telepon, atau password. Client hanya mendapat proyek miliknya; Operator hanya mendapat proyek yang tahapnya ditugaskan kepadanya, termasuk saat menggunakan filter ID langsung.
+
+## Endpoint bisnis
+
 Prefix semua path di bawah: `/api`. `PUT` dan `PATCH` resource memakai validasi update yang sama; PATCH belum tentu menerima body parsial. Field optional bisa tidak hadir; nullable berarti nilainya boleh null. Semua contoh dan schema bersifat struktural, bukan data akun nyata.
 
 | Method | Path | Operasi |

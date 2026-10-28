@@ -1,7 +1,7 @@
-import { Menu, Search } from "lucide-react";
+import { Menu } from "lucide-react";
+import GlobalSearch from "../GlobalSearch";
 import DesignIcon from "../DesignIcon";
 import navigate from "../../lib/navigation";
-import { useState } from "react";
 const groups = {
   dashboard: "Utama",
   booking: "Operasional",
@@ -25,7 +25,6 @@ export default function Topbar({
   socketStatus,
   onToggleMenu,
 }) {
-  const [search, setSearch] = useState("");
   return (
     <header className="topbar">
       <button
@@ -42,24 +41,7 @@ export default function Topbar({
         <strong>{title}</strong>
       </div>
       <div className="top-right">
-        <form
-          className="topbar-search search"
-          onSubmit={(e) => {
-            e.preventDefault();
-            window.dispatchEvent(
-              new CustomEvent("workspace-search", { detail: search }),
-            );
-            if (search && window.find) window.find(search);
-          }}
-        >
-          <Search size={20} />
-          <input
-            aria-label="Cari pada halaman aktif"
-            placeholder="Cari pada halaman ini..."
-            value={search}
-            onChange={(e) => setSearch(e.target.value)}
-          />
-        </form>
+        <GlobalSearch role={user.role} className={`topbar-search ${user.role === 'client' ? 'client-mobile-search' : ''}`} />
         {user.role === "manager" && (
           <button
             className="icon-button topbar-settings"
