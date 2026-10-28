@@ -1,0 +1,59 @@
+.ts-loading-screen {
+  position: fixed;
+  z-index: 1000;
+  inset: 0;
+  display: grid;
+  align-content: center;
+  justify-items: center;
+  gap: var(--ts-space-4);
+  background: var(--ts-background);
+}
+
+.ts-loading-mark {
+  position: relative;
+  width: clamp(88px, 18vw, 128px);
+  aspect-ratio: 1;
+}
+
+.ts-loading-mark__base,
+.ts-loading-mark__fill {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+}
+
+.ts-loading-mark__base {
+  filter: grayscale(1);
+  opacity: 0.24;
+}
+
+.ts-loading-mark__fill {
+  clip-path: inset(100% 0 0);
+  animation: ts-loading-fill 1.8s cubic-bezier(0.22, 1, 0.36, 1) infinite;
+}
+
+.ts-loading-screen__label {
+  color: var(--ts-on-surface-variant);
+  font-size: var(--ts-label-medium-size);
+  line-height: var(--ts-label-medium-line-height);
+}
+
+@keyframes ts-loading-fill {
+  0% {
+    clip-path: inset(100% 0 0);
+  }
+
+  75%,
+  100% {
+    clip-path: inset(0 0 0);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .ts-loading-mark__fill {
+    clip-path: inset(0 0 0);
+    animation: none;
+  }
+}

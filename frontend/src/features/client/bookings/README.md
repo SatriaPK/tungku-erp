@@ -1,0 +1,1 @@
+Client availability checks, temporary slot holds, booking confirmation, and booking history live here.

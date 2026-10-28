@@ -1,0 +1,1 @@
+Place shared application shell and navigation modules here.

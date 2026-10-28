@@ -1,0 +1,1 @@
+Manager CRM recommendations and email campaigns live here; honor client consent and the API contract.

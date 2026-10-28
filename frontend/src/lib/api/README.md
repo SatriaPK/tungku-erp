@@ -1,0 +1,1 @@
+Place the shared HTTP client and API response types here. Follow the Sanctum cookie-session contract in docs/api/FRONTEND_API.md.

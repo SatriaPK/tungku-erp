@@ -1,0 +1,168 @@
+import { useEffect, useState, type ReactNode } from 'react'
+import { Button, Icon, Input } from '../../../components/ui'
+import type { IconName } from '../../../components/ui'
+import { getCurrentUser, getManagerDashboard } from '../../../lib/manager-dashboard-api'
+import type { ManagerDashboardData, ManagerUser } from '../../../lib/manager-dashboard-api'
+import './ManagerDashboard.css'
+
+const navigationGroups: Array<{ title: string; items: Array<{ label: string; icon: IconName; badge?: string }> }> = [
+  { title: 'UTAMA', items: [{ label: 'Dashboard', icon: 'grid' }] },
+  { title: 'OPERASIONAL', items: [{ label: 'Booking', icon: 'calendar' }, { label: 'Quotation', icon: 'handshake', badge: '2' }, { label: 'Project', icon: 'folder', badge: '2' }, { label: 'Inventaris', icon: 'inventory' }] },
+  { title: 'PENJUALAN', items: [{ label: 'Manajemen Paket', icon: 'package' }, { label: 'CRM', icon: 'users' }] },
+  { title: 'KEUANGAN', items: [{ label: 'Invoice', icon: 'file' }, { label: 'Laporan', icon: 'file' }, { label: 'Pengeluaran', icon: 'chart' }] },
+  { title: 'ADMINISTRASI', items: [{ label: 'Operator', icon: 'user' }, { label: 'Pengaturan', icon: 'settings' }] },
+]
+
+const monthNames = ['Jan', 'Feb', 'Mar', 'Apr', 'Mei', 'Jun', 'Jul', 'Agu', 'Sep', 'Okt', 'Nov', 'Des']
+const currency = new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR', maximumFractionDigits: 0 })
+const number = new Intl.NumberFormat('id-ID')
+
+function formatCurrency(value: number) {
+  return currency.format(value).replace(/\u00a0/g, ' ')
+}
+
+function formatTime(value: string) {
+  return new Intl.DateTimeFormat('id-ID', { hour: '2-digit', minute: '2-digit', hourCycle: 'h23', timeZone: 'UTC' }).format(new Date(value))
+}
+
+function formatAge(seconds: number) {
+  if (seconds < 3600) return `${Math.max(1, Math.floor(seconds / 60))} menit lalu`
+  if (seconds < 86400) return `${Math.floor(seconds / 3600)} jam lalu`
+  if (seconds < 604800) return `${Math.floor(seconds / 86400)} hari lalu`
+  return `${Math.floor(seconds / 604800)} minggu lalu`
+}
+
+function TrendCard({ label, value, trend, icon, tone, detail }: { label: string; value: string; trend?: ManagerDashboardData['revenue']; icon: IconName; tone: string; detail?: string }) {
+  const isUp = trend?.direction === 'up'
+  const trendLabel = trend?.percentage === null || trend?.percentage === undefined
+    ? trend?.percentage_reason ?? 'Belum ada data pembanding'
+    : `${number.format(Math.abs(trend.percentage))}%`
+
+  return (
+    <article className={`manager-stat manager-stat--${tone}`}>
+      {trend && <span className={`manager-stat__trend${isUp ? ' is-up' : ' is-down'}`}><Icon name={isUp ? 'trending-up' : 'trending-down'} size={14} />{trendLabel}</span>}
+      {detail && <span className="manager-stat__trend"><Icon name="folder" size={14} />{detail}</span>}
+      <span aria-hidden="true" className="manager-stat__icon"><Icon name={icon} size={27} /></span>
+      <span className="manager-stat__label">{label}</span>
+      <strong className="manager-stat__value">{value}</strong>
+    </article>
+  )
+}
+
+function Panel({ title, action, children, className = '' }: { title: string; action?: string; children: ReactNode; className?: string }) {
+  return (
+    <section className={`manager-panel ${className}`}>
+      <header className="manager-panel__header"><h2>{title}</h2>{action && <button aria-label={action} className="manager-panel__action" type="button"><Icon name="arrow-right" size={20} /></button>}</header>
+      {children}
+    </section>
+  )
+}
+
+function FinanceChart({ data }: { data: ManagerDashboardData }) {
+  const points = data.monthly.slice(0, 12)
+  const max = Math.max(1, ...points.flatMap((point) => [point.revenue, point.expense]))
+  const x = (index: number) => 32 + index * (850 / Math.max(1, points.length - 1))
+  const y = (value: number) => 270 - (value / max) * 250
+  const pathFor = (values: number[]) => values.map((value, index) => `${index === 0 ? 'M' : 'L'} ${x(index)} ${y(value)}`).join(' ')
+
+  return (
+    <Panel className="manager-finance" title="Laporan Keuangan">
+      <div className="manager-finance__legend"><span><i className="is-revenue" />Pendapatan</span><span><i className="is-expense" />Pengeluaran</span><span className="manager-finance__period"><Icon name="calendar" size={14} />{new Intl.DateTimeFormat('id-ID', { month: 'long', year: 'numeric' }).format(new Date(Date.UTC(data.period.year, data.period.month - 1, 1)))}</span></div>
+      <div aria-label="Grafik pendapatan dan pengeluaran bulanan" className="manager-chart-wrap" role="img">
+        <svg className="manager-chart" preserveAspectRatio="none" viewBox="0 0 900 310">
+          {[0, 1, 2, 3, 4, 5].map((tick) => <g className="manager-chart__grid" key={tick}><line x1="32" x2="886" y1={20 + tick * 50} y2={20 + tick * 50} /><text x="0" y={24 + tick * 50}>{number.format(Math.round(max * (5 - tick) / 5))}</text></g>)}
+          <path className="manager-chart__line is-revenue" d={pathFor(points.map((point) => point.revenue))} />
+          <path className="manager-chart__line is-expense" d={pathFor(points.map((point) => point.expense))} />
+          {points.map((point, index) => <text className="manager-chart__month" key={point.month} x={x(index)} y="300">{monthNames[point.month - 1]?.toUpperCase()}</text>)}
+        </svg>
+      </div>
+    </Panel>
+  )
+}
+
+function DonutPanel({ title, items, label, total, className = '' }: { title: string; items: Array<{ name: string; count: number; percentage: number }>; label: string; total: number; className?: string }) {
+  const colors = ['#ce4337', '#2b2626', '#7a5900', '#4f8c62', '#315f88']
+  const segments = items.reduce<Array<{ color: string; start: number; end: number }>>((result, item, index) => {
+    const start = result.at(-1)?.end ?? 0
+    result.push({ color: colors[index % colors.length], start, end: start + item.percentage })
+    return result
+  }, []).map((segment) => `${segment.color} ${segment.start}% ${segment.end}%`)
+
+  return (
+    <Panel className={`manager-donut-panel ${className}`} title={title} action={`Lihat ${title.toLowerCase()}`}>
+      <div aria-label={`Distribusi ${label.toLowerCase()}`} className="manager-donut" role="img" style={{ background: segments.length ? `conic-gradient(${segments.join(', ')})` : 'conic-gradient(var(--ts-outline-variant) 0 100%)' }} />
+      {items.length ? <ul className="manager-legend">{items.slice(0, 5).map((item, index) => <li key={item.name}><i style={{ background: colors[index % colors.length] }} /><span>{item.name}</span><strong>{number.format(item.percentage)}%</strong></li>)}</ul> : <p className="manager-empty manager-empty--compact">Belum ada {label.toLowerCase()} untuk periode ini.</p>}
+      <span className="manager-sr-only">Total: {number.format(total)}</span>
+    </Panel>
+  )
+}
+
+function ManagerDashboardContent({ data, user }: { data: ManagerDashboardData; user: ManagerUser | null }) {
+  const sales = data.package_sales.items.map((item) => ({ name: item.name, count: item.project_count, percentage: item.percentage }))
+  const expenses = data.expense_categories.items.map((item) => ({ name: item.category_name, count: item.transaction_count, percentage: item.percentage }))
+  const displayName = user?.name ?? 'Manager'
+
+  return (
+    <div className="manager-shell">
+      <aside className="manager-sidebar">
+        <a aria-label="Tungku Studio" className="manager-brand" href="/dashboard"><img alt="" src="/tungku-icon.svg" /><span><strong>Tungku Studio</strong><small>Enterprise Resource Planning</small></span></a>
+        <nav aria-label="Navigasi utama" className="manager-nav">
+          {navigationGroups.map((group) => <section className="manager-nav__group" key={group.title}><h2>{group.title}<Icon name="chevron-down" size={16} /></h2>{group.items.map((item) => <a aria-current={item.label === 'Dashboard' ? 'page' : undefined} className={`manager-nav__item${item.label === 'Dashboard' ? ' is-active' : ''}`} href={item.label === 'Dashboard' ? '/dashboard' : '#'} key={item.label}><Icon name={item.icon} size={20} /><span>{item.label}</span>{item.badge && <b>{item.badge}</b>}</a>)}</section>)}
+        </nav>
+        <div className="manager-profile"><span aria-hidden="true" className="manager-profile__avatar"><Icon name="user" size={22} /></span><span className="manager-profile__details"><strong>{displayName}</strong><small>Manager</small></span><button aria-label="Keluar" className="manager-profile__logout" type="button"><Icon name="logout" size={20} /></button></div>
+      </aside>
+
+      <main className="manager-main">
+        <header className="manager-topbar"><div><span className="manager-breadcrumb">Utama / Dashboard</span><h1>Dashboard</h1></div><div className="manager-topbar__tools"><Button className="manager-create-button" leadingIcon="plus">Buat Project</Button><Input aria-label="Cari project, klien, operator" className="manager-search" leadingIcon="search" placeholder="Cari project, klien, operator..." /><button aria-label="Pengaturan" className="manager-topbar__icon" type="button"><Icon name="settings" size={25} /></button><button aria-label="Notifikasi" className="manager-topbar__icon" type="button"><Icon name="bell" size={25} /></button></div></header>
+
+        <div className="manager-dashboard">
+          <section aria-label="Ringkasan" className="manager-stats">
+            <TrendCard icon="dollar" label="Pendapatan Bulan Ini" tone="success" trend={data.revenue} value={formatCurrency(data.revenue.current)} />
+            <TrendCard icon="trending-down" label="Pengeluaran Bulan Ini" tone="error" trend={data.expense} value={formatCurrency(data.expense.current)} />
+            <TrendCard icon="credit-card" label="Pembayaran Belum Lunas" tone="blue" value={formatCurrency(data.awaiting_final_payment.amount)} />
+            <TrendCard detail={`${number.format(data.in_progress_projects.track_count)} Lagu`} icon="folder" label="Project Aktif" tone="purple" value={number.format(data.in_progress_projects.count)} />
+            <TrendCard detail={`${number.format(data.quotations.awaiting_studio_count)} Menunggu Studio`} icon="handshake" label="Dalam Penawaran" tone="orange" value={number.format(data.quotations.open_count)} />
+          </section>
+
+          <section aria-label="Grafik ringkasan keuangan" className="manager-analytics"><FinanceChart data={data} /><DonutPanel className="manager-sales-panel" items={sales} label="Paket terjual" title="Paket Terlaris Bulanan" total={data.package_sales.total_count} /><DonutPanel className="manager-expense-panel" items={expenses} label="Pengeluaran" title="Pengeluaran Bulan Ini" total={data.expense_categories.total_amount} /></section>
+
+          <section aria-label="Ringkasan operasional" className="manager-operations">
+            <Panel title="Jadwal Rekaman Hari Ini" action="Lihat jadwal"><ul className="manager-list">{data.recording_schedule.map((item) => <li className="manager-list__row" key={item.id}><span><strong>{item.project_name ?? 'Project tidak tersedia'}</strong><small>{item.client_name ?? 'Klien tidak tersedia'}</small></span><time>{formatTime(item.start_at)} – {formatTime(item.end_at)}</time></li>)}</ul>{!data.recording_schedule.length && <p className="manager-empty">Tidak ada jadwal rekaman hari ini.</p>}</Panel>
+            <Panel title="Progress Proyek" action="Lihat project"><ul className="manager-list">{data.project_progress.map((item) => <li className="manager-list__row" key={item.id}><span><strong>{item.name}</strong><small>{item.client_name ?? 'Klien tidak tersedia'}</small></span><span className={`manager-status manager-status--${item.current_stage ?? 'neutral'}`}><Icon name={item.current_stage === 'recording' ? 'microphone' : item.current_stage === 'editing' ? 'scissors' : 'sliders'} size={14} />{item.current_stage_label ?? item.status_label}</span></li>)}</ul>{!data.project_progress.length && <p className="manager-empty">Belum ada project yang sedang berjalan.</p>}</Panel>
+            <Panel title="Progress Penawaran" action="Lihat penawaran"><ul className="manager-list">{data.quotation_progress.map((item) => <li className="manager-list__row" key={item.id}><span><strong>{item.name ?? item.package_display_name}</strong><small>{item.client_name ?? 'Klien tidak tersedia'}</small></span><span className={`manager-status manager-status--${item.status === 'awaiting_client' ? 'orange' : 'error'}`}><Icon name="handshake" size={14} />{item.status_label}</span></li>)}</ul>{!data.quotation_progress.length && <p className="manager-empty">Tidak ada penawaran yang menunggu respons.</p>}</Panel>
+            <Panel title="Aktivitas Operator"><ul className="manager-activity-list">{data.operator_activities.slice(0, 5).map((item) => <li key={item.id}><strong>{item.description}</strong><time>{formatAge(item.age_seconds)}</time></li>)}</ul>{!data.operator_activities.length && <p className="manager-empty">Belum ada aktivitas operator.</p>}</Panel>
+          </section>
+        </div>
+      </main>
+    </div>
+  )
+}
+
+export default function ManagerDashboard() {
+  const [data, setData] = useState<ManagerDashboardData | null>(null)
+  const [user, setUser] = useState<ManagerUser | null>(null)
+  const [error, setError] = useState('')
+  const [loading, setLoading] = useState(true)
+
+  useEffect(() => {
+    let cancelled = false
+    Promise.all([getManagerDashboard(), getCurrentUser()])
+      .then(([dashboard, currentUser]) => {
+        if (cancelled) return
+        setData(dashboard)
+        setUser(currentUser)
+      })
+      .catch((cause: unknown) => {
+        if (cancelled) return
+        setError(cause instanceof Error ? cause.message : 'Dashboard tidak dapat dimuat.')
+      })
+      .finally(() => { if (!cancelled) setLoading(false) })
+    return () => { cancelled = true }
+  }, [])
+
+  if (loading) return <main aria-busy="true" className="manager-state"><span className="manager-state__spinner" /><p>Memuat dashboard...</p></main>
+  if (error) return <main className="manager-state"><Icon name="activity" size={32} /><h1>Dashboard belum dapat dimuat</h1><p>{error}</p><button onClick={() => window.location.reload()} type="button">Coba lagi</button></main>
+  if (!data) return null
+
+  return <ManagerDashboardContent data={data} user={user} />
+}
