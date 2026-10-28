@@ -1,0 +1,162 @@
+:root {
+  --ts-primary: #ce4337;
+  --ts-on-primary: #ffffff;
+  --ts-primary-container: #ffdad5;
+  --ts-on-primary-container: #410002;
+  --ts-secondary: #2b2626;
+  --ts-on-secondary: #ffffff;
+  --ts-secondary-container: #e8e1df;
+  --ts-on-secondary-container: #1f1a19;
+  --ts-tertiary: #7a5900;
+  --ts-on-tertiary: #ffffff;
+  --ts-tertiary-container: #ffdea0;
+  --ts-on-tertiary-container: #261900;
+  --ts-success: #006d3b;
+  --ts-on-success: #ffffff;
+  --ts-success-container: #bce8c3;
+  --ts-on-success-container: #00210e;
+  --ts-warning: #b25e00;
+  --ts-on-warning: #ffffff;
+  --ts-warning-container: #ffdbb5;
+  --ts-on-warning-container: #341a00;
+  --ts-error: #b0002a;
+  --ts-on-error: #ffffff;
+  --ts-error-container: #ffd9dc;
+  --ts-on-error-container: #410009;
+  --ts-background: #fbf8f6;
+  --ts-on-background: #1d1b1a;
+  --ts-inverse-background: #322f2e;
+  --ts-on-inverse-background: #f5efed;
+  --ts-surface: #ffffff;
+  --ts-on-surface: #1d1b1a;
+  --ts-surface-variant: #efe6e3;
+  --ts-on-surface-variant: #4f4543;
+  --ts-outline: #857370;
+  --ts-outline-variant: #d6cbc8;
+
+  /* Compatibility aliases for existing components. */
+  --color-primary: var(--ts-primary);
+  --color-on-primary: var(--ts-on-primary);
+  --color-primary-container: var(--ts-primary-container);
+  --color-on-primary-container: var(--ts-on-primary-container);
+  --color-secondary: var(--ts-secondary);
+  --color-on-secondary: var(--ts-on-secondary);
+  --color-secondary-container: var(--ts-secondary-container);
+  --color-on-secondary-container: var(--ts-on-secondary-container);
+  --color-tertiary: var(--ts-tertiary);
+  --color-on-tertiary: var(--ts-on-tertiary);
+  --color-tertiary-container: var(--ts-tertiary-container);
+  --color-on-tertiary-container: var(--ts-on-tertiary-container);
+  --color-success: var(--ts-success);
+  --color-on-success: var(--ts-on-success);
+  --color-success-container: var(--ts-success-container);
+  --color-on-success-container: var(--ts-on-success-container);
+  --color-warning: var(--ts-warning);
+  --color-on-warning: var(--ts-on-warning);
+  --color-warning-container: var(--ts-warning-container);
+  --color-on-warning-container: var(--ts-on-warning-container);
+  --color-error: var(--ts-error);
+  --color-on-error: var(--ts-on-error);
+  --color-error-container: var(--ts-error-container);
+  --color-on-error-container: var(--ts-on-error-container);
+  --color-background: var(--ts-background);
+  --color-on-background: var(--ts-on-background);
+  --color-inverse-background: var(--ts-inverse-background);
+  --color-on-inverse-background: var(--ts-on-inverse-background);
+  --color-surface: var(--ts-surface);
+  --color-on-surface: var(--ts-on-surface);
+  --color-surface-variant: var(--ts-surface-variant);
+  --color-on-surface-variant: var(--ts-on-surface-variant);
+  --color-outline: var(--ts-outline);
+  --color-outline-variant: var(--ts-outline-variant);
+
+  --font-family-base: "DM Sans Variable", "DM Sans", Arial, sans-serif;
+
+  --text-display-large: 57px;
+  --text-display-medium: 45px;
+  --text-display-small: 36px;
+  --text-headline-large: 32px;
+  --text-headline-medium: 28px;
+  --text-headline-small: 24px;
+  --text-title-large: 22px;
+  --text-title-medium: 16px;
+  --text-title-small: 14px;
+  --text-body-large: 16px;
+  --text-body-medium: 14px;
+  --text-body-small: 13px;
+  --text-label-large: 14px;
+  --text-label-medium: 12px;
+  --text-label-small: 11px;
+
+  --text-caption: 10px;
+  --text-title-supporting: 18px;
+  --text-title-compact: 20px;
+
+  --line-display-large: 64px;
+  --line-display-medium: 52px;
+  --line-headline-large: 40px;
+  --line-title-medium: 24px;
+  --line-title-small: 20px;
+  --line-label-large: 20px;
+  --line-label-medium: 16px;
+  --line-body-small: 18px;
+  --line-body-medium: 20px;
+  --line-body-large: 24px;
+  --line-title-large: 28px;
+  --line-headline-small: 32px;
+  --line-headline-medium: 36px;
+  --line-display-small: 44px;
+  --line-display-mobile: 40px;
+  --line-label-small: 16px;
+
+  --weight-regular: 400;
+  --weight-medium: 500;
+  --weight-bold: 700;
+
+  --font-display-large: var(--weight-regular) var(--text-display-large) /
+    var(--line-display-large) var(--font-family-base);
+  --font-display-medium: var(--weight-regular) var(--text-display-medium) /
+    var(--line-display-medium) var(--font-family-base);
+  --font-display-small: var(--weight-regular) var(--text-display-small) /
+    var(--line-display-small) var(--font-family-base);
+  --font-headline-large: var(--weight-regular) var(--text-headline-large) /
+    var(--line-headline-large) var(--font-family-base);
+  --font-headline-medium: var(--weight-regular) var(--text-headline-medium) /
+    var(--line-headline-medium) var(--font-family-base);
+  --font-headline-small: var(--weight-regular) var(--text-headline-small) /
+    var(--line-headline-small) var(--font-family-base);
+  --font-title-large: var(--weight-regular) var(--text-title-large) /
+    var(--line-title-large) var(--font-family-base);
+  --font-title-medium: var(--weight-medium) var(--text-title-medium) /
+    var(--line-title-medium) var(--font-family-base);
+  --font-title-small: var(--weight-medium) var(--text-title-small) /
+    var(--line-title-small) var(--font-family-base);
+  --font-body-large: var(--weight-regular) var(--text-body-large) /
+    var(--line-body-large) var(--font-family-base);
+  --font-body-medium: var(--weight-regular) var(--text-body-medium) /
+    var(--line-body-medium) var(--font-family-base);
+  --font-body-small: var(--weight-regular) var(--text-body-small) /
+    var(--line-body-small) var(--font-family-base);
+  --font-label-large: var(--weight-medium) var(--text-label-large) /
+    var(--line-label-large) var(--font-family-base);
+  --font-label-medium: var(--weight-medium) var(--text-label-medium) /
+    var(--line-label-medium) var(--font-family-base);
+  --font-label-small: var(--weight-medium) var(--text-label-small) /
+    var(--line-label-small) var(--font-family-base);
+
+  --tracking-display-large: -0.0025em;
+  --tracking-display-medium: 0;
+  --tracking-display-small: 0;
+  --tracking-headline-large: 0;
+  --tracking-headline-medium: 0;
+  --tracking-headline-small: 0;
+  --tracking-title-large: 0;
+  --tracking-title-medium: 0.0015em;
+  --tracking-title-small: 0.001em;
+  --tracking-body-large: 0.005em;
+  --tracking-body-medium: 0.0025em;
+  --tracking-body-small: 0.004em;
+  --tracking-label-large: 0.001em;
+  --tracking-label-medium: 0.005em;
+  --tracking-label-small: 0.005em;
+}

@@ -1,0 +1,122 @@
+/* Complete typography recipes. Import once in main.jsx; use one class per text element. */
+body {
+  font: var(--font-body-medium);
+  letter-spacing: var(--tracking-body-medium);
+  font-optical-sizing: none;
+  font-variation-settings: "opsz" 14;
+}
+button {
+  font: var(--font-label-large);
+  letter-spacing: var(--tracking-label-large);
+}
+input,
+select,
+textarea {
+  font: var(--font-body-large);
+  letter-spacing: var(--tracking-body-large);
+}
+
+.type-display-large {
+  font: var(--font-display-large);
+  letter-spacing: var(--tracking-display-large);
+  font-optical-sizing: none;
+  font-variation-settings: "opsz" 14;
+}
+
+.type-display-medium {
+  font: var(--font-display-medium);
+  letter-spacing: var(--tracking-display-medium);
+  font-optical-sizing: none;
+  font-variation-settings: "opsz" 14;
+}
+
+.type-display-small {
+  font: var(--font-display-small);
+  letter-spacing: var(--tracking-display-small);
+  font-optical-sizing: none;
+  font-variation-settings: "opsz" 14;
+}
+
+.type-headline-large {
+  font: var(--font-headline-large);
+  letter-spacing: var(--tracking-headline-large);
+  font-optical-sizing: none;
+  font-variation-settings: "opsz" 14;
+}
+
+.type-headline-medium {
+  font: var(--font-headline-medium);
+  letter-spacing: var(--tracking-headline-medium);
+  font-optical-sizing: none;
+  font-variation-settings: "opsz" 14;
+}
+
+.type-headline-small {
+  font: var(--font-headline-small);
+  letter-spacing: var(--tracking-headline-small);
+  font-optical-sizing: none;
+  font-variation-settings: "opsz" 14;
+}
+
+.type-title-large {
+  font: var(--font-title-large);
+  letter-spacing: var(--tracking-title-large);
+  font-optical-sizing: none;
+  font-variation-settings: "opsz" 14;
+}
+
+.type-title-medium {
+  font: var(--font-title-medium);
+  letter-spacing: var(--tracking-title-medium);
+  font-optical-sizing: none;
+  font-variation-settings: "opsz" 14;
+}
+
+.type-title-small {
+  font: var(--font-title-small);
+  letter-spacing: var(--tracking-title-small);
+  font-optical-sizing: none;
+  font-variation-settings: "opsz" 14;
+}
+
+.type-body-large {
+  font: var(--font-body-large);
+  letter-spacing: var(--tracking-body-large);
+  font-optical-sizing: none;
+  font-variation-settings: "opsz" 14;
+}
+
+.type-body-medium {
+  font: var(--font-body-medium);
+  letter-spacing: var(--tracking-body-medium);
+  font-optical-sizing: none;
+  font-variation-settings: "opsz" 14;
+}
+
+.type-body-small {
+  font: var(--font-body-small);
+  letter-spacing: var(--tracking-body-small);
+  font-optical-sizing: none;
+  font-variation-settings: "opsz" 14;
+}
+
+.type-label-large {
+  font: var(--font-label-large);
+  letter-spacing: var(--tracking-label-large);
+  font-optical-sizing: none;
+  font-variation-settings: "opsz" 14;
+}
+
+.type-label-medium {
+  font: var(--font-label-medium);
+  letter-spacing: var(--tracking-label-medium);
+  font-optical-sizing: none;
+  font-variation-settings: "opsz" 14;
+}
+
+.type-label-small {
+  font: var(--font-label-small);
+  letter-spacing: var(--tracking-label-small);
+  font-optical-sizing: none;
+  font-variation-settings: "opsz" 14;
+}

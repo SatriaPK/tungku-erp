@@ -1,0 +1,266 @@
+/* Tungku Studio theme: colors are defined only in tokens.css. */
+.ts-primary {
+  background-color: var(--ts-primary);
+  color: var(--ts-on-primary);
+}
+.ts-primary-container {
+  background-color: var(--ts-primary-container);
+  color: var(--ts-on-primary-container);
+}
+.ts-secondary {
+  background-color: var(--ts-secondary);
+  color: var(--ts-on-secondary);
+}
+.ts-secondary-container {
+  background-color: var(--ts-secondary-container);
+  color: var(--ts-on-secondary-container);
+}
+.ts-tertiary {
+  background-color: var(--ts-tertiary);
+  color: var(--ts-on-tertiary);
+}
+.ts-tertiary-container {
+  background-color: var(--ts-tertiary-container);
+  color: var(--ts-on-tertiary-container);
+}
+.ts-success {
+  background-color: var(--ts-success);
+  color: var(--ts-on-success);
+}
+.ts-success-container {
+  background-color: var(--ts-success-container);
+  color: var(--ts-on-success-container);
+}
+.ts-warning {
+  background-color: var(--ts-warning);
+  color: var(--ts-on-warning);
+}
+.ts-warning-container {
+  background-color: var(--ts-warning-container);
+  color: var(--ts-on-warning-container);
+}
+.ts-error {
+  background-color: var(--ts-error);
+  color: var(--ts-on-error);
+}
+.ts-error-container {
+  background-color: var(--ts-error-container);
+  color: var(--ts-on-error-container);
+}
+.ts-background {
+  background-color: var(--ts-background);
+  color: var(--ts-on-background);
+}
+.ts-inverse-background {
+  background-color: var(--ts-inverse-background);
+  color: var(--ts-on-inverse-background);
+}
+.ts-surface {
+  background-color: var(--ts-surface);
+  color: var(--ts-on-surface);
+}
+.ts-surface-variant {
+  background-color: var(--ts-surface-variant);
+  color: var(--ts-on-surface-variant);
+}
+.ts-text-primary {
+  color: var(--ts-primary);
+}
+.ts-text-on-primary {
+  color: var(--ts-on-primary);
+}
+.ts-text-primary-container {
+  color: var(--ts-primary-container);
+}
+.ts-text-on-primary-container {
+  color: var(--ts-on-primary-container);
+}
+.ts-text-secondary {
+  color: var(--ts-secondary);
+}
+.ts-text-on-secondary {
+  color: var(--ts-on-secondary);
+}
+.ts-text-secondary-container {
+  color: var(--ts-secondary-container);
+}
+.ts-text-on-secondary-container {
+  color: var(--ts-on-secondary-container);
+}
+.ts-text-tertiary {
+  color: var(--ts-tertiary);
+}
+.ts-text-on-tertiary {
+  color: var(--ts-on-tertiary);
+}
+.ts-text-tertiary-container {
+  color: var(--ts-tertiary-container);
+}
+.ts-text-on-tertiary-container {
+  color: var(--ts-on-tertiary-container);
+}
+.ts-text-success {
+  color: var(--ts-success);
+}
+.ts-text-on-success {
+  color: var(--ts-on-success);
+}
+.ts-text-success-container {
+  color: var(--ts-success-container);
+}
+.ts-text-on-success-container {
+  color: var(--ts-on-success-container);
+}
+.ts-text-warning {
+  color: var(--ts-warning);
+}
+.ts-text-on-warning {
+  color: var(--ts-on-warning);
+}
+.ts-text-warning-container {
+  color: var(--ts-warning-container);
+}
+.ts-text-on-warning-container {
+  color: var(--ts-on-warning-container);
+}
+.ts-text-error {
+  color: var(--ts-error);
+}
+.ts-text-on-error {
+  color: var(--ts-on-error);
+}
+.ts-text-error-container {
+  color: var(--ts-error-container);
+}
+.ts-text-on-error-container {
+  color: var(--ts-on-error-container);
+}
+.ts-text-background {
+  color: var(--ts-background);
+}
+.ts-text-on-background {
+  color: var(--ts-on-background);
+}
+.ts-text-inverse-background {
+  color: var(--ts-inverse-background);
+}
+.ts-text-on-inverse-background {
+  color: var(--ts-on-inverse-background);
+}
+.ts-text-surface {
+  color: var(--ts-surface);
+}
+.ts-text-on-surface {
+  color: var(--ts-on-surface);
+}
+.ts-text-surface-variant {
+  color: var(--ts-surface-variant);
+}
+.ts-text-on-surface-variant {
+  color: var(--ts-on-surface-variant);
+}
+.ts-text-outline {
+  color: var(--ts-outline);
+}
+.ts-text-outline-variant {
+  color: var(--ts-outline-variant);
+}
+
+.ts-border-outline {
+  border-color: var(--ts-outline);
+}
+.ts-border-outline-variant {
+  border-color: var(--ts-outline-variant);
+}
+.ts-card {
+  background: var(--ts-surface);
+  color: var(--ts-on-surface);
+  border: 1px solid var(--ts-outline-variant);
+  border-radius: 8px;
+  padding: 24px;
+  font: var(--font-body-medium);
+  letter-spacing: var(--tracking-body-medium);
+}
+.primary,
+.ts-button-primary {
+  background: var(--ts-primary);
+  color: var(--ts-on-primary);
+  border: 1px solid var(--ts-primary);
+  font: var(--font-label-large);
+  letter-spacing: var(--tracking-label-large);
+}
+.primary:hover:not(:disabled),
+.ts-button-primary:hover:not(:disabled) {
+  background: color-mix(
+    in srgb,
+    var(--ts-primary) 90%,
+    var(--ts-on-primary-container)
+  );
+}
+.ts-input {
+  background: var(--ts-surface);
+  color: var(--ts-on-surface-variant);
+  border: 1px solid var(--ts-outline);
+  border-radius: 4px;
+  padding: 11px 12px;
+  font: var(--font-body-large);
+  letter-spacing: var(--tracking-body-large);
+}
+.danger {
+  color: var(--ts-error);
+  border-color: var(--ts-error);
+}
+.muted {
+  color: var(--ts-on-surface-variant);
+}
+.notice.error {
+  background: var(--ts-error-container);
+  color: var(--ts-on-error-container);
+  border-color: var(--ts-error);
+}
+.notice.success {
+  background: var(--ts-success-container);
+  color: var(--ts-on-success-container);
+  border-color: var(--ts-success);
+}
+.badge {
+  background: var(--ts-secondary-container);
+  color: var(--ts-on-secondary-container);
+  font: var(--font-label-small);
+  letter-spacing: var(--tracking-label-small);
+}
+.badge:is(.paid, .completed, .approved, .accepted, .finalized) {
+  background: var(--ts-success-container);
+  color: var(--ts-on-success-container);
+}
+.badge:is(.cancelled, .failed, .declined, .expired) {
+  background: var(--ts-error-container);
+  color: var(--ts-on-error-container);
+}
+.badge:is(
+  .pending,
+  .pending_manual_confirmation,
+  .awaiting_studio,
+  .awaiting_client,
+  .revision
+) {
+  background: var(--ts-warning-container);
+  color: var(--ts-on-warning-container);
+}
+.sidebar nav a.active {
+  color: var(--ts-on-primary);
+}
+.package-filters .selected {
+  color: var(--ts-on-primary);
+}
+:where(.page-content, .modal, .auth-form) p {
+  font-family: var(--font-family-base);
+}
+
+.ts-card,
+.ts-button-primary,
+.primary,
+.ts-input {
+  font-optical-sizing: none;
+  font-variation-settings: "opsz" 14;
+}

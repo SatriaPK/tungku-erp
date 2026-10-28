@@ -1,0 +1,537 @@
+{
+  "App.Http.Requests.Client.RespondToQuotationRequest": [
+    {
+      "name": "response_type",
+      "required": true,
+      "rules": "[QuotationResponseType](#quotationresponsetype)"
+    },
+    {
+      "name": "latest_offer_id",
+      "required": true,
+      "rules": "integer"
+    },
+    {
+      "name": "price",
+      "required": false,
+      "rules": "integer / null; minimum=0"
+    },
+    {
+      "name": "note",
+      "required": false,
+      "rules": "string / null; maxLength=1000"
+    }
+  ],
+  "AssignOperatorsRequest": [
+    {
+      "name": "assignments",
+      "required": true,
+      "rules": "array&lt;integer&gt;; minItems=1"
+    }
+  ],
+  "CalculatePackagePriceRequest": [
+    {
+      "name": "track_count",
+      "required": true,
+      "rules": "integer; minimum=1; maximum=50"
+    },
+    {
+      "name": "recording_hours",
+      "required": false,
+      "rules": "integer / null; minimum=1; maximum=100"
+    },
+    {
+      "name": "include_recording",
+      "required": true,
+      "rules": "boolean"
+    },
+    {
+      "name": "include_editing",
+      "required": true,
+      "rules": "boolean"
+    },
+    {
+      "name": "include_mixing",
+      "required": true,
+      "rules": "boolean"
+    },
+    {
+      "name": "include_mastering",
+      "required": true,
+      "rules": "boolean"
+    }
+  ],
+  "CheckAvailabilityRequest": [
+    {
+      "name": "room_id",
+      "required": true,
+      "rules": "integer"
+    },
+    {
+      "name": "start_at",
+      "required": true,
+      "rules": "string; format=\"date-time\""
+    },
+    {
+      "name": "end_at",
+      "required": true,
+      "rules": "string; format=\"date-time\""
+    }
+  ],
+  "ConfirmSlotRequest": [
+    {
+      "name": "recording_session_id",
+      "required": true,
+      "rules": "integer"
+    }
+  ],
+  "ConfirmStageDeadlineRequest": [
+    {
+      "name": "deadline_at",
+      "required": true,
+      "rules": "string; format=\"date-time\""
+    }
+  ],
+  "CreateCRMCampaignRequest": [
+    {
+      "name": "name",
+      "required": true,
+      "rules": "string; maxLength=150"
+    },
+    {
+      "name": "message",
+      "required": true,
+      "rules": "string; maxLength=5000"
+    },
+    {
+      "name": "channels",
+      "required": true,
+      "rules": "array&lt;string; enum=[\"email\"]&gt;; minItems=1; maxItems=1"
+    },
+    {
+      "name": "client_ids",
+      "required": true,
+      "rules": "array&lt;integer&gt;; minItems=1; maxItems=500"
+    },
+    {
+      "name": "package_id",
+      "required": false,
+      "rules": "integer / null"
+    }
+  ],
+  "DisposeInventoryRequest": [
+    {
+      "name": "type",
+      "required": true,
+      "rules": "string; enum=[\"sold\",\"disposed\"]"
+    },
+    {
+      "name": "disposed_on",
+      "required": true,
+      "rules": "string; format=\"date\""
+    },
+    {
+      "name": "disposal_value",
+      "required": false,
+      "rules": "integer / null; minimum=0"
+    }
+  ],
+  "ExpenseCategoryRequest": [
+    {
+      "name": "name",
+      "required": true,
+      "rules": "string; maxLength=50"
+    },
+    {
+      "name": "is_active",
+      "required": false,
+      "rules": "boolean"
+    }
+  ],
+  "ExpenseRequest": [
+    {
+      "name": "expense_category_id",
+      "required": true,
+      "rules": "integer"
+    },
+    {
+      "name": "description",
+      "required": true,
+      "rules": "string; maxLength=255"
+    },
+    {
+      "name": "amount",
+      "required": true,
+      "rules": "integer; minimum=1"
+    },
+    {
+      "name": "spent_on",
+      "required": true,
+      "rules": "string; format=\"date\""
+    }
+  ],
+  "FinalizeMonthlyPayrollRequest": [
+    {
+      "name": "year",
+      "required": true,
+      "rules": "integer; minimum=1; maximum=9999"
+    },
+    {
+      "name": "month",
+      "required": true,
+      "rules": "integer; minimum=1; maximum=12"
+    }
+  ],
+  "HoldSlotRequest": [
+    {
+      "name": "room_id",
+      "required": true,
+      "rules": "integer"
+    },
+    {
+      "name": "start_at",
+      "required": true,
+      "rules": "string; format=\"date-time\""
+    },
+    {
+      "name": "end_at",
+      "required": true,
+      "rules": "string; format=\"date-time\""
+    },
+    {
+      "name": "package_id",
+      "required": false,
+      "rules": "integer"
+    },
+    {
+      "name": "quotation_id",
+      "required": false,
+      "rules": "integer"
+    },
+    {
+      "name": "project_id",
+      "required": false,
+      "rules": "integer / null"
+    }
+  ],
+  "InventoryCategoryRequest": [
+    {
+      "name": "name",
+      "required": true,
+      "rules": "string; maxLength=50"
+    },
+    {
+      "name": "is_active",
+      "required": false,
+      "rules": "boolean"
+    }
+  ],
+  "InventoryRequest": [
+    {
+      "name": "code",
+      "required": true,
+      "rules": "string; maxLength=30"
+    },
+    {
+      "name": "name",
+      "required": true,
+      "rules": "string; maxLength=100"
+    },
+    {
+      "name": "inventory_category_id",
+      "required": true,
+      "rules": "integer"
+    },
+    {
+      "name": "brand",
+      "required": false,
+      "rules": "string / null; maxLength=50"
+    },
+    {
+      "name": "model",
+      "required": false,
+      "rules": "string / null; maxLength=50"
+    },
+    {
+      "name": "serial_number",
+      "required": false,
+      "rules": "string / null; maxLength=100"
+    },
+    {
+      "name": "purchase_date",
+      "required": true,
+      "rules": "string; format=\"date\""
+    },
+    {
+      "name": "purchase_price",
+      "required": true,
+      "rules": "integer; minimum=0"
+    },
+    {
+      "name": "residual_value",
+      "required": false,
+      "rules": "integer; minimum=0"
+    },
+    {
+      "name": "useful_life_months",
+      "required": true,
+      "rules": "integer; minimum=1; maximum=65535"
+    },
+    {
+      "name": "room_id",
+      "required": false,
+      "rules": "integer / null"
+    },
+    {
+      "name": "expense_id",
+      "required": false,
+      "rules": "integer / null"
+    },
+    {
+      "name": "notes",
+      "required": false,
+      "rules": "string / null"
+    }
+  ],
+  "LoginRequest": [
+    {
+      "name": "email",
+      "required": true,
+      "rules": "string; format=\"email\""
+    },
+    {
+      "name": "password",
+      "required": true,
+      "rules": "string"
+    },
+    {
+      "name": "remember",
+      "required": false,
+      "rules": "boolean"
+    }
+  ],
+  "PackageRequest": [
+    {
+      "name": "name",
+      "required": true,
+      "rules": "string; maxLength=100"
+    },
+    {
+      "name": "description",
+      "required": false,
+      "rules": "string / null; maxLength=255"
+    },
+    {
+      "name": "track_count",
+      "required": true,
+      "rules": "integer; minimum=1; maximum=50"
+    },
+    {
+      "name": "recording_hours",
+      "required": false,
+      "rules": "integer / null; minimum=1; maximum=100"
+    },
+    {
+      "name": "include_recording",
+      "required": true,
+      "rules": "boolean"
+    },
+    {
+      "name": "include_editing",
+      "required": true,
+      "rules": "boolean"
+    },
+    {
+      "name": "include_mixing",
+      "required": true,
+      "rules": "boolean"
+    },
+    {
+      "name": "include_mastering",
+      "required": true,
+      "rules": "boolean"
+    },
+    {
+      "name": "manual_price",
+      "required": false,
+      "rules": "integer / null; minimum=0"
+    },
+    {
+      "name": "is_active",
+      "required": false,
+      "rules": "boolean"
+    }
+  ],
+  "PayrollAllocationRequest": [
+    {
+      "name": "year",
+      "required": true,
+      "rules": "integer; minimum=1; maximum=9999"
+    },
+    {
+      "name": "month",
+      "required": true,
+      "rules": "integer; minimum=1; maximum=12"
+    },
+    {
+      "name": "studio_profit_percentage",
+      "required": false,
+      "rules": "number; minimum=0; maximum=100; pattern=\"^\\\\d{1,3}(?:\\\\.\\\\d{1,2})?$\""
+    },
+    {
+      "name": "allocations",
+      "required": true,
+      "rules": "array&lt;{ operator_id: integer; percentage: number; minimum=0; maximum=100; pattern=\"^\\\\d{1,3}(?:\\\\.\\\\d{1,2})?$\" }&gt;; minItems=1"
+    }
+  ],
+  "RegisterRequest": [
+    {
+      "name": "name",
+      "required": true,
+      "rules": "string; maxLength=255"
+    },
+    {
+      "name": "email",
+      "required": true,
+      "rules": "string; format=\"email\"; maxLength=255"
+    },
+    {
+      "name": "phone",
+      "required": true,
+      "rules": "string; pattern=\"^628\\\\d{8,11}$\""
+    },
+    {
+      "name": "password",
+      "required": true,
+      "rules": "string"
+    },
+    {
+      "name": "crm_consent",
+      "required": true,
+      "rules": "boolean"
+    },
+    {
+      "name": "password_confirmation",
+      "required": true,
+      "rules": "string"
+    }
+  ],
+  "RequestRecordingExtensionRequest": [
+    {
+      "name": "room_id",
+      "required": true,
+      "rules": "integer"
+    },
+    {
+      "name": "start_at",
+      "required": true,
+      "rules": "string; format=\"date-time\""
+    },
+    {
+      "name": "end_at",
+      "required": true,
+      "rules": "string; format=\"date-time\""
+    }
+  ],
+  "RespondToQuotationRequest": [
+    {
+      "name": "response_type",
+      "required": true,
+      "rules": "[QuotationResponseType](#quotationresponsetype)"
+    },
+    {
+      "name": "latest_offer_id",
+      "required": true,
+      "rules": "integer"
+    },
+    {
+      "name": "price",
+      "required": false,
+      "rules": "integer / null; minimum=0"
+    },
+    {
+      "name": "note",
+      "required": false,
+      "rules": "string / null; maxLength=1000"
+    }
+  ],
+  "ReviewTrackResultRequest": [
+    {
+      "name": "decision",
+      "required": true,
+      "rules": "[TrackResultReviewDecision](#trackresultreviewdecision)"
+    },
+    {
+      "name": "review_notes",
+      "required": false,
+      "rules": "string / null; minLength=10; maxLength=5000"
+    }
+  ],
+  "SubmitQuotationRequest": [
+    {
+      "name": "name",
+      "required": true,
+      "rules": "string; maxLength=100"
+    },
+    {
+      "name": "track_count",
+      "required": true,
+      "rules": "integer; minimum=1; maximum=255"
+    },
+    {
+      "name": "recording_hours",
+      "required": true,
+      "rules": "integer; minimum=0; maximum=255"
+    },
+    {
+      "name": "include_recording",
+      "required": true,
+      "rules": "boolean"
+    },
+    {
+      "name": "include_editing",
+      "required": true,
+      "rules": "boolean"
+    },
+    {
+      "name": "include_mixing",
+      "required": true,
+      "rules": "boolean"
+    },
+    {
+      "name": "include_mastering",
+      "required": true,
+      "rules": "boolean"
+    },
+    {
+      "name": "notes",
+      "required": false,
+      "rules": "string / null; maxLength=1000"
+    },
+    {
+      "name": "offer_price",
+      "required": true,
+      "rules": "integer; minimum=0"
+    }
+  ],
+  "SubmitTrackResultRequest": [
+    {
+      "name": "result_url",
+      "required": true,
+      "rules": "string; format=\"uri\"; maxLength=2048"
+    }
+  ],
+  "UpdateBasePricesRequest": [
+    {
+      "name": "prices",
+      "required": true,
+      "rules": "{ recording: integer; minimum=0; maximum=1000000000; editing: integer; minimum=0; maximum=1000000000; mixing: integer; minimum=0; maximum=1000000000; mastering: integer; minimum=0; maximum=1000000000 }"
+    }
+  ],
+  "UpdateStudioSettingRequest": [
+    {
+      "name": "value",
+      "required": true,
+      "rules": "string"
+    }
+  ]
+}
