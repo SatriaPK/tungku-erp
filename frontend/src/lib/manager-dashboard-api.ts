@@ -60,8 +60,9 @@ async function getData<T>(path: string): Promise<T> {
   return data.data as T
 }
 
-export function getManagerDashboard() {
-  return getData<ManagerDashboardData>('/api/v1/manager/dashboard')
+export function getManagerDashboard(year?: number) {
+  const query = year === undefined ? '' : `?year=${encodeURIComponent(year)}`
+  return getData<ManagerDashboardData>(`/api/v1/manager/dashboard${query}`)
 }
 
 export function getCurrentUser() {

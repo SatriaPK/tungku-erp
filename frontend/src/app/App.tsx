@@ -1,9 +1,11 @@
 import { useEffect, useState } from 'react'
-import { BrowserRouter, Route, Routes } from 'react-router-dom'
-import { Badge, Button, Card, CardHeader, Icon, Input, PackageCard, PhaseChip, ProjectCard, SegmentedButton, StatCard, Switch } from '../components/ui'
+import { BrowserRouter, Route, Routes, useLocation } from 'react-router-dom'
+import { Badge, Button, Card, CardHeader, Icon, Input, LoadingScreen, PackageCard, PhaseChip, ProjectCard, SegmentedButton, StatCard, Switch } from '../components/ui'
 import type { ButtonVariant, IconName } from '../components/ui'
 import AuthScreen from '../features/auth/AuthScreen'
 import ManagerDashboard from '../features/manager/dashboard/ManagerDashboard'
+import ManagerPlaceholderPage from '../features/manager/placeholder/ManagerPlaceholderPage'
+import { managerPages, type ManagerPagePath } from '../features/manager/placeholder/manager-pages'
 import { getCurrentUser } from '../lib/auth-api'
 import './App.css'
 
@@ -196,9 +198,74 @@ function ManagerDashboardRoute() {
     return () => { mounted = false }
   }, [])
 
-  if (state.status === 'loading') return <main aria-live="polite" className="app-root">Memeriksa sesi…</main>
+  if (state.status === 'loading') return <LoadingScreen label="Memeriksa sesi Manager" />
   if (state.status === 'denied') return <main className="app-root"><p role="alert">{state.message ?? 'Dashboard ini hanya tersedia untuk Manager.'}</p><a href="/staff/login">Masuk portal Studio</a></main>
   return <ManagerDashboard />
+}
+
+function ManagerPlaceholderRoute({ path }: { path: ManagerPagePath }) {
+  const [state, setState] = useState<{ status: 'loading' | 'allowed' | 'denied'; message?: string }>({ status: 'loading' })
+
+  useEffect(() => {
+    let mounted = true
+    void getCurrentUser().then((user) => {
+      if (mounted) setState({ status: user.role === 'manager' ? 'allowed' : 'denied' })
+    }).catch(() => {
+      if (mounted) setState({ status: 'denied', message: 'Silakan login sebagai Manager untuk membuka halaman ini.' })
+    })
+    return () => { mounted = false }
+  }, [])
+
+  if (state.status === 'loading') return <LoadingScreen label="Memeriksa sesi Manager" />
+  if (state.status === 'denied') return <main className="app-root"><p role="alert">{state.message ?? 'Halaman ini hanya tersedia untuk Manager.'}</p><a href="/staff/login">Masuk portal Studio</a></main>
+  return <ManagerPlaceholderPage path={path} />
+}
+
+function ManagerNavigationFeedback() {
+  const location = useLocation()
+  const [pendingPath, setPendingPath] = useState('')
+  const isNavigating = pendingPath !== '' && pendingPath !== location.pathname
+
+  useEffect(() => {
+    if (!isNavigating) return
+    const timeout = window.setTimeout(() => setPendingPath(''), 5000)
+    return () => window.clearTimeout(timeout)
+  }, [isNavigating])
+
+  useEffect(() => {
+    const handleClick = (event: MouseEvent) => {
+      if (event.defaultPrevented || event.button !== 0 || event.metaKey || event.ctrlKey || event.shiftKey || event.altKey) return
+      const target = event.target
+      if (!(target instanceof Element)) return
+      const anchor = target.closest('a')
+      if (!anchor || anchor.target === '_blank' || anchor.hasAttribute('download')) return
+      const destination = new URL(anchor.href, window.location.href)
+      if (destination.origin !== window.location.origin || destination.pathname === location.pathname) return
+      if (destination.pathname !== '/dashboard' && !(destination.pathname in managerPages)) return
+      setPendingPath(destination.pathname)
+    }
+
+    document.addEventListener('click', handleClick)
+    return () => document.removeEventListener('click', handleClick)
+  }, [location.pathname])
+
+  if (!isNavigating) return null
+  return <LoadingScreen label="Membuka halaman Manager" />
+}
+
+function ManagerRoutes() {
+  return (
+    <>
+      <ManagerNavigationFeedback />
+      <Routes>
+        <Route element={<ManagerDashboardRoute />} path="/dashboard" />
+        {Object.keys(managerPages).map((path) => (
+          <Route element={<ManagerPlaceholderRoute path={path as ManagerPagePath} />} key={path} path={path} />
+        ))}
+        <Route element={<AuthScreen />} path="*" />
+      </Routes>
+    </>
+  )
 }
 
 export default function App() {
@@ -208,10 +275,7 @@ export default function App() {
 
   return (
     <BrowserRouter>
-      <Routes>
-        <Route element={<ManagerDashboardRoute />} path="/dashboard" />
-        <Route element={<AuthScreen />} path="*" />
-      </Routes>
+      <ManagerRoutes />
     </BrowserRouter>
   )
 }

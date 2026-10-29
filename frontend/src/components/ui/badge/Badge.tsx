@@ -2,7 +2,7 @@ import type { HTMLAttributes, ReactNode } from 'react'
 import { Icon } from '../icon'
 import type { IconName } from '../icon'
 
-export type BadgeTone = 'neutral' | 'primary' | 'success' | 'warning' | 'error' | 'recording' | 'editing' | 'mixing' | 'mastering'
+export type BadgeTone = 'neutral' | 'primary' | 'success' | 'warning' | 'error' | 'recording' | 'editing' | 'mixing' | 'mastering' | 'negative'
 
 export interface BadgeProps extends HTMLAttributes<HTMLSpanElement> {
   tone?: BadgeTone

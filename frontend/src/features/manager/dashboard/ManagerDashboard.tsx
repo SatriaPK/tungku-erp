@@ -1,17 +1,10 @@
 import { useEffect, useState, type ReactNode } from 'react'
-import { Button, Icon, Input } from '../../../components/ui'
-import type { IconName } from '../../../components/ui'
+import { Button, Icon, Input, LoadingScreen, StatCard } from '../../../components/ui'
+import type { BadgeTone, IconName } from '../../../components/ui'
+import { ManagerSideNav } from '../../../components/layout'
 import { getCurrentUser, getManagerDashboard } from '../../../lib/manager-dashboard-api'
 import type { ManagerDashboardData, ManagerUser } from '../../../lib/manager-dashboard-api'
 import './ManagerDashboard.css'
-
-const navigationGroups: Array<{ title: string; items: Array<{ label: string; icon: IconName; badge?: string }> }> = [
-  { title: 'UTAMA', items: [{ label: 'Dashboard', icon: 'grid' }] },
-  { title: 'OPERASIONAL', items: [{ label: 'Booking', icon: 'calendar' }, { label: 'Quotation', icon: 'handshake', badge: '2' }, { label: 'Project', icon: 'folder', badge: '2' }, { label: 'Inventaris', icon: 'inventory' }] },
-  { title: 'PENJUALAN', items: [{ label: 'Manajemen Paket', icon: 'package' }, { label: 'CRM', icon: 'users' }] },
-  { title: 'KEUANGAN', items: [{ label: 'Invoice', icon: 'file' }, { label: 'Laporan', icon: 'file' }, { label: 'Pengeluaran', icon: 'chart' }] },
-  { title: 'ADMINISTRASI', items: [{ label: 'Operator', icon: 'user' }, { label: 'Pengaturan', icon: 'settings' }] },
-]
 
 const monthNames = ['Jan', 'Feb', 'Mar', 'Apr', 'Mei', 'Jun', 'Jul', 'Agu', 'Sep', 'Okt', 'Nov', 'Des']
 const currency = new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR', maximumFractionDigits: 0 })
@@ -32,21 +25,17 @@ function formatAge(seconds: number) {
   return `${Math.floor(seconds / 604800)} minggu lalu`
 }
 
-function TrendCard({ label, value, trend, icon, tone, detail }: { label: string; value: string; trend?: ManagerDashboardData['revenue']; icon: IconName; tone: string; detail?: string }) {
-  const isUp = trend?.direction === 'up'
-  const trendLabel = trend?.percentage === null || trend?.percentage === undefined
-    ? trend?.percentage_reason ?? 'Belum ada data pembanding'
-    : `${number.format(Math.abs(trend.percentage))}%`
+type StatBadge = { icon: IconName; label: string; tone: BadgeTone }
 
-  return (
-    <article className={`manager-stat manager-stat--${tone}`}>
-      {trend && <span className={`manager-stat__trend${isUp ? ' is-up' : ' is-down'}`}><Icon name={isUp ? 'trending-up' : 'trending-down'} size={14} />{trendLabel}</span>}
-      {detail && <span className="manager-stat__trend"><Icon name="folder" size={14} />{detail}</span>}
-      <span aria-hidden="true" className="manager-stat__icon"><Icon name={icon} size={27} /></span>
-      <span className="manager-stat__label">{label}</span>
-      <strong className="manager-stat__value">{value}</strong>
-    </article>
-  )
+function financeBadge(trend: ManagerDashboardData['revenue'], metric: 'revenue' | 'expense'): StatBadge {
+  const direction = trend.direction === 'up' || trend.direction === 'down' ? trend.direction : 'neutral'
+  const isPositive = (metric === 'revenue' && direction === 'up') || (metric === 'expense' && direction === 'down')
+  const tone = direction === 'neutral' ? 'neutral' : isPositive ? 'success' : 'negative'
+  const label = trend.percentage === null
+    ? '0%'
+    : `${direction === 'up' ? 'Naik' : direction === 'down' ? 'Turun' : 'Tetap'} ${number.format(Math.abs(trend.percentage))}% dari bulan lalu`
+
+  return { icon: direction === 'up' ? 'trending-up' : direction === 'down' ? 'trending-down' : 'activity', label, tone }
 }
 
 function Panel({ title, action, children, className = '' }: { title: string; action?: string; children: ReactNode; className?: string }) {
@@ -104,24 +93,18 @@ function ManagerDashboardContent({ data, user }: { data: ManagerDashboardData; u
 
   return (
     <div className="manager-shell">
-      <aside className="manager-sidebar">
-        <a aria-label="Tungku Studio" className="manager-brand" href="/dashboard"><img alt="" src="/tungku-icon.svg" /><span><strong>Tungku Studio</strong><small>Enterprise Resource Planning</small></span></a>
-        <nav aria-label="Navigasi utama" className="manager-nav">
-          {navigationGroups.map((group) => <section className="manager-nav__group" key={group.title}><h2>{group.title}<Icon name="chevron-down" size={16} /></h2>{group.items.map((item) => <a aria-current={item.label === 'Dashboard' ? 'page' : undefined} className={`manager-nav__item${item.label === 'Dashboard' ? ' is-active' : ''}`} href={item.label === 'Dashboard' ? '/dashboard' : '#'} key={item.label}><Icon name={item.icon} size={20} /><span>{item.label}</span>{item.badge && <b>{item.badge}</b>}</a>)}</section>)}
-        </nav>
-        <div className="manager-profile"><span aria-hidden="true" className="manager-profile__avatar"><Icon name="user" size={22} /></span><span className="manager-profile__details"><strong>{displayName}</strong><small>Manager</small></span><button aria-label="Keluar" className="manager-profile__logout" type="button"><Icon name="logout" size={20} /></button></div>
-      </aside>
+      <ManagerSideNav managerName={displayName} />
 
       <main className="manager-main">
         <header className="manager-topbar"><div><span className="manager-breadcrumb">Utama / Dashboard</span><h1>Dashboard</h1></div><div className="manager-topbar__tools"><Button className="manager-create-button" leadingIcon="plus">Buat Project</Button><Input aria-label="Cari project, klien, operator" className="manager-search" leadingIcon="search" placeholder="Cari project, klien, operator..." /><button aria-label="Pengaturan" className="manager-topbar__icon" type="button"><Icon name="settings" size={25} /></button><button aria-label="Notifikasi" className="manager-topbar__icon" type="button"><Icon name="bell" size={25} /></button></div></header>
 
         <div className="manager-dashboard">
           <section aria-label="Ringkasan" className="manager-stats">
-            <TrendCard icon="dollar" label="Pendapatan Bulan Ini" tone="success" trend={data.revenue} value={formatCurrency(data.revenue.current)} />
-            <TrendCard icon="trending-down" label="Pengeluaran Bulan Ini" tone="error" trend={data.expense} value={formatCurrency(data.expense.current)} />
-            <TrendCard icon="credit-card" label="Pembayaran Belum Lunas" tone="blue" value={formatCurrency(data.awaiting_final_payment.amount)} />
-            <TrendCard detail={`${number.format(data.in_progress_projects.track_count)} Lagu`} icon="folder" label="Project Aktif" tone="purple" value={number.format(data.in_progress_projects.count)} />
-            <TrendCard detail={`${number.format(data.quotations.awaiting_studio_count)} Menunggu Studio`} icon="handshake" label="Dalam Penawaran" tone="orange" value={number.format(data.quotations.open_count)} />
+            <StatCard badge={financeBadge(data.revenue, 'revenue')} href="/laporan" icon="trending-up" label="Pendapatan Bulan Ini" tone="success" value={formatCurrency(data.revenue.current)} />
+            <StatCard badge={financeBadge(data.expense, 'expense')} href="/pengeluaran" icon="trending-down" label="Pengeluaran Bulan Ini" tone="error" value={formatCurrency(data.expense.current)} />
+            <StatCard badge={{ icon: 'folder', label: `${number.format(data.awaiting_final_payment.project_count)} project`, tone: 'primary' }} href="/invoice" icon="credit-card" label="Pembayaran Belum Lunas" tone="blue" value={formatCurrency(data.awaiting_final_payment.amount)} />
+            <StatCard badge={{ icon: 'music', label: `${number.format(data.in_progress_projects.track_count)} track`, tone: 'mastering' }} href="/project" icon="folder" label="Project Aktif" tone="purple" value={number.format(data.in_progress_projects.count)} />
+            <StatCard badge={{ icon: 'clock', label: `${number.format(Math.max(0, data.quotations.open_count - data.quotations.awaiting_studio_count))} menunggu klien`, tone: 'warning' }} href="/quotation" icon="handshake" label="Dalam Penawaran" tone="blue" value={number.format(data.quotations.open_count)} />
           </section>
 
           <section aria-label="Grafik ringkasan keuangan" className="manager-analytics"><FinanceChart data={data} /><DonutPanel className="manager-sales-panel" items={sales} label="Paket terjual" title="Paket Terlaris Bulanan" total={data.package_sales.total_count} /><DonutPanel className="manager-expense-panel" items={expenses} label="Pengeluaran" title="Pengeluaran Bulan Ini" total={data.expense_categories.total_amount} /></section>
@@ -160,7 +143,7 @@ export default function ManagerDashboard() {
     return () => { cancelled = true }
   }, [])
 
-  if (loading) return <main aria-busy="true" className="manager-state"><span className="manager-state__spinner" /><p>Memuat dashboard...</p></main>
+  if (loading) return <LoadingScreen label="Memuat dashboard Manager" />
   if (error) return <main className="manager-state"><Icon name="activity" size={32} /><h1>Dashboard belum dapat dimuat</h1><p>{error}</p><button onClick={() => window.location.reload()} type="button">Coba lagi</button></main>
   if (!data) return null
 
