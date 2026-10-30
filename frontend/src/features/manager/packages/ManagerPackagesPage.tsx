@@ -2,10 +2,11 @@ import { useEffect, useMemo, useRef, useState } from 'react'
 import { createPortal } from 'react-dom'
 import { useNavigate } from 'react-router-dom'
 import { ManagerSideNav, UpperNavBar } from '../../../components/layout'
-import { Badge, Button, Icon, Input, LoadingScreen } from '../../../components/ui'
+import { Badge, Button, Icon, Input, LoadingScreen, PackageCreateModal } from '../../../components/ui'
 import { getCurrentUser } from '../../../lib/auth-api'
 import type { ManagerUser } from '../../../lib/manager-dashboard-api'
-import { deleteManagerPackage, getManagerPackages, getManagerPackageSummary, updateManagerPackageActive } from '../../../lib/manager-packages-api'
+import type { ApiError } from '../../../lib/auth-api'
+import { calculateManagerPackagePrice, createManagerPackage, deleteManagerPackage, getManagerBasePrices, getManagerPackages, getManagerPackageSummary, updateManagerPackageActive } from '../../../lib/manager-packages-api'
 import type { ManagerPackage, ManagerPackageSummary } from '../../../lib/manager-packages-api'
 import { PackageCard } from './PackageCard'
 import { PackageStatCard } from './PackageStatCard'
@@ -34,6 +35,7 @@ export default function ManagerPackagesPage() {
   const [summary, setSummary] = useState<ManagerPackageSummary>({ total: 0, by_stage: { recording: 0, editing: 0, mixing: 0, mastering: 0 } })
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState('')
+  const [errorTitle, setErrorTitle] = useState('Paket belum dapat dimuat')
   const [summaryError, setSummaryError] = useState(false)
   const [query, setQuery] = useState('')
   const [stageFilter, setStageFilter] = useState<StageFilter>('all')
@@ -42,10 +44,14 @@ export default function ManagerPackagesPage() {
   const [detailPackage, setDetailPackage] = useState<ManagerPackage | null>(null)
   const [deleteTarget, setDeleteTarget] = useState<ManagerPackage | null>(null)
   const [deleting, setDeleting] = useState(false)
+  const [createOpen, setCreateOpen] = useState(false)
+  const [creating, setCreating] = useState(false)
+  const [basePrices, setBasePrices] = useState<Awaited<ReturnType<typeof getManagerBasePrices>>>([])
   const [tablePage, setTablePage] = useState(1)
   const [cardPage, setCardPage] = useState(1)
   const tablePageSize = 6
   const [viewportWidth, setViewportWidth] = useState(1440)
+  const isMobile = viewportWidth <= 740
   const [searchOpen, setSearchOpen] = useState(false)
   const searchContainerRef = useRef<HTMLDivElement>(null)
 
@@ -58,6 +64,7 @@ export default function ManagerPackagesPage() {
       })
       setTablePage(result.meta.current_page)
     } catch {
+      setErrorTitle('Paket belum dapat dimuat')
       setError('Paket tidak dapat dimuat sekarang. Periksa koneksi, lalu coba lagi.')
     } finally {
       setLoading(false)
@@ -106,7 +113,10 @@ export default function ManagerPackagesPage() {
       setPackages(result.data)
       setTablePage(result.meta.current_page)
     }).catch(() => {
-      if (mounted) setError('Paket tidak dapat dimuat sekarang. Periksa koneksi, lalu coba lagi.')
+      if (mounted) {
+        setErrorTitle('Paket belum dapat dimuat')
+        setError('Paket tidak dapat dimuat sekarang. Periksa koneksi, lalu coba lagi.')
+      }
     }).finally(() => {
       if (mounted) setLoading(false)
     })
@@ -115,6 +125,9 @@ export default function ManagerPackagesPage() {
     }).catch(() => {
       if (mounted) setSummaryError(true)
     })
+    getManagerBasePrices().then((result) => {
+      if (mounted) setBasePrices(result)
+    }).catch(() => undefined)
     getManagerPackages(1, false).then((result) => {
       if (!mounted) return
       setPackages((current) => [...current, ...result.data.filter((item) => !current.some((loaded) => loaded.id === item.id))])
@@ -128,7 +141,7 @@ export default function ManagerPackagesPage() {
     return matchesQuery && matchesStage
   }).sort((a, b) => Number(b.is_active) - Number(a.is_active)), [packages, query, stageFilter])
 
-  const cardsPerPage = viewportWidth <= 520 ? 2 : viewportWidth <= 740 ? 4 : viewportWidth <= 1200 ? 6 : 8
+  const cardsPerPage = isMobile ? 5 : viewportWidth <= 1200 ? 6 : 8
   const cardPageCount = Math.max(1, Math.ceil(filteredPackages.length / cardsPerPage))
   const currentCardPage = Math.min(cardPage, cardPageCount)
   const visibleCardPackages = filteredPackages.slice((currentCardPage - 1) * cardsPerPage, currentCardPage * cardsPerPage)
@@ -155,9 +168,30 @@ export default function ManagerPackagesPage() {
     }
   }
 
+  const submitNewPackage = async (input: Parameters<typeof createManagerPackage>[0]): Promise<ManagerPackage> => {
+    setCreating(true)
+    setError('')
+    try {
+      const created = await createManagerPackage(input)
+      setPackages((current) => [...current, created].sort((a, b) => Number(b.is_active) - Number(a.is_active)))
+      setCreateOpen(false)
+      setCardPage(1)
+      void getManagerPackageSummary().then(setSummary).catch(() => setSummaryError(true))
+      return created
+    } catch (cause) {
+      const errorCause = cause as ApiError
+      setErrorTitle(`Paket tidak dapat dibuat${errorCause.status ? ` (HTTP ${errorCause.status})` : ''}`)
+      const validationMessages = errorCause.errors ? Object.values(errorCause.errors).flat().join(' ') : ''
+      setError(validationMessages || (cause instanceof Error ? cause.message : 'Paket tidak dapat dibuat sekarang.'))
+      throw cause
+    } finally {
+      setCreating(false)
+    }
+  }
+
   const togglePackageActive = async (item: ManagerPackage) => {
     try {
-      const updated = await updateManagerPackageActive(item.id, !item.is_active)
+      const updated = await updateManagerPackageActive(item, !item.is_active)
       setActivePackageMenu(null)
       setPackages((current) => {
         const reordered = current.map((entry) => entry.id === item.id ? updated : entry)
@@ -165,9 +199,12 @@ export default function ManagerPackagesPage() {
       })
       if (!updated.is_active) setCardPage(1)
       void getManagerPackageSummary().then(setSummary).catch(() => setSummaryError(true))
-    } catch {
+    } catch (cause: unknown) {
       setActivePackageMenu(null)
-      setError(`Paket tidak dapat ${item.is_active ? 'dinonaktifkan' : 'diaktifkan'} sekarang. Periksa koneksi dan coba lagi.`)
+      const message = cause instanceof Error ? cause.message : 'Kesalahan tak diketahui.'
+      const status = (cause as ApiError).status
+      setErrorTitle(`Paket tidak dapat ${item.is_active ? 'dinonaktifkan' : 'diaktifkan'}`)
+      setError(`Paket tidak dapat ${item.is_active ? 'dinonaktifkan' : 'diaktifkan'}${status ? ` (HTTP ${status})` : ''}: ${message}`)
     }
   }
 
@@ -201,6 +238,10 @@ export default function ManagerPackagesPage() {
 
   const goTo = (path: string) => navigate(path)
 
+  useEffect(() => {
+    if (isMobile && view !== 'Kartu') setView('Kartu')
+  }, [isMobile, view])
+
   if (loading && packages.length === 0) return <LoadingScreen label="Memuat manajemen paket" />
 
   return (
@@ -231,24 +272,24 @@ export default function ManagerPackagesPage() {
             <div className="manager-package-main__toolbar">
               <Input aria-label="Cari paket" className="manager-package-search" leadingIcon="search" onChange={(event) => setQuery(event.target.value)} placeholder="Cari paket..." value={query} />
               <div className="manager-package-main__actions">
-                <div aria-label="Mode lihat" className="manager-package-view">
+                {!isMobile && <div aria-label="Mode lihat" className="manager-package-view">
                   <span>Mode Lihat:</span>
                   <div aria-label="Mode lihat" className="manager-package-view__toggle" role="group">
-                    <button aria-pressed={view === 'Kartu'} className={`manager-package-view__option${view === 'Kartu' ? ' is-active' : ''}`} onClick={() => setView('Kartu')} type="button"><span aria-hidden="true" className="manager-package-view__icon manager-package-view__icon--cards" />{view === 'Kartu' && <span>Kartu</span>}</button>
-                    <button aria-pressed={view === 'Tabel'} className={`manager-package-view__option${view === 'Tabel' ? ' is-active' : ''}`} onClick={() => setView('Tabel')} type="button"><span aria-hidden="true" className="manager-package-view__icon manager-package-view__icon--table" />{view === 'Tabel' && <span>Tabel</span>}</button>
+                    <button aria-label="Kartu" aria-pressed={view === 'Kartu'} className={`manager-package-view__option${view === 'Kartu' ? ' is-active' : ''}`} onClick={() => setView('Kartu')} type="button"><span aria-hidden="true" className="manager-package-view__icon manager-package-view__icon--cards" />{view === 'Kartu' && <span>Kartu</span>}</button>
+                    <button aria-label="Tabel" aria-pressed={view === 'Tabel'} className={`manager-package-view__option${view === 'Tabel' ? ' is-active' : ''}`} disabled={isMobile} onClick={() => setView('Tabel')} type="button"><span aria-hidden="true" className="manager-package-view__icon manager-package-view__icon--table" />{view === 'Tabel' && <span>Tabel</span>}</button>
                   </div>
-                </div>
-                <Button className="manager-package-create" leadingIcon="plus" onClick={() => goTo('/manajemen-paket/buat')}>Buat Paket</Button>
+                </div>}
               </div>
-              <div aria-label="Filter tahap paket" className="manager-package-filters">
-                {stageFilters.map((filter) => <PackageStageFilter active={stageFilter === filter.key} count={filter.count} key={filter.key} label={filter.label} onClick={() => selectStageFilter(filter.key)} />)}
-              </div>
+              <Button className="manager-package-create" leadingIcon="plus" onClick={() => setCreateOpen(true)}>Buat Paket</Button>
+            </div>
+            <div aria-label="Filter tahap paket" className="manager-package-filters">
+              {stageFilters.map((filter) => <PackageStageFilter active={stageFilter === filter.key} count={filter.count} key={filter.key} label={filter.label} onClick={() => selectStageFilter(filter.key)} />)}
             </div>
 
             {error && <div className="manager-package-error-backdrop" onClick={() => setError('')} role="presentation">
               <section aria-labelledby="manager-package-error-title" aria-modal="true" className="manager-package-dialog" onClick={(event) => event.stopPropagation()} role="alertdialog">
-                <h2 id="manager-package-error-title">Paket belum dapat dimuat</h2>
-                <p>Terjadi kendala saat mengambil data paket. Periksa koneksi, lalu coba lagi.</p>
+                <h2 id="manager-package-error-title">{errorTitle}</h2>
+                <p>{error}</p>
                 <div><Button onClick={() => setError('')} variant="outlined">Tutup</Button><Button onClick={() => { setError(''); void loadPackages(tablePage) }}>Coba Lagi</Button></div>
               </section>
             </div>}
@@ -261,7 +302,7 @@ export default function ManagerPackagesPage() {
             </div>}
             {loading ? <p aria-live="polite" className="manager-packages-state">Memuat paket…</p> : filteredPackages.length === 0 ? <p className="manager-packages-state">No data</p> : view === 'Kartu' ? (
               <div className="manager-package-cards-view">
-                <PackageCardGrid columns={cardsPerPage <= 4 ? 2 : cardsPerPage === 6 ? 3 : 4} items={visibleCardPackages} onMenu={(item, anchor) => setActivePackageMenu({ item, anchor })} onSelect={setDetailPackage} />
+                <PackageCardGrid columns={isMobile ? 1 : cardsPerPage === 6 ? 3 : 4} items={visibleCardPackages} onMenu={(item, anchor) => setActivePackageMenu({ item, anchor })} onSelect={setDetailPackage} />
                 <div className="manager-package-pagination manager-package-pagination--cards">
                   <button aria-label="Halaman sebelumnya" className="manager-package-page-chevron" disabled={currentCardPage <= 1} onClick={() => setCardPage(Math.max(1, currentCardPage - 1))} type="button"><Icon name="chevron-left" size={18} /></button>
                   <span>{Array.from({ length: cardPageCount }, (_, index) => <button aria-current={currentCardPage === index + 1 ? 'page' : undefined} className={`manager-package-page-number${currentCardPage === index + 1 ? ' is-current' : ''}`} key={index} onClick={() => setCardPage(index + 1)} type="button">{number.format(index + 1)}</button>)}</span>
@@ -281,6 +322,14 @@ export default function ManagerPackagesPage() {
           onDelete={() => { setActivePackageMenu(null); setDeleteTarget(activePackageMenu.item) }}
           onEdit={() => { setActivePackageMenu(null); goTo(`/manajemen-paket/${activePackageMenu.item.id}/edit`) }}
           onToggleActive={() => { void togglePackageActive(activePackageMenu.item) }}
+        />}
+        {createOpen && <PackageCreateModal
+          basePrices={basePrices}
+          error={errorTitle.startsWith('Paket tidak dapat dibuat') ? error : ''}
+          onCalculatePrice={calculateManagerPackagePrice}
+          onClose={() => { setCreateOpen(false); setError('') }}
+          onSubmit={submitNewPackage}
+          submitting={creating}
         />}
         {detailPackage && <PackageDetailDialog item={detailPackage} onClose={() => setDetailPackage(null)} />}
         {deleteTarget && <div className="manager-package-dialog-backdrop" onClick={() => !deleting && setDeleteTarget(null)} role="presentation">
@@ -315,10 +364,11 @@ function PackagePagination({ ariaLabel, currentPage, pageCount, onPageChange, cl
 
 function ManagerPackageTable({ items, onMenu, onSelect }: { items: ManagerPackage[]; onMenu: (item: ManagerPackage, anchor: DOMRect) => void; onSelect: (item: ManagerPackage) => void }) {
   return <div className="manager-package-table-wrap"><table className="manager-package-table">
-    <thead><tr><th>Nama Paket</th><th>Tahap</th><th>Rekaman</th><th>Lagu</th><th>Harga</th><th><span className="manager-sr-only">Aksi</span></th></tr></thead>
+    <thead><tr><th>Nama Paket</th><th>Status</th><th>Tahap</th><th>Rekaman</th><th>Lagu</th><th>Harga</th><th><span className="manager-sr-only">Aksi</span></th></tr></thead>
     <tbody>{items.map((item) => <tr className={`manager-package-table__row${item.is_active ? '' : ' is-inactive'}`} key={item.id} onClick={() => onSelect(item)} tabIndex={0} onKeyDown={(event) => { if (event.key === 'Enter' || event.key === ' ') { event.preventDefault(); onSelect(item) } }}>
-      <td><strong>{item.name}{!item.is_active && <span className="manager-package-card__inactive-label">Nonaktif</span>}</strong><small>{item.description}</small></td>
-      <td>{stageInfo.filter((stage) => item.stages?.includes(stage.key)).map((stage) => stage.label).join(', ')}</td>
+      <td><strong>{item.name}</strong><small>{item.description}</small></td>
+      <td><Badge className="manager-package-table__status" tone={item.is_active ? 'success' : 'neutral'}>{item.is_active ? 'Aktif' : 'Nonaktif'}</Badge></td>
+      <td><div aria-label="Tahap paket" className="manager-package-table__stages">{stageInfo.filter((stage) => item.stages?.includes(stage.key)).map((stage) => <Badge icon={stage.icon} key={stage.key} tone={stage.tone}>{stage.label}</Badge>)}</div></td>
       <td>{number.format(item.recording_hours)} jam</td><td>{number.format(item.track_count)} lagu</td>
       <td>{currency.format(item.price).replace(/\u00a0/g, ' ')}</td>
       <td><button aria-label={`Opsi paket ${item.name}`} className="manager-package-card__menu" onClick={(event) => { event.stopPropagation(); onMenu(item, event.currentTarget.getBoundingClientRect()) }} type="button"><Icon name="ellipsis-vertical" size={20} /></button></td>

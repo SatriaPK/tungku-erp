@@ -32,6 +32,7 @@ import IconInventory from '~icons/lucide/clipboard-list'
 import IconLogOut from '~icons/lucide/log-out'
 import IconMenu from '~icons/lucide/menu'
 import IconMic from '~icons/lucide/mic'
+import IconMinus from '~icons/lucide/minus'
 import IconMore from '~icons/lucide/ellipsis'
 import IconMusic from '~icons/lucide/music-2'
 import IconPackage from '~icons/lucide/package'
@@ -50,7 +51,7 @@ const iconNames = [
   'activity', 'arrow-down-right', 'arrow-right', 'arrow-up-right', 'badge-check', 'bell', 'box', 'calendar',
   'chart', 'check', 'chevron-down', 'chevron-left', 'chevron-right', 'chevron-up', 'circle-plus', 'clock', 'close',
   'credit-card', 'dollar', 'download', 'edit', 'ellipsis-vertical', 'eye', 'eye-off', 'file', 'filter', 'folder', 'grid', 'handshake', 'home',
-  'inventory', 'logout', 'menu', 'microphone', 'more', 'music', 'package', 'plus', 'power', 'search', 'scissors',
+  'inventory', 'logout', 'menu', 'microphone', 'minus', 'more', 'music', 'package', 'plus', 'power', 'search', 'scissors',
   'settings', 'sliders', 'sparkles', 'trending-down', 'trending-up', 'user', 'users',
 ] as const
 
@@ -98,6 +99,7 @@ const iconComponents = {
   logout: IconLogOut,
   menu: IconMenu,
   microphone: IconMic,
+  minus: IconMinus,
   more: IconMore,
   music: IconMusic,
   package: IconPackage,
