@@ -19,5 +19,9 @@ class DatabaseSeeder extends Seeder
             StudioSettingSeeder::class,
             UserSeeder::class,
         ]);
+
+        if (app()->environment('local', 'testing')) {
+            $this->call(ManagerDashboardDemoSeeder::class);
+        }
     }
 }

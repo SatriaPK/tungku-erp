@@ -1,9 +1,10 @@
-import { useEffect, useState } from 'react'
+import { lazy, Suspense, useEffect, useState } from 'react'
 import { BrowserRouter, Route, Routes, useLocation } from 'react-router-dom'
 import { Badge, Button, Card, CardHeader, Icon, Input, LoadingScreen, PackageCard, PhaseChip, ProjectCard, SegmentedButton, StatCard, Switch } from '../components/ui'
 import type { ButtonVariant, IconName } from '../components/ui'
 import AuthScreen from '../features/auth/AuthScreen'
-import ManagerDashboard from '../features/manager/dashboard/ManagerDashboard'
+const ManagerDashboard = lazy(() => import('../features/manager/dashboard/ManagerDashboard'))
+const ManagerPackagesPage = lazy(() => import('../features/manager/packages/ManagerPackagesPage'))
 import ManagerPlaceholderPage from '../features/manager/placeholder/ManagerPlaceholderPage'
 import { managerPages, type ManagerPagePath } from '../features/manager/placeholder/manager-pages'
 import { getCurrentUser } from '../lib/auth-api'
@@ -199,8 +200,26 @@ function ManagerDashboardRoute() {
   }, [])
 
   if (state.status === 'loading') return <LoadingScreen label="Memeriksa sesi Manager" />
-  if (state.status === 'denied') return <main className="app-root"><p role="alert">{state.message ?? 'Dashboard ini hanya tersedia untuk Manager.'}</p><a href="/staff/login">Masuk portal Studio</a></main>
-  return <ManagerDashboard />
+  if (state.status === 'denied') return <main className="app-root"><p role="alert">{state.message ?? 'Halaman ini hanya tersedia untuk Manager.'}</p><a href="/staff/login">Masuk portal Studio</a></main>
+  return <Suspense fallback={<LoadingScreen label="Memuat dashboard" />}><ManagerDashboard /></Suspense>
+}
+
+function ManagerPackagesRoute() {
+  const [state, setState] = useState<{ status: 'loading' | 'allowed' | 'denied'; message?: string }>({ status: 'loading' })
+
+  useEffect(() => {
+    let mounted = true
+    void getCurrentUser().then((user) => {
+      if (mounted) setState({ status: user.role === 'manager' ? 'allowed' : 'denied' })
+    }).catch(() => {
+      if (mounted) setState({ status: 'denied', message: 'Silakan login sebagai Manager untuk membuka halaman ini.' })
+    })
+    return () => { mounted = false }
+  }, [])
+
+  if (state.status === 'loading') return <LoadingScreen label="Memeriksa sesi Manager" />
+  if (state.status === 'denied') return <main className="app-root"><p role="alert">{state.message ?? 'Halaman ini hanya tersedia untuk Manager.'}</p><a href="/staff/login">Masuk portal Studio</a></main>
+  return <Suspense fallback={<LoadingScreen label="Memuat manajemen paket" />}><ManagerPackagesPage /></Suspense>
 }
 
 function ManagerPlaceholderRoute({ path }: { path: ManagerPagePath }) {
@@ -259,7 +278,8 @@ function ManagerRoutes() {
       <ManagerNavigationFeedback />
       <Routes>
         <Route element={<ManagerDashboardRoute />} path="/dashboard" />
-        {Object.keys(managerPages).map((path) => (
+        <Route element={<ManagerPackagesRoute />} path="/manajemen-paket" />
+        {Object.keys(managerPages).filter((path) => path !== '/manajemen-paket').map((path) => (
           <Route element={<ManagerPlaceholderRoute path={path as ManagerPagePath} />} key={path} path={path} />
         ))}
         <Route element={<AuthScreen />} path="*" />

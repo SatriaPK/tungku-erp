@@ -47,6 +47,19 @@ it('uses one immutable reference time normalized to the configured timezone', fu
     expect(app(GetManagerDashboardMetrics::class)->handle($asOf->setTimezone('Asia/Jakarta')))->toBe($metrics);
 });
 
+it('can return monthly financial chart totals for a selected calendar year', function () {
+    dashboardFinanceExpense('2025-03-10', 250);
+    dashboardFinanceExpense('2026-03-10', 500);
+    Payment::factory()->paid()->create(['project_id' => null, 'paid_at' => '2025-03-10', 'amount' => 750]);
+    Payment::factory()->paid()->create(['project_id' => null, 'paid_at' => '2026-03-10', 'amount' => 1500]);
+
+    $metrics = app(GetManagerDashboardMetrics::class)->handle(null, 2025);
+
+    expect($metrics['period']['year'])->toBe(2025)
+        ->and($metrics['annual_totals'])->toBe(['revenue' => 750, 'expense' => 250])
+        ->and($metrics['monthly'][2])->toBe(['month' => 3, 'revenue' => 750, 'expense' => 250]);
+});
+
 it('respects local month boundaries and the entire calendar year', function (string $asOf, array $dates, int $annualTotal) {
     $this->travelTo(CarbonImmutable::parse($asOf, 'Asia/Jakarta'));
     foreach ($dates as $date => $amount) {

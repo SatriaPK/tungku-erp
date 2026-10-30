@@ -37,10 +37,11 @@ class GetManagerDashboardMetrics
      * expense_categories: array{total_amount: int, transaction_count: int, items: list<array{category_id: ?int, category_name: string, transaction_count: int, amount: int, percentage: float}>}
      * }
      */
-    public function handle(?CarbonImmutable $asOf = null): array
+    public function handle(?CarbonImmutable $asOf = null, ?int $chartYear = null): array
     {
         $timezone = config('app.timezone');
         $asOf = ($asOf ?? CarbonImmutable::now($timezone))->setTimezone($timezone);
+        $chartYear = $chartYear ?? $asOf->year;
         $start = $asOf->startOfMonth();
         $revenue = $this->monthlyTotals(
             DB::table('payments')->where('status', PaymentStatus::Paid->value)->whereNotNull('paid_at'),
@@ -48,9 +49,17 @@ class GetManagerDashboardMetrics
             $start,
         );
         $expense = $this->monthlyTotals(DB::table('expenses'), 'spent_on', $start);
+        $chartStart = $start->setDate($chartYear, 1, 1)->startOfDay();
+        $chartRevenue = $chartYear === $asOf->year ? $revenue : $this->monthlyTotals(
+            DB::table('payments')->where('status', PaymentStatus::Paid->value)->whereNotNull('paid_at'),
+            'paid_at',
+            $chartStart,
+            $chartYear,
+        );
+        $chartExpense = $chartYear === $asOf->year ? $expense : $this->monthlyTotals(DB::table('expenses'), 'spent_on', $chartStart, $chartYear);
         $monthly = [];
         for ($month = 1; $month <= 12; $month++) {
-            $monthly[] = ['month' => $month, 'revenue' => (int) $revenue->{'m'.$month}, 'expense' => (int) $expense->{'m'.$month}];
+            $monthly[] = ['month' => $month, 'revenue' => (int) $chartRevenue->{'m'.$month}, 'expense' => (int) $chartExpense->{'m'.$month}];
         }
         $balances = DB::table('projects')->where('projects.status', ProjectStatus::AwaitingFinalPayment->value)->select('projects.id')
             ->selectRaw('projects.price + COALESCE((SELECT SUM(extra_fee) FROM recording_sessions WHERE recording_sessions.project_id = projects.id AND is_extension = ? AND status IN (?, ?)), 0) - COALESCE((SELECT SUM(amount) FROM payments WHERE payments.project_id = projects.id AND status = ?), 0) AS balance', [true, SessionStatus::Confirmed->value, SessionStatus::Completed->value, PaymentStatus::Paid->value]);
@@ -74,7 +83,7 @@ class GetManagerDashboardMetrics
         return [
             'as_of' => $asOf->toIso8601String(),
             'period' => [
-                'year' => $start->year,
+                'year' => $chartYear,
                 'month' => $start->month,
                 'timezone' => $timezone,
                 'today' => $asOf->toDateString(),
@@ -99,18 +108,24 @@ class GetManagerDashboardMetrics
         ];
     }
 
-    private function monthlyTotals(Builder $query, string $column, CarbonImmutable $start): object
+    private function monthlyTotals(Builder $query, string $column, CarbonImmutable $start, ?int $chartYear = null): object
     {
+        $year = $chartYear ?? $start->year;
+        $periodStart = $start->setDate($year, 1, 1)->startOfDay();
         $periods = ['previous' => $start->subMonth()];
         for ($month = 1; $month <= 12; $month++) {
-            $periods['m'.$month] = $start->startOfYear()->addMonths($month - 1);
+            $periods['m'.$month] = $periodStart->addMonths($month - 1);
         }
         foreach ($periods as $alias => $period) {
             $query->selectRaw("COALESCE(SUM(CASE WHEN {$column} >= ? AND {$column} < ? THEN amount ELSE 0 END), 0) AS {$alias}", [$period->toDateString(), $period->addMonth()->toDateString()]);
         }
 
-        return $query->where($column, '>=', min($start->startOfYear(), $start->subMonth())->toDateString())
-            ->where($column, '<', $start->startOfYear()->addYear()->toDateString())->first();
+        $rangeStart = $periodStart;
+        $rangeEnd = $rangeStart->addYear();
+        $comparisonStart = $start->startOfMonth();
+
+        return $query->where($column, '>=', min($rangeStart, $comparisonStart->subMonth())->toDateString())
+            ->where($column, '<', max($rangeEnd, $comparisonStart->addMonth())->toDateString())->first();
     }
 
     /** @return array{current: int, previous: int, delta: int, percentage: ?float, percentage_reason: ?string, direction: string} */

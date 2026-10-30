@@ -8,6 +8,7 @@ import IconBox from '~icons/lucide/box'
 import IconCalendarDays from '~icons/lucide/calendar-days'
 import IconChartNoAxesCombined from '~icons/lucide/chart-no-axes-combined'
 import IconCheck from '~icons/lucide/check'
+import IconX from '~icons/lucide/x'
 import IconChevronDown from '~icons/lucide/chevron-down'
 import IconChevronLeft from '~icons/lucide/chevron-left'
 import IconChevronRight from '~icons/lucide/chevron-right'
@@ -19,6 +20,7 @@ import IconDollarSign from '~icons/lucide/dollar-sign'
 import IconDownload from '~icons/lucide/download'
 import IconEye from '~icons/lucide/eye'
 import IconEyeOff from '~icons/lucide/eye-off'
+import IconEllipsisVertical from '~icons/lucide/ellipsis-vertical'
 import IconPencil from '~icons/lucide/pencil'
 import IconFileText from '~icons/lucide/file-text'
 import IconFilter from '~icons/lucide/list-filter'
@@ -34,6 +36,7 @@ import IconMore from '~icons/lucide/ellipsis'
 import IconMusic from '~icons/lucide/music-2'
 import IconPackage from '~icons/lucide/package'
 import IconPlus from '~icons/lucide/plus'
+import IconPower from '~icons/lucide/power'
 import IconSearch from '~icons/lucide/search'
 import IconScissors from '~icons/lucide/scissors'
 import IconSettings from '~icons/lucide/settings'
@@ -45,9 +48,9 @@ import type { ComponentType, SVGProps } from 'react'
 
 const iconNames = [
   'activity', 'arrow-down-right', 'arrow-right', 'arrow-up-right', 'badge-check', 'bell', 'box', 'calendar',
-  'chart', 'check', 'chevron-down', 'chevron-left', 'chevron-right', 'chevron-up', 'circle-plus', 'clock',
-  'credit-card', 'dollar', 'download', 'edit', 'eye', 'eye-off', 'file', 'filter', 'folder', 'grid', 'handshake', 'home',
-  'inventory', 'logout', 'menu', 'microphone', 'more', 'music', 'package', 'plus', 'search', 'scissors',
+  'chart', 'check', 'chevron-down', 'chevron-left', 'chevron-right', 'chevron-up', 'circle-plus', 'clock', 'close',
+  'credit-card', 'dollar', 'download', 'edit', 'ellipsis-vertical', 'eye', 'eye-off', 'file', 'filter', 'folder', 'grid', 'handshake', 'home',
+  'inventory', 'logout', 'menu', 'microphone', 'more', 'music', 'package', 'plus', 'power', 'search', 'scissors',
   'settings', 'sliders', 'sparkles', 'trending-down', 'trending-up', 'user', 'users',
 ] as const
 
@@ -71,6 +74,7 @@ const iconComponents = {
   calendar: IconCalendarDays,
   chart: IconChartNoAxesCombined,
   check: IconCheck,
+  close: IconX,
   'chevron-down': IconChevronDown,
   'chevron-left': IconChevronLeft,
   'chevron-right': IconChevronRight,
@@ -83,6 +87,7 @@ const iconComponents = {
   eye: IconEye,
   'eye-off': IconEyeOff,
   edit: IconPencil,
+  'ellipsis-vertical': IconEllipsisVertical,
   file: IconFileText,
   filter: IconFilter,
   folder: IconFolder,
@@ -97,6 +102,7 @@ const iconComponents = {
   music: IconMusic,
   package: IconPackage,
   plus: IconPlus,
+  power: IconPower,
   search: IconSearch,
   scissors: IconScissors,
   settings: IconSettings,

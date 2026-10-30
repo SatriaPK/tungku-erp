@@ -48,6 +48,7 @@ Route::middleware(['auth:sanctum', 'active', 'role:manager'])
 
         // Harus didaftarkan sebelum apiResource supaya tidak dibaca sebagai {package}
         Route::post('packages/calculate-price', [PackageController::class, 'calculatePrice']);
+        Route::get('packages/summary', [PackageController::class, 'summary']);
         Route::apiResource('packages', PackageController::class);
 
         Route::get('settings', [StudioSettingController::class, 'index']);

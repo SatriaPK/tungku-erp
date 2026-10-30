@@ -1,17 +1,34 @@
-﻿import { useEffect, useState, type ReactNode } from 'react'
+﻿import { useEffect, useRef, useState, type ReactNode } from 'react'
 import { Button, Icon, Input, LoadingScreen, StatCard } from '../../../components/ui'
 import type { BadgeTone, IconName } from '../../../components/ui'
 import { ManagerSideNav } from '../../../components/layout'
 import { getCurrentUser, getManagerDashboard } from '../../../lib/manager-dashboard-api'
 import type { ManagerDashboardData, ManagerUser } from '../../../lib/manager-dashboard-api'
+import {
+  CartesianGrid,
+  Line,
+  LineChart,
+  ResponsiveContainer,
+  Tooltip,
+  XAxis,
+  YAxis,
+} from 'recharts'
 import './ManagerDashboard.css'
 
 const monthNames = ['Jan', 'Feb', 'Mar', 'Apr', 'Mei', 'Jun', 'Jul', 'Agu', 'Sep', 'Okt', 'Nov', 'Des']
 const currency = new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR', maximumFractionDigits: 0 })
 const number = new Intl.NumberFormat('id-ID')
+const compactChartCurrency = new Intl.NumberFormat('id-ID', { maximumFractionDigits: 1 })
 
 function formatCurrency(value: number) {
   return currency.format(value).replace(/\u00a0/g, ' ')
+}
+
+function formatCompactChartCurrency(value: number) {
+  const absValue = Math.abs(value)
+  if (absValue >= 1_000_000) return `${compactChartCurrency.format(value / 1_000_000)} jt`
+  if (absValue >= 1_000) return `${compactChartCurrency.format(value / 1_000)} rb`
+  return compactChartCurrency.format(value)
 }
 
 function formatTime(value: string) {
@@ -38,7 +55,7 @@ function financeBadge(trend: ManagerDashboardData['revenue'], metric: 'revenue' 
   return { icon: direction === 'up' ? 'trending-up' : direction === 'down' ? 'trending-down' : 'activity', label, tone }
 }
 
-function Panel({ title, action, actionHref, children, className = '' }: { title: string; action?: string; actionHref?: string; children: ReactNode; className?: string }) {
+function Panel({ title, action, actionHref, bodyHref, children, className = '' }: { title: string; action?: string; actionHref?: string; bodyHref?: string; children: ReactNode; className?: string }) {
   const header = (
     <header className="manager-panel__header">
       <h2>{title}</h2>
@@ -49,25 +66,44 @@ function Panel({ title, action, actionHref, children, className = '' }: { title:
   return (
     <section className={`manager-panel ${className}`}>
       {actionHref ? <a aria-label={action} className="manager-panel__header-link" href={actionHref}>{header}</a> : header}
-      {children}
+      {bodyHref ? <a aria-label={action} className="manager-panel__body-link" href={bodyHref}>{children}</a> : children}
     </section>
   )
 }
 
 function OperationalPanel({ title, action, href, children }: { title: string; action: string; href: string; children: ReactNode }) {
   return (
-    <Panel action={action} actionHref={href} className="manager-operational-panel" title={title}>
+    <Panel action={action} actionHref={href} bodyHref={href} className="manager-operational-panel" title={title}>
       <div className="manager-operational-panel__content">{children}</div>
     </Panel>
   )
 }
 
+function FinanceReportTooltip({ active, payload, label }: { active?: boolean; payload?: Array<{ color?: string; dataKey?: string; name?: string; value?: number }>; label?: string }) {
+  if (!active || !payload?.length) return null
+
+  return (
+    <div className="manager-chart-tooltip" role="status">
+      <strong>{label}</strong>
+      {payload.map((entry) => <span key={entry.dataKey}>
+        <i className={entry.dataKey === 'expense' ? 'is-expense' : 'is-revenue'} />
+        <span>{entry.name}</span>
+        <b>Rp {formatCompactChartCurrency(Number(entry.value ?? 0))}</b>
+      </span>)}
+    </div>
+  )
+}
+
 function FinanceReportDiagram({ data, onYearChange, selectedYear, yearLoading }: { data: ManagerDashboardData; onYearChange: (year: number) => void; selectedYear: number; yearLoading: boolean }) {
-  const points = [...data.monthly].sort((left, right) => left.month - right.month).slice(0, 12)
-  const max = Math.max(1, ...points.flatMap((point) => [point.revenue, point.expense]))
-  const x = (index: number) => 32 + index * (850 / Math.max(1, points.length - 1))
-  const y = (value: number) => 270 - (value / max) * 250
-  const pathFor = (values: number[]) => values.map((value, index) => `${index === 0 ? 'M' : 'L'} ${x(index)} ${y(value)}`).join(' ')
+  const points = [...data.monthly]
+    .sort((left, right) => left.month - right.month)
+    .slice(0, 12)
+    .map((point) => ({
+      ...point,
+      label: `${monthNames[point.month - 1] ?? point.month} ${selectedYear}`,
+    }))
+  const currentYear = new Date().getFullYear()
+  const years = Array.from({ length: 5 }, (_, index) => currentYear - index)
 
   return (
     <Panel className="manager-finance" title="Laporan Keuangan">
@@ -79,27 +115,31 @@ function FinanceReportDiagram({ data, onYearChange, selectedYear, yearLoading }:
         <label className="manager-finance__year" title="Ganti Tahun">
           <Icon aria-hidden="true" name="calendar" size={16} />
           <select aria-label="Ganti Tahun" disabled={yearLoading} onChange={(event) => onYearChange(Number(event.target.value))} value={selectedYear}>
-            {Array.from({ length: 5 }, (_, index) => selectedYear - index).map((year) => <option key={year} value={year}>{year}</option>)}
+            {years.map((year) => <option key={year} value={year}>{year}</option>)}
           </select>
           <Icon aria-hidden="true" className="manager-finance__year-chevron" name="chevron-down" size={16} />
           <select aria-hidden="true" aria-label="Buka pilihan tahun" className="manager-finance__year-hitbox" disabled={yearLoading} onChange={(event) => onYearChange(Number(event.target.value))} tabIndex={-1} value={selectedYear}>
-            {Array.from({ length: 5 }, (_, index) => selectedYear - index).map((year) => <option key={year} value={year}>{year}</option>)}
+            {years.map((year) => <option key={year} value={year}>{year}</option>)}
           </select>
         </label>
       </div>
       <div aria-label="Grafik pendapatan dan pengeluaran bulanan" className="manager-chart-wrap" role="img">
-        <svg className="manager-chart" preserveAspectRatio="none" viewBox="0 0 900 310">
-          {[0, 1, 2, 3, 4, 5].map((tick) => <g className="manager-chart__grid" key={tick}><line x1="32" x2="886" y1={20 + tick * 50} y2={20 + tick * 50} /><text x="0" y={24 + tick * 50}>{number.format(Math.round(max * (5 - tick) / 5))}</text></g>)}
-          <path className="manager-chart__line is-revenue" d={pathFor(points.map((point) => point.revenue))} />
-          <path className="manager-chart__line is-expense" d={pathFor(points.map((point) => point.expense))} />
-          {points.map((point, index) => <text className="manager-chart__month" key={point.month} x={x(index)} y="300">{monthNames[point.month - 1]?.toUpperCase()}</text>)}
-        </svg>
+        <ResponsiveContainer height="100%" minHeight={220} minWidth={0} width="100%">
+          <LineChart accessibilityLayer data={points} margin={{ top: 0, right: 0, bottom: 0, left: -16 }}>
+            <CartesianGrid stroke="var(--ts-outline-variant)" vertical={false} />
+            <XAxis axisLine={false} dataKey="label" height={24} padding={{ left: 4, right: 4 }} tick={{ fill: 'var(--ts-on-surface-variant)', fontSize: 10 }} tickFormatter={(label: string) => label.split(' ')[0].toUpperCase()} tickLine={false} />
+            <YAxis axisLine={false} domain={[0, (max: number) => Math.max(max, 1)]} mirror={false} tick={{ fill: 'var(--ts-on-surface-variant)', fontSize: 10 }} tickFormatter={(value: number) => formatCompactChartCurrency(value)} tickLine={false} width={52} />
+            <Tooltip content={<FinanceReportTooltip />} cursor={{ stroke: 'var(--ts-outline)', strokeDasharray: '4 4' }} isAnimationActive={false} />
+            <Line activeDot={{ r: 6 }} dataKey="revenue" dot={{ r: 3 }} isAnimationActive={false} name="Pendapatan" stroke="var(--ts-success)" strokeWidth={2} type="monotone" />
+            <Line activeDot={{ r: 6 }} dataKey="expense" dot={{ r: 3 }} isAnimationActive={false} name="Pengeluaran" stroke="var(--ts-error)" strokeWidth={2} type="monotone" />
+          </LineChart>
+        </ResponsiveContainer>
       </div>
     </Panel>
   )
 }
 
-function DonutPanel({ title, items, label, total, href, className = '' }: { title: string; items: Array<{ name: string; count: number; percentage: number }>; label: string; total: number; href: string; className?: string }) {
+function DonutPanel({ title, items, label, total, href, valueLabel, className = '' }: { title: string; items: Array<{ name: string; count: number; percentage: number }>; label: string; total: number; href: string; valueLabel: 'count' | 'amount'; className?: string }) {
   const colors = ['#ce4337', '#2b2626', '#7a5900', '#4f8c62', '#315f88']
   const segments = items.reduce<Array<{ color: string; start: number; end: number }>>((result, item, index) => {
     const start = result.at(-1)?.end ?? 0
@@ -114,7 +154,7 @@ function DonutPanel({ title, items, label, total, href, className = '' }: { titl
           <div aria-hidden="true" className="manager-donut" />
         </div>
       ) : <p aria-label={`No data ${label.toLowerCase()}`} className="manager-donut-empty">No data</p>}
-      {items.length ? <ul className="manager-legend">{items.slice(0, 5).map((item, index) => <li key={item.name}><i style={{ background: colors[index % colors.length] }} /><span>{item.name}</span><strong>{number.format(item.percentage)}%</strong></li>)}</ul> : <span className="manager-empty manager-empty--compact" />}
+      {items.length ? <ul className="manager-legend">{items.slice(0, 5).map((item, index) => <li key={item.name}><i style={{ background: colors[index % colors.length] }} /><span>{item.name}</span><strong>{valueLabel === 'count' ? number.format(item.count) : formatCurrency(item.count)}</strong></li>)}</ul> : <span className="manager-empty manager-empty--compact" />}
       <span className="manager-sr-only">Total: {number.format(total)}</span>
     </Panel>
   )
@@ -124,6 +164,8 @@ function ManagerDashboardContent({ data, user }: { data: ManagerDashboardData; u
   const [selectedYear, setSelectedYear] = useState(data.period.year)
   const [yearData, setYearData] = useState<{ year: number; data: ManagerDashboardData } | null>(null)
   const [yearLoading, setYearLoading] = useState(false)
+  const [searchOpen, setSearchOpen] = useState(false)
+  const searchContainerRef = useRef<HTMLDivElement>(null)
   const selectedDashboardData = yearData?.year === selectedYear ? yearData.data : data
   const dashboardData = selectedYear === data.period.year ? data : selectedDashboardData
 
@@ -143,8 +185,28 @@ function ManagerDashboardContent({ data, user }: { data: ManagerDashboardData; u
     }
   }
 
+  useEffect(() => {
+    if (!searchOpen) return
+
+    const closeSearchOnOutsideClick = (event: PointerEvent) => {
+      if (event.target instanceof Node && !searchContainerRef.current?.contains(event.target)) {
+        setSearchOpen(false)
+      }
+    }
+    const closeSearchOnEscape = (event: KeyboardEvent) => {
+      if (event.key === 'Escape') setSearchOpen(false)
+    }
+
+    document.addEventListener('pointerdown', closeSearchOnOutsideClick)
+    document.addEventListener('keydown', closeSearchOnEscape)
+    return () => {
+      document.removeEventListener('pointerdown', closeSearchOnOutsideClick)
+      document.removeEventListener('keydown', closeSearchOnEscape)
+    }
+  }, [searchOpen])
+
   const sales = data.package_sales.items.map((item) => ({ name: item.name, count: item.project_count, percentage: item.percentage }))
-  const expenses = data.expense_categories.items.map((item) => ({ name: item.category_name ?? 'Lainnya', count: item.transaction_count, percentage: item.percentage }))
+  const expenses = data.expense_categories.items.map((item) => ({ name: item.category_name ?? 'Lainnya', count: item.amount, percentage: item.percentage }))
   const displayName = user?.name ?? 'Manager'
 
   return (
@@ -152,18 +214,34 @@ function ManagerDashboardContent({ data, user }: { data: ManagerDashboardData; u
       <ManagerSideNav managerName={displayName} />
 
       <main className="manager-main">
-        <header className="manager-topbar"><div><span className="manager-breadcrumb">Utama / Dashboard</span><h1>Dashboard</h1></div><div className="manager-topbar__tools"><Button className="manager-create-button" leadingIcon="plus">Buat Project</Button><Input aria-label="Cari project, klien, operator" className="manager-search" leadingIcon="search" placeholder="Cari project, klien, operator..." /><button aria-label="Pengaturan" className="manager-topbar__icon" type="button"><Icon name="settings" size={25} /></button><button aria-label="Notifikasi" className="manager-topbar__icon" type="button"><Icon name="bell" size={25} /></button></div></header>
+        <header className="manager-topbar">
+          <div className="manager-topbar__heading">
+            <span className="manager-breadcrumb">Utama / Dashboard</span>
+            <h1>Dashboard</h1>
+          </div>
+          <div className="manager-topbar__tools">
+            <Button aria-label="Project Baru" className="manager-create-button" leadingIcon="plus">Project Baru</Button>
+            <div className={`manager-search-wrap${searchOpen ? ' is-open' : ''}`} ref={searchContainerRef}>
+              <Input aria-label="Cari project, klien, operator" className="manager-search" leadingIcon="search" placeholder="Cari project, klien, operator..." />
+              <button aria-expanded={searchOpen} aria-label={searchOpen ? 'Tutup pencarian' : 'Buka pencarian'} className="manager-topbar__icon manager-search-toggle" onClick={() => setSearchOpen((open) => !open)} type="button">
+                <Icon name="search" size={20} />
+              </button>
+            </div>
+            <button aria-label="Notifikasi" className="manager-topbar__icon" type="button"><Icon name="bell" size={20} /></button>
+            <button aria-label="Pengaturan" className="manager-topbar__icon manager-topbar__settings" type="button"><Icon name="settings" size={20} /></button>
+          </div>
+        </header>
 
         <div className="manager-dashboard">
           <section aria-label="Ringkasan" className="manager-stats">
             <StatCard badge={financeBadge(data.revenue, 'revenue')} href="/laporan" icon="trending-up" label="Pendapatan Bulan Ini" tone="success" value={formatCurrency(data.revenue.current)} />
             <StatCard badge={financeBadge(data.expense, 'expense')} href="/pengeluaran" icon="trending-down" label="Pengeluaran Bulan Ini" tone="error" value={formatCurrency(data.expense.current)} />
-            <StatCard badge={{ icon: 'folder', label: `${number.format(data.awaiting_final_payment.project_count)} project`, tone: 'primary' }} href="/invoice" icon="credit-card" label="Pembayaran Belum Lunas" tone="blue" value={formatCurrency(data.awaiting_final_payment.amount)} />
+            <StatCard badge={{ icon: 'folder', label: `${number.format(data.awaiting_final_payment.project_count)} project`, tone: 'warning' }} href="/invoice" icon="credit-card" label="Pembayaran Belum Lunas" tone="blue" value={formatCurrency(data.awaiting_final_payment.amount)} />
             <StatCard badge={{ icon: 'music', label: `${number.format(data.in_progress_projects.track_count)} track`, tone: 'mastering' }} href="/project" icon="folder" label="Project Aktif" tone="purple" value={number.format(data.in_progress_projects.count)} />
             <StatCard badge={{ icon: 'clock', label: `${number.format(Math.max(0, data.quotations.open_count - data.quotations.awaiting_studio_count))} menunggu klien`, tone: 'warning' }} href="/quotation" icon="handshake" label="Dalam Penawaran" tone="blue" value={number.format(data.quotations.open_count)} />
           </section>
 
-          <section aria-label="Grafik ringkasan keuangan" className="manager-analytics"><FinanceReportDiagram data={dashboardData} onYearChange={changeYear} selectedYear={selectedYear} yearLoading={yearLoading} /><DonutPanel className="manager-sales-panel" href="/manajemen-paket" items={sales} label="Paket terjual" title="Paket Terlaris Bulanan" total={data.package_sales.total_count} /><DonutPanel className="manager-expense-panel" href="/pengeluaran" items={expenses} label="Pengeluaran" title="Pengeluaran Bulan Ini" total={data.expense_categories.total_amount} /></section>
+          <section aria-label="Grafik ringkasan keuangan" className="manager-analytics"><FinanceReportDiagram data={dashboardData} onYearChange={changeYear} selectedYear={selectedYear} yearLoading={yearLoading} /><DonutPanel className="manager-sales-panel" href="/manajemen-paket" items={sales} label="Paket terjual" title="Paket Terlaris Bulanan" total={data.package_sales.total_count} valueLabel="count" /><DonutPanel className="manager-expense-panel" href="/pengeluaran" items={expenses} label="Pengeluaran" title="Pengeluaran Bulan Ini" total={data.expense_categories.total_amount} valueLabel="amount" /></section>
 
           <section aria-label="Ringkasan operasional" className="manager-operations">
             <OperationalPanel action="Lihat jadwal" href="/booking" title="Jadwal Rekaman Hari Ini">{data.recording_schedule.length ? <ul className="manager-list">{data.recording_schedule.map((item) => <li className="manager-list__row" key={item.id}><span><strong>{item.project_name ?? 'Project tidak tersedia'}</strong><small>{item.client_name ?? 'Klien tidak tersedia'}</small></span><time>{formatTime(item.start_at)} – {formatTime(item.end_at)}</time></li>)}</ul> : <p className="manager-operational-empty">No data</p>}</OperationalPanel>
