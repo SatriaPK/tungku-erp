@@ -110,6 +110,7 @@
 .ts-stat-card--error .ts-stat-card__icon { background: #ffd9d2; color: #ce4337; }
 .ts-stat-card--blue .ts-stat-card__icon { background: #dce3fb; color: #294b7b; }
 .ts-stat-card--purple .ts-stat-card__icon { background: #f1e0f2; color: #673e70; }
+.ts-stat-card--mastering .ts-stat-card__icon { background: #f1e0f2; color: #673e70; }
 .ts-stat-card--neutral .ts-stat-card__icon { background: var(--ts-secondary-container); color: var(--ts-secondary); }
 .ts-stat-card__trend { display: inline-flex; min-width: 0; min-height: 26px; align-items: center; gap: 6px; overflow: hidden; border-radius: var(--ts-radius-full); padding: 4px 9px; background: var(--ts-secondary-container); color: var(--ts-on-secondary-container); font-size: 12px; line-height: 16px; text-overflow: ellipsis; white-space: nowrap; }
 .ts-stat-card__trend.is-up { background: var(--ts-success-container); color: var(--ts-on-success-container); }
@@ -121,8 +122,8 @@
 
 .ts-progress { overflow: hidden; height: var(--ts-space-2); border-radius: var(--ts-radius-full); background: var(--ts-surface-variant); }
 .ts-progress > span { display: block; height: 100%; border-radius: inherit; background: var(--ts-primary); transition: width 180ms ease; }
-.ts-project-card { display: flex; min-width: 0; flex-direction: column; gap: var(--ts-space-3); border: 1px solid var(--ts-outline-variant); border-radius: var(--ts-radius-sm); padding: var(--ts-space-4); background: var(--ts-surface); }
-.ts-project-card__top { display: flex; min-width: 0; align-items: center; gap: 12px; border-bottom: 1px solid var(--ts-outline-variant); padding-bottom: 14px; }
+.ts-project-card { display: flex; min-width: 0; flex-direction: column; gap: var(--ts-space-4); border: 1px solid var(--ts-outline-variant); border-radius: var(--ts-radius-sm); padding: var(--ts-space-4); background: var(--ts-surface); }
+.ts-project-card__top { display: flex; min-width: 0; align-items: center; gap: 12px; border-bottom: 1px solid var(--ts-outline-variant); padding-bottom: 16px; }
 .ts-project-card__avatar { display: grid; width: 48px; height: 48px; flex: 0 0 auto; place-items: center; border-radius: 50%; background: var(--ts-primary-container); color: var(--ts-primary); }
 .ts-project-card__title { min-width: 0; flex: 1; }
 .ts-project-card__title h3 { overflow: hidden; margin: 0; color: var(--ts-on-surface); font-size: 20px; font-weight: 400; text-overflow: ellipsis; white-space: nowrap; }

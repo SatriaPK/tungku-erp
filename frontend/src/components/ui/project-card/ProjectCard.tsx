@@ -11,6 +11,7 @@ export interface ProjectCardProps {
   progressLabel?: string
   date?: string
   operators?: readonly { name: string; avatarUrl?: string }[]
+  clientAvatarUrl?: string
   onDetails?: () => void
   className?: string
 }
@@ -31,6 +32,7 @@ export function ProjectCard({
   progressLabel,
   date,
   operators = [],
+  clientAvatarUrl,
   onDetails,
   className,
 }: ProjectCardProps) {
@@ -39,7 +41,7 @@ export function ProjectCard({
   return (
     <article aria-label={`Proyek ${name}`} className={['ts-project-card', className].filter(Boolean).join(' ')}>
       <div className="ts-project-card__top">
-        <div className="ts-project-card__avatar" aria-hidden="true"><Icon name="music" size={22} /></div>
+        <div className="ts-project-card__avatar" aria-hidden="true">{clientAvatarUrl ? <img alt="" src={clientAvatarUrl} /> : <Icon name="user" size={24} />}</div>
         <div className="ts-project-card__title">
           <h3>{name}</h3>
           <p>{client}</p>
@@ -58,7 +60,7 @@ export function ProjectCard({
       </div>
       <div className="ts-project-card__footer">
         <div className="ts-project-card__operators">
-          <span>Operator:</span>
+          <span className="ts-project-card__operators-label">Operator:</span>
           <div aria-label="Operator proyek" className="ts-avatar-stack">
             {operators.slice(0, 4).map((operator) => (
               <span className="ts-avatar" key={operator.name} title={operator.name}>

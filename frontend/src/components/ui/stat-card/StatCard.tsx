@@ -4,7 +4,7 @@ import { Icon } from '../icon'
 import { Badge } from '../badge'
 import type { BadgeTone } from '../badge'
 
-export type StatCardTone = 'primary' | 'success' | 'warning' | 'error' | 'blue' | 'purple' | 'neutral'
+export type StatCardTone = 'primary' | 'success' | 'warning' | 'error' | 'blue' | 'purple' | 'neutral' | 'mastering'
 
 export interface StatCardProps extends Omit<AnchorHTMLAttributes<HTMLAnchorElement>, 'children' | 'href'> {
   label: string

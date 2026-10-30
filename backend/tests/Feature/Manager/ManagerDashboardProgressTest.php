@@ -15,8 +15,18 @@ use Illuminate\Support\Facades\DB;
 
 it('returns empty lists', function () {
     expect(app(GetManagerDashboardProgress::class)->handle())->toBe([
+        'pending_project_assignments' => 0,
         'recording_schedule' => [], 'project_progress' => [], 'quotation_progress' => [],
     ]);
+});
+
+it('counts only projects awaiting operator assignment for the manager project navigation badge', function () {
+    Project::factory()->create(['status' => ProjectStatus::AwaitingAssignment]);
+    Project::factory()->create(['status' => ProjectStatus::AwaitingAssignment]);
+    Project::factory()->create(['status' => ProjectStatus::InProgress]);
+    Project::factory()->create(['status' => ProjectStatus::Completed]);
+
+    expect(app(GetManagerDashboardProgress::class)->handle()['pending_project_assignments'])->toBe(2);
 });
 
 it('uses the local day overlap and confirmed status without repairing elapsed sessions', function () {

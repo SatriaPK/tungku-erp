@@ -1,7 +1,8 @@
-import { Icon } from '../../../components/ui'
-import type { IconName } from '../../../components/ui'
+import { Icon } from '../icon'
+import type { IconName } from '../icon'
+import './ManagerPackageStatCard.css'
 
-export interface PackageStatCardProps {
+export interface ManagerPackageStatCardProps {
   label: string
   value: number
   icon: IconName
@@ -11,7 +12,7 @@ export interface PackageStatCardProps {
 
 const number = new Intl.NumberFormat('id-ID')
 
-export function PackageStatCard({ label, value, icon, tone, onClick }: PackageStatCardProps) {
+export function ManagerPackageStatCard({ label, value, icon, tone, onClick }: ManagerPackageStatCardProps) {
   return (
     <button className={`manager-package-stat manager-package-stat--${tone}`} onClick={onClick} type="button">
       <div><span>{label}</span><strong>{number.format(value)}</strong></div>

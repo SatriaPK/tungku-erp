@@ -2,15 +2,12 @@ import { useEffect, useMemo, useRef, useState } from 'react'
 import { createPortal } from 'react-dom'
 import { useNavigate } from 'react-router-dom'
 import { ManagerSideNav, UpperNavBar } from '../../../components/layout'
-import { Badge, Button, Icon, Input, LoadingScreen, PackageCreateModal } from '../../../components/ui'
+import { Badge, Button, Icon, Input, LoadingScreen, ManagerPackageCard, ManagerPackageStageFilter, ManagerPackageStatCard, PackageCreateModal } from '../../../components/ui'
 import { getCurrentUser } from '../../../lib/auth-api'
 import type { ManagerUser } from '../../../lib/manager-dashboard-api'
 import type { ApiError } from '../../../lib/auth-api'
 import { calculateManagerPackagePrice, createManagerPackage, deleteManagerPackage, getManagerBasePrices, getManagerPackages, getManagerPackageSummary, updateManagerPackageActive } from '../../../lib/manager-packages-api'
 import type { ManagerPackage, ManagerPackageSummary } from '../../../lib/manager-packages-api'
-import { PackageCard } from './PackageCard'
-import { PackageStatCard } from './PackageStatCard'
-import { PackageStageFilter } from './PackageStageFilter'
 import '../dashboard/ManagerDashboard.css'
 import './ManagerPackagesPage.css'
 
@@ -264,7 +261,7 @@ export default function ManagerPackagesPage() {
           <section aria-label="Ringkasan paket" className="manager-package-stats">
             {statCards.map((item, index) => {
               const filter: StageFilter = index === 0 ? 'all' : stageInfo[index - 1].key
-              return <PackageStatCard {...item} key={item.label} onClick={() => selectStageFilter(filter)} />
+              return <ManagerPackageStatCard {...item} key={item.label} onClick={() => selectStageFilter(filter)} />
             })}
           </section>
 
@@ -283,7 +280,7 @@ export default function ManagerPackagesPage() {
               <Button className="manager-package-create" leadingIcon="plus" onClick={() => setCreateOpen(true)}>Buat Paket</Button>
             </div>
             <div aria-label="Filter tahap paket" className="manager-package-filters">
-              {stageFilters.map((filter) => <PackageStageFilter active={stageFilter === filter.key} count={filter.count} key={filter.key} label={filter.label} onClick={() => selectStageFilter(filter.key)} />)}
+              {stageFilters.map((filter) => <ManagerPackageStageFilter active={stageFilter === filter.key} count={filter.count} key={filter.key} label={filter.label} onClick={() => selectStageFilter(filter.key)} />)}
             </div>
 
             {error && <div className="manager-package-error-backdrop" onClick={() => setError('')} role="presentation">
@@ -346,7 +343,7 @@ export default function ManagerPackagesPage() {
 
 function PackageCardGrid({ items, columns, onMenu, onSelect }: { items: ManagerPackage[]; columns: number; onMenu: (item: ManagerPackage, anchor: DOMRect) => void; onSelect: (item: ManagerPackage) => void }) {
   return <div aria-label="Daftar paket" className="manager-package-grid" style={{ gridTemplateColumns: `repeat(${columns}, minmax(0, 1fr))` }}>
-    {items.map((item) => <PackageCard item={item} key={item.id} onMenu={(anchor) => onMenu(item, anchor)} onSelect={() => onSelect(item)} />)}
+    {items.map((item) => <ManagerPackageCard item={item} key={item.id} onMenu={(anchor) => onMenu(item, anchor)} onSelect={() => onSelect(item)} />)}
   </div>
 }
 

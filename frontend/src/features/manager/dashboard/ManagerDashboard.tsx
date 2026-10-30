@@ -207,11 +207,9 @@ function ManagerDashboardContent({ data, user }: { data: ManagerDashboardData; u
 
   const sales = data.package_sales.items.map((item) => ({ name: item.name, count: item.project_count, percentage: item.percentage }))
   const expenses = data.expense_categories.items.map((item) => ({ name: item.category_name ?? 'Lainnya', count: item.amount, percentage: item.percentage }))
-  const displayName = user?.name ?? 'Manager'
-
   return (
     <div className="manager-shell">
-      <ManagerSideNav managerName={displayName} />
+      <ManagerSideNav managerName={user?.name ?? 'Manager'} pendingProjectAssignments={data.pending_project_assignments ?? 0} />
 
       <main className="manager-main">
         <header className="manager-topbar">

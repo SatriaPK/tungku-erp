@@ -1,11 +1,13 @@
-interface PackageStageFilterProps {
+import './ManagerPackageStageFilter.css'
+
+export interface ManagerPackageStageFilterProps {
   active: boolean
   count: number
   label: string
   onClick: () => void
 }
 
-export function PackageStageFilter({ active, count, label, onClick }: PackageStageFilterProps) {
+export function ManagerPackageStageFilter({ active, count, label, onClick }: ManagerPackageStageFilterProps) {
   return (
     <button
       aria-pressed={active}

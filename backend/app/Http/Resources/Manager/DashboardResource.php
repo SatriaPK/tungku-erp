@@ -25,6 +25,7 @@ class DashboardResource extends JsonResource
             'package_sales' => $this['package_sales'],
             'expense_categories' => $this['expense_categories'],
             'recording_schedule' => $this['recording_schedule'],
+            'pending_project_assignments' => $this['pending_project_assignments'],
             'project_progress' => $this['project_progress'],
             'quotation_progress' => $this['quotation_progress'],
             'operator_activities' => $this['operator_activities'],

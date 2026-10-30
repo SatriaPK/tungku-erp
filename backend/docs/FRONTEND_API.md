@@ -155,6 +155,8 @@ Final delivery tersedia melalui `GET /client/projects/{project}/final-delivery` 
 
 ## Alur Operator dan Manager produksi
 
+Daftar Project Manager menggunakan `GET /api/v1/manager/projects`. Query opsional: `search` (nama project/klien), `status`, `stage` (tahap yang disertakan project), `sort` (`newest`, `oldest`, `name_asc`, `name_desc`) dan `per_page` (1–100, default 15). Urutan terbaru/terlama memakai tanggal pembuatan project. Response berisi project paginated dengan klien, status, tahap saat ini/operator, tanggal mulai, jumlah track, dan progress persetujuan track.
+
 Manager menugaskan seluruh tahap aktif project sekaligus:
 
 ```json

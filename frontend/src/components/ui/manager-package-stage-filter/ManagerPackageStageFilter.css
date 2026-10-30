@@ -1,0 +1,5 @@
+.manager-package-filter { display: inline-flex; min-height: 32px; flex: 0 0 auto; align-items: center; gap: 8px; border: 1px solid transparent; border-radius: var(--ts-radius-full); padding: 8px 16px; background: transparent; color: var(--ts-on-surface-variant); font: var(--ts-label-large); letter-spacing: var(--ts-tracking-label-large); cursor: pointer; }
+.manager-package-filter:not(.is-active) { border-color: var(--ts-primary-container); }
+.manager-package-filter:hover { background: var(--ts-surface-variant); }
+.manager-package-filter.is-active { background: var(--ts-primary); color: var(--ts-on-primary); }
+.manager-package-filter span { color: inherit; font: inherit; }

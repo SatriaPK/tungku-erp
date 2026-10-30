@@ -15,6 +15,7 @@ use App\Http\Controllers\Api\V1\Manager\PackageController;
 use App\Http\Controllers\Api\V1\Manager\PaymentController;
 use App\Http\Controllers\Api\V1\Manager\PayrollAllocationController;
 use App\Http\Controllers\Api\V1\Manager\ProjectAssignmentController;
+use App\Http\Controllers\Api\V1\Manager\ProjectController;
 use App\Http\Controllers\Api\V1\Manager\QuotationController;
 use App\Http\Controllers\Api\V1\Manager\StudioSettingController;
 use App\Http\Controllers\Api\V1\Manager\TrackStageReviewController;
@@ -72,6 +73,7 @@ Route::middleware(['auth:sanctum', 'active', 'role:manager'])
 
         Route::post('projects/{project}/assignments', [ProjectAssignmentController::class, 'store'])
             ->whereNumber('project');
+        Route::get('projects', [ProjectController::class, 'index']);
 
         Route::post('track-progress/{progress}/submissions/{submission}/review', [TrackStageReviewController::class, 'store'])
             ->whereNumber(['progress', 'submission']);

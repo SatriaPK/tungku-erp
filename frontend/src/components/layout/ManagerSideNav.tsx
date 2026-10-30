@@ -23,6 +23,7 @@ export interface ManagerSideNavSection {
 export interface ManagerSideNavProps {
   sections?: ManagerSideNavSection[]
   managerName: string
+  pendingProjectAssignments?: number
   logoSrc?: string
   logoAlt?: string
   profileImageSrc?: string
@@ -34,6 +35,7 @@ export interface ManagerSideNavProps {
 export function ManagerSideNav({
   sections = managerNavigation,
   managerName,
+  pendingProjectAssignments,
   logoSrc = tungkuIcon,
   logoAlt = 'Tungku Studio',
   profileImageSrc,
@@ -110,8 +112,7 @@ export function ManagerSideNav({
                 {section.items.map((item) => (
                   <NavItem
                     active={item.href ? currentPath === item.href : item.active}
-                    badge={item.badge}
-                    href={item.href}
+                    badge={item.href === '/project' && pendingProjectAssignments !== undefined ? pendingProjectAssignments || undefined : item.badge}
                     icon={item.icon}
                     key={item.label}
                     label={item.label}

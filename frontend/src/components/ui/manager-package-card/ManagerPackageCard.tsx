@@ -1,5 +1,7 @@
-import { Badge, Icon } from '../../../components/ui'
+import { Badge } from '../badge'
+import { Icon } from '../icon'
 import type { ManagerPackage } from '../../../lib/manager-packages-api'
+import './ManagerPackageCard.css'
 
 const currency = new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR', maximumFractionDigits: 0 })
 const number = new Intl.NumberFormat('id-ID')
@@ -11,7 +13,13 @@ const stages = [
   { key: 'mastering', label: 'Mastering', icon: 'activity', tone: 'mastering' },
 ] as const
 
-export function PackageCard({ item, onMenu, onSelect }: { item: ManagerPackage; onMenu: (anchor: DOMRect) => void; onSelect: () => void }) {
+export interface ManagerPackageCardProps {
+  item: ManagerPackage
+  onMenu: (anchor: DOMRect) => void
+  onSelect: () => void
+}
+
+export function ManagerPackageCard({ item, onMenu, onSelect }: ManagerPackageCardProps) {
   const includedStages = stages.filter((stage) => (item.stages ?? []).includes(stage.key))
 
   return (

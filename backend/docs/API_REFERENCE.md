@@ -34,42 +34,34 @@ Prefix semua path di bawah: `/api`. `PUT` dan `PATCH` resource memakai validasi 
 | POST | `/v1/manager/expenses` | [expenses.store](#expensesstore) |
 | GET | `/v1/manager/expenses/{expense}` | [expenses.show](#expensesshow) |
 | PUT | `/v1/manager/expenses/{expense}` | [expenses.update](#expensesupdate) |
-| PATCH | `/v1/manager/expenses/{expense}` | [expenses.update.patch](#expensesupdatepatch) |
 | DELETE | `/v1/manager/expenses/{expense}` | [expenses.destroy](#expensesdestroy) |
 | GET | `/v1/manager/expense-categories` | [expense-categories.index](#expense-categoriesindex) |
 | POST | `/v1/manager/expense-categories` | [expense-categories.store](#expense-categoriesstore) |
 | GET | `/v1/manager/expense-categories/{expense_category}` | [expense-categories.show](#expense-categoriesshow) |
 | PUT | `/v1/manager/expense-categories/{expense_category}` | [expense-categories.update](#expense-categoriesupdate) |
-| PATCH | `/v1/manager/expense-categories/{expense_category}` | [expense-categories.update.patch](#expense-categoriesupdatepatch) |
 | DELETE | `/v1/manager/expense-categories/{expense_category}` | [expense-categories.destroy](#expense-categoriesdestroy) |
 | GET | `/v1/client/projects/{project}/final-delivery` | [finalDelivery.show](#finaldeliveryshow) |
 | GET | `/v1/manager/inventories` | [inventories.index](#inventoriesindex) |
 | POST | `/v1/manager/inventories` | [inventories.store](#inventoriesstore) |
 | GET | `/v1/manager/inventories/{inventory}` | [inventories.show](#inventoriesshow) |
 | PUT | `/v1/manager/inventories/{inventory}` | [inventories.update](#inventoriesupdate) |
-| PATCH | `/v1/manager/inventories/{inventory}` | [inventories.update.patch](#inventoriesupdatepatch) |
 | DELETE | `/v1/manager/inventories/{inventory}` | [inventories.destroy](#inventoriesdestroy) |
 | POST | `/v1/manager/inventories/{inventory}/dispose` | [inventory.dispose](#inventorydispose) |
 | GET | `/v1/manager/inventory-categories` | [inventory-categories.index](#inventory-categoriesindex) |
 | POST | `/v1/manager/inventory-categories` | [inventory-categories.store](#inventory-categoriesstore) |
 | GET | `/v1/manager/inventory-categories/{inventory_category}` | [inventory-categories.show](#inventory-categoriesshow) |
 | PUT | `/v1/manager/inventory-categories/{inventory_category}` | [inventory-categories.update](#inventory-categoriesupdate) |
-| PATCH | `/v1/manager/inventory-categories/{inventory_category}` | [inventory-categories.update.patch](#inventory-categoriesupdatepatch) |
 | DELETE | `/v1/manager/inventory-categories/{inventory_category}` | [inventory-categories.destroy](#inventory-categoriesdestroy) |
 | GET | `/v1/client/invoices` | [invoice.index](#invoiceindex) |
 | GET | `/v1/client/invoices/{invoice}` | [invoice.show](#invoiceshow) |
 | GET | `/v1/manager/finance/monthly-summary` | [monthlyFinanceSummary.show](#monthlyfinancesummaryshow) |
 | POST | `/v1/manager/finance/payroll-finalization` | [monthlyPayrollFinalization.store](#monthlypayrollfinalizationstore) |
-| GET | `/v1/notifications` | [notifications.index](#notificationsindex) |
-| GET | `/v1/notifications/unread-count` | [notifications.unread-count](#notificationsunread-count) |
-| PATCH | `/v1/notifications/read-all` | [notifications.read-all](#notificationsread-all) |
-| PATCH | `/v1/notifications/{notification}/read` | [notifications.read](#notificationsread) |
 | POST | `/v1/manager/packages/calculate-price` | [package.calculatePrice](#packagecalculateprice) |
+| GET | `/v1/manager/packages/summary` | [package.summary](#packagesummary) |
 | GET | `/v1/manager/packages` | [packages.index](#packagesindex) |
 | POST | `/v1/manager/packages` | [packages.store](#packagesstore) |
 | GET | `/v1/manager/packages/{package}` | [packages.show](#packagesshow) |
 | PUT | `/v1/manager/packages/{package}` | [packages.update](#packagesupdate) |
-| PATCH | `/v1/manager/packages/{package}` | [packages.update.patch](#packagesupdatepatch) |
 | DELETE | `/v1/manager/packages/{package}` | [packages.destroy](#packagesdestroy) |
 | GET | `/v1/client/packages` | [packageCatalog.index](#packagecatalogindex) |
 | GET | `/v1/manager/payments` | [payment.index](#paymentindex) |
@@ -82,6 +74,7 @@ Prefix semua path di bawah: `/api`. `PUT` dan `PATCH` resource memakai validasi 
 | POST | `/v1/client/payments/{payment}/final/initiate` | [payment.initiateFinalPayment](#paymentinitiatefinalpayment) |
 | GET | `/v1/manager/finance/payroll-allocations` | [payrollAllocation.show](#payrollallocationshow) |
 | PUT | `/v1/manager/finance/payroll-allocations` | [payrollAllocation.update](#payrollallocationupdate) |
+| GET | `/v1/manager/projects` | [project.index](#projectindex) |
 | POST | `/v1/manager/projects/{project}/assignments` | [projectAssignment.store](#projectassignmentstore) |
 | GET | `/v1/manager/quotations` | [v1.manager.quotation.index](#v1managerquotationindex) |
 | GET | `/v1/manager/quotations/{quotation}` | [v1.manager.quotation.show](#v1managerquotationshow) |
@@ -111,13 +104,12 @@ Prefix semua path di bawah: `/api`. `PUT` dan `PATCH` resource memakai validasi 
 
 
 
-Autentikasi: session Sanctum, dengan policy ownership/role endpoint.
+Autentikasi: tanpa session pengguna; webhook tetap memerlukan verifikasi provider.
 
 | Status | Response |
 | --- | --- |
 | 200 | [User](#user) `User` |
-| 401 | { message: string } Unauthenticated. |
-| 403 | { message: string } Inactive account or operation not permitted. |
+| 401 | { message: string } Unauthenticated |
 
 <a id="authregister"></a>
 
@@ -135,7 +127,6 @@ Body `application/json`: [RegisterRequest](#registerrequest)
 | --- | --- |
 | 201 | { data: [UserResource](#userresource) } `UserResource` |
 | 422 | { message: string; errors: object } Validation error |
-| 429 | { message: string } Too many requests. Wait the Retry-After number of seconds before retrying. |
 
 <a id="authlogin"></a>
 
@@ -153,7 +144,6 @@ Body `application/json`: [LoginRequest](#loginrequest)
 | --- | --- |
 | 200 | { data: [UserResource](#userresource) } `UserResource` |
 | 422 | { message: string; errors: object } Validation error |
-| 429 | { message: string } Too many requests. Wait the Retry-After number of seconds before retrying. |
 
 <a id="authlogout"></a>
 
@@ -163,13 +153,12 @@ Body `application/json`: [LoginRequest](#loginrequest)
 
 
 
-Autentikasi: session Sanctum, dengan policy ownership/role endpoint.
+Autentikasi: tanpa session pengguna; webhook tetap memerlukan verifikasi provider.
 
 | Status | Response |
 | --- | --- |
 | 204 | any No content |
-| 401 | { message: string } Unauthenticated. |
-| 403 | { message: string } Inactive account or operation not permitted. |
+| 401 | { message: string } Unauthenticated |
 
 <a id="authme"></a>
 
@@ -179,13 +168,12 @@ Autentikasi: session Sanctum, dengan policy ownership/role endpoint.
 
 
 
-Autentikasi: session Sanctum, dengan policy ownership/role endpoint.
+Autentikasi: tanpa session pengguna; webhook tetap memerlukan verifikasi provider.
 
 | Status | Response |
 | --- | --- |
 | 200 | { data: [UserResource](#userresource) } `UserResource` |
-| 401 | { message: string } Unauthenticated. |
-| 403 | { message: string } Inactive account or operation not permitted. |
+| 401 | { message: string } Unauthenticated |
 
 <a id="authcrm-consentdestroy"></a>
 
@@ -195,13 +183,12 @@ Autentikasi: session Sanctum, dengan policy ownership/role endpoint.
 
 
 
-Autentikasi: session Sanctum, dengan policy ownership/role endpoint.
+Autentikasi: tanpa session pengguna; webhook tetap memerlukan verifikasi provider.
 
 | Status | Response |
 | --- | --- |
 | 204 | any No content |
-| 401 | { message: string } Unauthenticated. |
-| 403 | { message: string } Inactive account or operation not permitted. |
+| 401 | { message: string } Unauthenticated |
 
 <a id="basepriceindex"></a>
 
@@ -211,13 +198,12 @@ Autentikasi: session Sanctum, dengan policy ownership/role endpoint.
 
 
 
-Autentikasi: session Sanctum, dengan policy ownership/role endpoint.
+Autentikasi: tanpa session pengguna; webhook tetap memerlukan verifikasi provider.
 
 | Status | Response |
 | --- | --- |
 | 200 | { data: array&lt;[BasePriceResource](#basepriceresource)&gt; } Array of `BasePriceResource` |
-| 401 | { message: string } Unauthenticated. |
-| 403 | { message: string } Inactive account or operation not permitted. |
+| 401 | { message: string } Unauthenticated |
 
 <a id="basepriceupdate"></a>
 
@@ -227,16 +213,15 @@ Autentikasi: session Sanctum, dengan policy ownership/role endpoint.
 
 
 
-Autentikasi: session Sanctum, dengan policy ownership/role endpoint.
+Autentikasi: tanpa session pengguna; webhook tetap memerlukan verifikasi provider.
 
 Body `application/json`: [UpdateBasePricesRequest](#updatebasepricesrequest)
 
 | Status | Response |
 | --- | --- |
 | 200 | { data: array&lt;[BasePriceResource](#basepriceresource)&gt; } Array of `BasePriceResource` |
+| 401 | { message: string } Unauthenticated |
 | 422 | { message: string; errors: object } Validation error |
-| 401 | { message: string } Unauthenticated. |
-| 403 | { message: string } Inactive account or operation not permitted. |
 
 <a id="v1managerbookingindex"></a>
 
@@ -246,13 +231,12 @@ Body `application/json`: [UpdateBasePricesRequest](#updatebasepricesrequest)
 
 List all bookings (manager view)
 
-Autentikasi: session Sanctum, dengan policy ownership/role endpoint.
+Autentikasi: tanpa session pengguna; webhook tetap memerlukan verifikasi provider.
 
 | Status | Response |
 | --- | --- |
 | 200 | { data: array&lt;[RecordingSessionListResource](#recordingsessionlistresource)&gt;; links: { first: string / null; last: string / null; prev: string / null; next: string / null }; meta: { current_page: integer; minimum=1; from: integer / null; minimum=1; last_page: integer; minimum=1; links: array&lt;{ url: string / null; label: string; active: boolean }&gt;; path: string / null; per_page: integer; minimum=0; to: integer / null; minimum=1; total: integer; minimum=0 } } Paginated set of `RecordingSessionListResource` |
-| 401 | { message: string } Unauthenticated. |
-| 403 | { message: string } Inactive account or operation not permitted. |
+| 401 | { message: string } Unauthenticated |
 
 <a id="v1managerbookingshow"></a>
 
@@ -262,7 +246,7 @@ Autentikasi: session Sanctum, dengan policy ownership/role endpoint.
 
 View a single booking detail
 
-Autentikasi: session Sanctum, dengan policy ownership/role endpoint.
+Autentikasi: tanpa session pengguna; webhook tetap memerlukan verifikasi provider.
 
 | Parameter | Lokasi | Wajib | Tipe / aturan |
 | --- | --- | --- | --- |
@@ -271,9 +255,9 @@ Autentikasi: session Sanctum, dengan policy ownership/role endpoint.
 | Status | Response |
 | --- | --- |
 | 200 | { data: [RecordingSessionResource](#recordingsessionresource) } `RecordingSessionResource` |
+| 403 | { message: string } Authorization error |
 | 404 | { message: string } Not found |
-| 401 | { message: string } Unauthenticated. |
-| 403 | { message: string } Inactive account or operation not permitted. |
+| 401 | { message: string } Unauthenticated |
 
 <a id="bookingdestroy"></a>
 
@@ -283,7 +267,7 @@ Autentikasi: session Sanctum, dengan policy ownership/role endpoint.
 
 Cancel any booking (manager privilege)
 
-Autentikasi: session Sanctum, dengan policy ownership/role endpoint.
+Autentikasi: tanpa session pengguna; webhook tetap memerlukan verifikasi provider.
 
 | Parameter | Lokasi | Wajib | Tipe / aturan |
 | --- | --- | --- | --- |
@@ -293,9 +277,8 @@ Autentikasi: session Sanctum, dengan policy ownership/role endpoint.
 | --- | --- |
 | 422 | { message: string; errors: { id: array; minItems=1; maxItems=1 } }  |
 | 200 | { data: [RecordingSessionResource](#recordingsessionresource) } `RecordingSessionResource` |
-| 401 | { message: string } Unauthenticated. |
-| 403 | { message: string } Inactive account or operation not permitted. |
-| 429 | { message: string } Too many requests. Wait the Retry-After number of seconds before retrying. |
+| 403 | { message: string } Authorization error |
+| 401 | { message: string } Unauthenticated |
 
 <a id="v1clientbookingindex"></a>
 
@@ -305,13 +288,12 @@ Autentikasi: session Sanctum, dengan policy ownership/role endpoint.
 
 List client's own bookings
 
-Autentikasi: session Sanctum, dengan policy ownership/role endpoint.
+Autentikasi: tanpa session pengguna; webhook tetap memerlukan verifikasi provider.
 
 | Status | Response |
 | --- | --- |
 | 200 | { data: array&lt;[RecordingSessionListResource](#recordingsessionlistresource) / object&gt;; links: { first: string / null; last: string / null; prev: string / null; next: string / null }; meta: { current_page: integer; minimum=1; from: integer / null; minimum=1; last_page: integer; minimum=1; links: array&lt;{ url: string / null; label: string; active: boolean }&gt;; path: string / null; per_page: integer; minimum=0; to: integer / null; minimum=1; total: integer; minimum=0 } } Paginated set of `RecordingSessionListResource` |
-| 401 | { message: string } Unauthenticated. |
-| 403 | { message: string } Inactive account or operation not permitted. |
+| 401 | { message: string } Unauthenticated |
 
 <a id="v1clientbookingshow"></a>
 
@@ -321,7 +303,7 @@ Autentikasi: session Sanctum, dengan policy ownership/role endpoint.
 
 View a single booking detail
 
-Autentikasi: session Sanctum, dengan policy ownership/role endpoint.
+Autentikasi: tanpa session pengguna; webhook tetap memerlukan verifikasi provider.
 
 | Parameter | Lokasi | Wajib | Tipe / aturan |
 | --- | --- | --- | --- |
@@ -330,9 +312,9 @@ Autentikasi: session Sanctum, dengan policy ownership/role endpoint.
 | Status | Response |
 | --- | --- |
 | 200 | { data: [RecordingSessionResource](#recordingsessionresource) } `RecordingSessionResource` |
+| 403 | { message: string } Authorization error |
 | 404 | { message: string } Not found |
-| 401 | { message: string } Unauthenticated. |
-| 403 | { message: string } Inactive account or operation not permitted. |
+| 401 | { message: string } Unauthenticated |
 
 <a id="bookingcancelbooking"></a>
 
@@ -342,7 +324,7 @@ Autentikasi: session Sanctum, dengan policy ownership/role endpoint.
 
 Cancel a client's held or confirmed booking
 
-Autentikasi: session Sanctum, dengan policy ownership/role endpoint.
+Autentikasi: tanpa session pengguna; webhook tetap memerlukan verifikasi provider.
 
 | Parameter | Lokasi | Wajib | Tipe / aturan |
 | --- | --- | --- | --- |
@@ -354,9 +336,8 @@ Autentikasi: session Sanctum, dengan policy ownership/role endpoint.
 | 422 | { message: string; errors: object } Validation error |
 | 200 | { data: [RecordingSessionResource](#recordingsessionresource) } `RecordingSessionResource` |
 | 404 | { message: string }  |
-| 401 | { message: string } Unauthenticated. |
-| 403 | { message: string } Inactive account or operation not permitted. |
-| 429 | { message: string } Too many requests. Wait the Retry-After number of seconds before retrying. |
+| 403 | { message: string } Authorization error |
+| 401 | { message: string } Unauthenticated |
 
 <a id="bookingcheckavailability"></a>
 
@@ -366,17 +347,15 @@ Autentikasi: session Sanctum, dengan policy ownership/role endpoint.
 
 Check if a time slot is available for booking
 
-Autentikasi: session Sanctum, dengan policy ownership/role endpoint.
+Autentikasi: tanpa session pengguna; webhook tetap memerlukan verifikasi provider.
 
 Body `application/json`: [CheckAvailabilityRequest](#checkavailabilityrequest)
 
 | Status | Response |
 | --- | --- |
 | 200 | { data: [AvailabilityResource](#availabilityresource) } `AvailabilityResource` |
+| 401 | { message: string } Unauthenticated |
 | 422 | { message: string; errors: object } Validation error |
-| 401 | { message: string } Unauthenticated. |
-| 403 | { message: string } Inactive account or operation not permitted. |
-| 429 | { message: string } Too many requests. Wait the Retry-After number of seconds before retrying. |
 
 <a id="bookingholdslot"></a>
 
@@ -386,7 +365,7 @@ Body `application/json`: [CheckAvailabilityRequest](#checkavailabilityrequest)
 
 Hold a time slot for checkout (temporary reservation)
 
-Autentikasi: session Sanctum, dengan policy ownership/role endpoint.
+Autentikasi: tanpa session pengguna; webhook tetap memerlukan verifikasi provider.
 
 Body `application/json`: [HoldSlotRequest](#holdslotrequest)
 
@@ -394,9 +373,7 @@ Body `application/json`: [HoldSlotRequest](#holdslotrequest)
 | --- | --- |
 | 422 | { message: string; errors: object } Validation error |
 | 201 | { data: [RecordingSessionResource](#recordingsessionresource) } `RecordingSessionResource` |
-| 401 | { message: string } Unauthenticated. |
-| 403 | { message: string } Inactive account or operation not permitted. |
-| 429 | { message: string } Too many requests. Wait the Retry-After number of seconds before retrying. |
+| 401 | { message: string } Unauthenticated |
 
 <a id="bookingconfirmslot"></a>
 
@@ -406,7 +383,7 @@ Body `application/json`: [HoldSlotRequest](#holdslotrequest)
 
 Confirm a held slot after payment
 
-Autentikasi: session Sanctum, dengan policy ownership/role endpoint.
+Autentikasi: tanpa session pengguna; webhook tetap memerlukan verifikasi provider.
 
 Body `application/json`: [ConfirmSlotRequest](#confirmslotrequest)
 
@@ -414,9 +391,8 @@ Body `application/json`: [ConfirmSlotRequest](#confirmslotrequest)
 | --- | --- |
 | 422 | { message: string; errors: object } Validation error |
 | 200 | { data: [RecordingSessionResource](#recordingsessionresource) } `RecordingSessionResource` |
-| 401 | { message: string } Unauthenticated. |
-| 403 | { message: string } Inactive account or operation not permitted. |
-| 429 | { message: string } Too many requests. Wait the Retry-After number of seconds before retrying. |
+| 403 | { message: string } Authorization error |
+| 401 | { message: string } Unauthenticated |
 
 <a id="crmcampaignindex"></a>
 
@@ -426,7 +402,7 @@ Body `application/json`: [ConfirmSlotRequest](#confirmslotrequest)
 
 
 
-Autentikasi: session Sanctum, dengan policy ownership/role endpoint.
+Autentikasi: tanpa session pengguna; webhook tetap memerlukan verifikasi provider.
 
 | Parameter | Lokasi | Wajib | Tipe / aturan |
 | --- | --- | --- | --- |
@@ -435,9 +411,8 @@ Autentikasi: session Sanctum, dengan policy ownership/role endpoint.
 | Status | Response |
 | --- | --- |
 | 200 | { data: array&lt;[CRMCampaignResource](#crmcampaignresource)&gt;; links: { first: string / null; last: string / null; prev: string / null; next: string / null }; meta: { current_page: integer; minimum=1; from: integer / null; minimum=1; last_page: integer; minimum=1; links: array&lt;{ url: string / null; label: string; active: boolean }&gt;; path: string / null; per_page: integer; minimum=0; to: integer / null; minimum=1; total: integer; minimum=0 } } Paginated set of `CRMCampaignResource` |
+| 401 | { message: string } Unauthenticated |
 | 422 | { message: string; errors: object } Validation error |
-| 401 | { message: string } Unauthenticated. |
-| 403 | { message: string } Inactive account or operation not permitted. |
 
 <a id="crmcampaignstore"></a>
 
@@ -447,16 +422,15 @@ Autentikasi: session Sanctum, dengan policy ownership/role endpoint.
 
 
 
-Autentikasi: session Sanctum, dengan policy ownership/role endpoint.
+Autentikasi: tanpa session pengguna; webhook tetap memerlukan verifikasi provider.
 
 Body `application/json`: [CreateCRMCampaignRequest](#createcrmcampaignrequest)
 
 | Status | Response |
 | --- | --- |
 | 201 | { data: [CRMCampaignResource](#crmcampaignresource) } `CRMCampaignResource` |
+| 401 | { message: string } Unauthenticated |
 | 422 | { message: string; errors: object } Validation error |
-| 401 | { message: string } Unauthenticated. |
-| 403 | { message: string } Inactive account or operation not permitted. |
 
 <a id="crmcampaignshow"></a>
 
@@ -466,7 +440,7 @@ Body `application/json`: [CreateCRMCampaignRequest](#createcrmcampaignrequest)
 
 
 
-Autentikasi: session Sanctum, dengan policy ownership/role endpoint.
+Autentikasi: tanpa session pengguna; webhook tetap memerlukan verifikasi provider.
 
 | Parameter | Lokasi | Wajib | Tipe / aturan |
 | --- | --- | --- | --- |
@@ -476,8 +450,7 @@ Autentikasi: session Sanctum, dengan policy ownership/role endpoint.
 | --- | --- |
 | 200 | { data: [CRMCampaignResource](#crmcampaignresource) } `CRMCampaignResource` |
 | 404 | { message: string } Not found |
-| 401 | { message: string } Unauthenticated. |
-| 403 | { message: string } Inactive account or operation not permitted. |
+| 401 | { message: string } Unauthenticated |
 
 <a id="crmcampaigndispatch"></a>
 
@@ -487,7 +460,7 @@ Autentikasi: session Sanctum, dengan policy ownership/role endpoint.
 
 
 
-Autentikasi: session Sanctum, dengan policy ownership/role endpoint.
+Autentikasi: tanpa session pengguna; webhook tetap memerlukan verifikasi provider.
 
 | Parameter | Lokasi | Wajib | Tipe / aturan |
 | --- | --- | --- | --- |
@@ -497,9 +470,7 @@ Autentikasi: session Sanctum, dengan policy ownership/role endpoint.
 | --- | --- |
 | 202 | { data: { id: integer; status: string } }  |
 | 404 | { message: string } Not found |
-| 401 | { message: string } Unauthenticated. |
-| 403 | { message: string } Inactive account or operation not permitted. |
-| 429 | { message: string } Too many requests. Wait the Retry-After number of seconds before retrying. |
+| 401 | { message: string } Unauthenticated |
 
 <a id="clientrecommendationindex"></a>
 
@@ -509,7 +480,7 @@ Autentikasi: session Sanctum, dengan policy ownership/role endpoint.
 
 
 
-Autentikasi: session Sanctum, dengan policy ownership/role endpoint.
+Autentikasi: tanpa session pengguna; webhook tetap memerlukan verifikasi provider.
 
 | Parameter | Lokasi | Wajib | Tipe / aturan |
 | --- | --- | --- | --- |
@@ -518,10 +489,8 @@ Autentikasi: session Sanctum, dengan policy ownership/role endpoint.
 | Status | Response |
 | --- | --- |
 | 200 | { data: array&lt;[ClientRecommendationResource](#clientrecommendationresource)&gt;; links: { first: string / null; last: string / null; prev: string / null; next: string / null }; meta: { current_page: integer; minimum=1; from: integer / null; minimum=1; last_page: integer; minimum=1; links: array&lt;{ url: string / null; label: string; active: boolean }&gt;; path: string / null; per_page: integer; minimum=0; to: integer / null; minimum=1; total: integer; minimum=0 } } Paginated set of `ClientRecommendationResource` |
+| 401 | { message: string } Unauthenticated |
 | 422 | { message: string; errors: object } Validation error |
-| 401 | { message: string } Unauthenticated. |
-| 403 | { message: string } Inactive account or operation not permitted. |
-| 429 | { message: string } Too many requests. Wait the Retry-After number of seconds before retrying. |
 
 <a id="dashboardshow"></a>
 
@@ -531,14 +500,17 @@ Autentikasi: session Sanctum, dengan policy ownership/role endpoint.
 
 
 
-Autentikasi: session Sanctum, dengan policy ownership/role endpoint.
+Autentikasi: tanpa session pengguna; webhook tetap memerlukan verifikasi provider.
+
+| Parameter | Lokasi | Wajib | Tipe / aturan |
+| --- | --- | --- | --- |
+| `year` | query | tidak | integer; minimum=2000; maximum=2100 |
 
 | Status | Response |
 | --- | --- |
 | 200 | { data: [DashboardResource](#dashboardresource) } `DashboardResource` |
-| 401 | { message: string } Unauthenticated. |
-| 403 | { message: string } Inactive account or operation not permitted. |
-| 429 | { message: string } Too many requests. Wait the Retry-After number of seconds before retrying. |
+| 422 | { message: string; errors: object } Validation error |
+| 401 | { message: string } Unauthenticated |
 
 <a id="dashboardactivities"></a>
 
@@ -548,14 +520,12 @@ Autentikasi: session Sanctum, dengan policy ownership/role endpoint.
 
 
 
-Autentikasi: session Sanctum, dengan policy ownership/role endpoint.
+Autentikasi: tanpa session pengguna; webhook tetap memerlukan verifikasi provider.
 
 | Status | Response |
 | --- | --- |
 | 200 | { data: [OperatorActivityFeedResource](#operatoractivityfeedresource) } `OperatorActivityFeedResource` |
-| 401 | { message: string } Unauthenticated. |
-| 403 | { message: string } Inactive account or operation not permitted. |
-| 429 | { message: string } Too many requests. Wait the Retry-After number of seconds before retrying. |
+| 401 | { message: string } Unauthenticated |
 
 <a id="expensesindex"></a>
 
@@ -565,7 +535,7 @@ Autentikasi: session Sanctum, dengan policy ownership/role endpoint.
 
 
 
-Autentikasi: session Sanctum, dengan policy ownership/role endpoint.
+Autentikasi: tanpa session pengguna; webhook tetap memerlukan verifikasi provider.
 
 | Parameter | Lokasi | Wajib | Tipe / aturan |
 | --- | --- | --- | --- |
@@ -578,8 +548,7 @@ Autentikasi: session Sanctum, dengan policy ownership/role endpoint.
 | --- | --- |
 | 200 | { data: array&lt;[ExpenseResource](#expenseresource) / object&gt;; links: { first: string / null; last: string / null; prev: string / null; next: string / null }; meta: { current_page: integer; minimum=1; from: integer / null; minimum=1; last_page: integer; minimum=1; links: array&lt;{ url: string / null; label: string; active: boolean }&gt;; path: string / null; per_page: integer; minimum=0; to: integer / null; minimum=1; total: integer; minimum=0 } } Paginated set of `ExpenseResource` |
 | 422 | { message: string; errors: object } Validation error |
-| 401 | { message: string } Unauthenticated. |
-| 403 | { message: string } Inactive account or operation not permitted. |
+| 401 | { message: string } Unauthenticated |
 
 <a id="expensesstore"></a>
 
@@ -589,16 +558,15 @@ Autentikasi: session Sanctum, dengan policy ownership/role endpoint.
 
 
 
-Autentikasi: session Sanctum, dengan policy ownership/role endpoint.
+Autentikasi: tanpa session pengguna; webhook tetap memerlukan verifikasi provider.
 
 Body `application/json`: [ExpenseRequest](#expenserequest)
 
 | Status | Response |
 | --- | --- |
 | 201 | { data: [ExpenseResource](#expenseresource) / object } `ExpenseResource` |
+| 401 | { message: string } Unauthenticated |
 | 422 | { message: string; errors: object } Validation error |
-| 401 | { message: string } Unauthenticated. |
-| 403 | { message: string } Inactive account or operation not permitted. |
 
 <a id="expensesshow"></a>
 
@@ -608,7 +576,7 @@ Body `application/json`: [ExpenseRequest](#expenserequest)
 
 
 
-Autentikasi: session Sanctum, dengan policy ownership/role endpoint.
+Autentikasi: tanpa session pengguna; webhook tetap memerlukan verifikasi provider.
 
 | Parameter | Lokasi | Wajib | Tipe / aturan |
 | --- | --- | --- | --- |
@@ -618,8 +586,7 @@ Autentikasi: session Sanctum, dengan policy ownership/role endpoint.
 | --- | --- |
 | 200 | { data: [ExpenseResource](#expenseresource) / object } `ExpenseResource` |
 | 404 | { message: string } Not found |
-| 401 | { message: string } Unauthenticated. |
-| 403 | { message: string } Inactive account or operation not permitted. |
+| 401 | { message: string } Unauthenticated |
 
 <a id="expensesupdate"></a>
 
@@ -629,7 +596,7 @@ Autentikasi: session Sanctum, dengan policy ownership/role endpoint.
 
 
 
-Autentikasi: session Sanctum, dengan policy ownership/role endpoint.
+Autentikasi: tanpa session pengguna; webhook tetap memerlukan verifikasi provider.
 
 | Parameter | Lokasi | Wajib | Tipe / aturan |
 | --- | --- | --- | --- |
@@ -641,33 +608,8 @@ Body `application/json`: [ExpenseRequest](#expenserequest)
 | --- | --- |
 | 200 | { data: [ExpenseResource](#expenseresource) / object } `ExpenseResource` |
 | 404 | { message: string } Not found |
+| 401 | { message: string } Unauthenticated |
 | 422 | { message: string; errors: object } Validation error |
-| 401 | { message: string } Unauthenticated. |
-| 403 | { message: string } Inactive account or operation not permitted. |
-
-<a id="expensesupdatepatch"></a>
-
-## expenses.update.patch
-
-`PATCH /api/v1/manager/expenses/{expense}`
-
-
-
-Autentikasi: session Sanctum, dengan policy ownership/role endpoint.
-
-| Parameter | Lokasi | Wajib | Tipe / aturan |
-| --- | --- | --- | --- |
-| `expense` | path | ya | integer |
-
-Body `application/json`: [ExpenseRequest](#expenserequest)
-
-| Status | Response |
-| --- | --- |
-| 200 | { data: [ExpenseResource](#expenseresource) / object } `ExpenseResource` |
-| 404 | { message: string } Not found |
-| 422 | { message: string; errors: object } Validation error |
-| 401 | { message: string } Unauthenticated. |
-| 403 | { message: string } Inactive account or operation not permitted. |
 
 <a id="expensesdestroy"></a>
 
@@ -677,7 +619,7 @@ Body `application/json`: [ExpenseRequest](#expenserequest)
 
 
 
-Autentikasi: session Sanctum, dengan policy ownership/role endpoint.
+Autentikasi: tanpa session pengguna; webhook tetap memerlukan verifikasi provider.
 
 | Parameter | Lokasi | Wajib | Tipe / aturan |
 | --- | --- | --- | --- |
@@ -687,8 +629,7 @@ Autentikasi: session Sanctum, dengan policy ownership/role endpoint.
 | --- | --- |
 | 204 | any No content |
 | 404 | { message: string } Not found |
-| 401 | { message: string } Unauthenticated. |
-| 403 | { message: string } Inactive account or operation not permitted. |
+| 401 | { message: string } Unauthenticated |
 
 <a id="expense-categoriesindex"></a>
 
@@ -698,7 +639,7 @@ Autentikasi: session Sanctum, dengan policy ownership/role endpoint.
 
 
 
-Autentikasi: session Sanctum, dengan policy ownership/role endpoint.
+Autentikasi: tanpa session pengguna; webhook tetap memerlukan verifikasi provider.
 
 | Parameter | Lokasi | Wajib | Tipe / aturan |
 | --- | --- | --- | --- |
@@ -707,8 +648,7 @@ Autentikasi: session Sanctum, dengan policy ownership/role endpoint.
 | Status | Response |
 | --- | --- |
 | 200 | { data: array&lt;[ExpenseCategoryResource](#expensecategoryresource)&gt;; links: { first: string / null; last: string / null; prev: string / null; next: string / null }; meta: { current_page: integer; minimum=1; from: integer / null; minimum=1; last_page: integer; minimum=1; links: array&lt;{ url: string / null; label: string; active: boolean }&gt;; path: string / null; per_page: integer; minimum=0; to: integer / null; minimum=1; total: integer; minimum=0 } } Paginated set of `ExpenseCategoryResource` |
-| 401 | { message: string } Unauthenticated. |
-| 403 | { message: string } Inactive account or operation not permitted. |
+| 401 | { message: string } Unauthenticated |
 
 <a id="expense-categoriesstore"></a>
 
@@ -718,16 +658,15 @@ Autentikasi: session Sanctum, dengan policy ownership/role endpoint.
 
 Store a newly created resource in storage
 
-Autentikasi: session Sanctum, dengan policy ownership/role endpoint.
+Autentikasi: tanpa session pengguna; webhook tetap memerlukan verifikasi provider.
 
 Body `application/json`: [ExpenseCategoryRequest](#expensecategoryrequest)
 
 | Status | Response |
 | --- | --- |
 | 201 | { data: [ExpenseCategoryResource](#expensecategoryresource) } `ExpenseCategoryResource` |
+| 401 | { message: string } Unauthenticated |
 | 422 | { message: string; errors: object } Validation error |
-| 401 | { message: string } Unauthenticated. |
-| 403 | { message: string } Inactive account or operation not permitted. |
 
 <a id="expense-categoriesshow"></a>
 
@@ -737,7 +676,7 @@ Body `application/json`: [ExpenseCategoryRequest](#expensecategoryrequest)
 
 Display the specified resource
 
-Autentikasi: session Sanctum, dengan policy ownership/role endpoint.
+Autentikasi: tanpa session pengguna; webhook tetap memerlukan verifikasi provider.
 
 | Parameter | Lokasi | Wajib | Tipe / aturan |
 | --- | --- | --- | --- |
@@ -747,8 +686,7 @@ Autentikasi: session Sanctum, dengan policy ownership/role endpoint.
 | --- | --- |
 | 200 | { data: [ExpenseCategoryResource](#expensecategoryresource) } `ExpenseCategoryResource` |
 | 404 | { message: string } Not found |
-| 401 | { message: string } Unauthenticated. |
-| 403 | { message: string } Inactive account or operation not permitted. |
+| 401 | { message: string } Unauthenticated |
 
 <a id="expense-categoriesupdate"></a>
 
@@ -758,7 +696,7 @@ Autentikasi: session Sanctum, dengan policy ownership/role endpoint.
 
 Update the specified resource in storage
 
-Autentikasi: session Sanctum, dengan policy ownership/role endpoint.
+Autentikasi: tanpa session pengguna; webhook tetap memerlukan verifikasi provider.
 
 | Parameter | Lokasi | Wajib | Tipe / aturan |
 | --- | --- | --- | --- |
@@ -770,33 +708,8 @@ Body `application/json`: [ExpenseCategoryRequest](#expensecategoryrequest)
 | --- | --- |
 | 200 | { data: [ExpenseCategoryResource](#expensecategoryresource) } `ExpenseCategoryResource` |
 | 404 | { message: string } Not found |
+| 401 | { message: string } Unauthenticated |
 | 422 | { message: string; errors: object } Validation error |
-| 401 | { message: string } Unauthenticated. |
-| 403 | { message: string } Inactive account or operation not permitted. |
-
-<a id="expense-categoriesupdatepatch"></a>
-
-## expense-categories.update.patch
-
-`PATCH /api/v1/manager/expense-categories/{expense_category}`
-
-Update the specified resource in storage
-
-Autentikasi: session Sanctum, dengan policy ownership/role endpoint.
-
-| Parameter | Lokasi | Wajib | Tipe / aturan |
-| --- | --- | --- | --- |
-| `expense_category` | path | ya | integer |
-
-Body `application/json`: [ExpenseCategoryRequest](#expensecategoryrequest)
-
-| Status | Response |
-| --- | --- |
-| 200 | { data: [ExpenseCategoryResource](#expensecategoryresource) } `ExpenseCategoryResource` |
-| 404 | { message: string } Not found |
-| 422 | { message: string; errors: object } Validation error |
-| 401 | { message: string } Unauthenticated. |
-| 403 | { message: string } Inactive account or operation not permitted. |
 
 <a id="expense-categoriesdestroy"></a>
 
@@ -806,7 +719,7 @@ Body `application/json`: [ExpenseCategoryRequest](#expensecategoryrequest)
 
 Remove the specified resource from storage
 
-Autentikasi: session Sanctum, dengan policy ownership/role endpoint.
+Autentikasi: tanpa session pengguna; webhook tetap memerlukan verifikasi provider.
 
 | Parameter | Lokasi | Wajib | Tipe / aturan |
 | --- | --- | --- | --- |
@@ -816,8 +729,7 @@ Autentikasi: session Sanctum, dengan policy ownership/role endpoint.
 | --- | --- |
 | 204 | any No content |
 | 404 | { message: string } Not found |
-| 401 | { message: string } Unauthenticated. |
-| 403 | { message: string } Inactive account or operation not permitted. |
+| 401 | { message: string } Unauthenticated |
 
 <a id="finaldeliveryshow"></a>
 
@@ -827,7 +739,7 @@ Autentikasi: session Sanctum, dengan policy ownership/role endpoint.
 
 
 
-Autentikasi: session Sanctum, dengan policy ownership/role endpoint.
+Autentikasi: tanpa session pengguna; webhook tetap memerlukan verifikasi provider.
 
 | Parameter | Lokasi | Wajib | Tipe / aturan |
 | --- | --- | --- | --- |
@@ -836,9 +748,9 @@ Autentikasi: session Sanctum, dengan policy ownership/role endpoint.
 | Status | Response |
 | --- | --- |
 | 200 | { data: array&lt;[FinalDeliveryResource](#finaldeliveryresource)&gt; } Array of `FinalDeliveryResource` |
+| 403 | { message: string } Authorization error |
 | 404 | { message: string } Not found |
-| 401 | { message: string } Unauthenticated. |
-| 403 | { message: string } Inactive account or operation not permitted. |
+| 401 | { message: string } Unauthenticated |
 
 <a id="inventoriesindex"></a>
 
@@ -848,7 +760,7 @@ Autentikasi: session Sanctum, dengan policy ownership/role endpoint.
 
 
 
-Autentikasi: session Sanctum, dengan policy ownership/role endpoint.
+Autentikasi: tanpa session pengguna; webhook tetap memerlukan verifikasi provider.
 
 | Parameter | Lokasi | Wajib | Tipe / aturan |
 | --- | --- | --- | --- |
@@ -863,8 +775,7 @@ Autentikasi: session Sanctum, dengan policy ownership/role endpoint.
 | --- | --- |
 | 200 | { data: array&lt;[InventoryResource](#inventoryresource) / object&gt;; links: { first: string / null; last: string / null; prev: string / null; next: string / null }; meta: { current_page: integer; minimum=1; from: integer / null; minimum=1; last_page: integer; minimum=1; links: array&lt;{ url: string / null; label: string; active: boolean }&gt;; path: string / null; per_page: integer; minimum=0; to: integer / null; minimum=1; total: integer; minimum=0 } } Paginated set of `InventoryResource` |
 | 422 | { message: string; errors: object } Validation error |
-| 401 | { message: string } Unauthenticated. |
-| 403 | { message: string } Inactive account or operation not permitted. |
+| 401 | { message: string } Unauthenticated |
 
 <a id="inventoriesstore"></a>
 
@@ -874,16 +785,15 @@ Autentikasi: session Sanctum, dengan policy ownership/role endpoint.
 
 
 
-Autentikasi: session Sanctum, dengan policy ownership/role endpoint.
+Autentikasi: tanpa session pengguna; webhook tetap memerlukan verifikasi provider.
 
 Body `application/json`: [InventoryRequest](#inventoryrequest)
 
 | Status | Response |
 | --- | --- |
 | 201 | { data: [InventoryResource](#inventoryresource) / object } `InventoryResource` |
+| 401 | { message: string } Unauthenticated |
 | 422 | { message: string; errors: object } Validation error |
-| 401 | { message: string } Unauthenticated. |
-| 403 | { message: string } Inactive account or operation not permitted. |
 
 <a id="inventoriesshow"></a>
 
@@ -893,7 +803,7 @@ Body `application/json`: [InventoryRequest](#inventoryrequest)
 
 
 
-Autentikasi: session Sanctum, dengan policy ownership/role endpoint.
+Autentikasi: tanpa session pengguna; webhook tetap memerlukan verifikasi provider.
 
 | Parameter | Lokasi | Wajib | Tipe / aturan |
 | --- | --- | --- | --- |
@@ -903,8 +813,7 @@ Autentikasi: session Sanctum, dengan policy ownership/role endpoint.
 | --- | --- |
 | 200 | { data: [InventoryResource](#inventoryresource) / object } `InventoryResource` |
 | 404 | { message: string } Not found |
-| 401 | { message: string } Unauthenticated. |
-| 403 | { message: string } Inactive account or operation not permitted. |
+| 401 | { message: string } Unauthenticated |
 
 <a id="inventoriesupdate"></a>
 
@@ -914,7 +823,7 @@ Autentikasi: session Sanctum, dengan policy ownership/role endpoint.
 
 
 
-Autentikasi: session Sanctum, dengan policy ownership/role endpoint.
+Autentikasi: tanpa session pengguna; webhook tetap memerlukan verifikasi provider.
 
 | Parameter | Lokasi | Wajib | Tipe / aturan |
 | --- | --- | --- | --- |
@@ -926,33 +835,8 @@ Body `application/json`: [InventoryRequest](#inventoryrequest)
 | --- | --- |
 | 200 | { data: [InventoryResource](#inventoryresource) / object } `InventoryResource` |
 | 404 | { message: string } Not found |
+| 401 | { message: string } Unauthenticated |
 | 422 | { message: string; errors: object } Validation error |
-| 401 | { message: string } Unauthenticated. |
-| 403 | { message: string } Inactive account or operation not permitted. |
-
-<a id="inventoriesupdatepatch"></a>
-
-## inventories.update.patch
-
-`PATCH /api/v1/manager/inventories/{inventory}`
-
-
-
-Autentikasi: session Sanctum, dengan policy ownership/role endpoint.
-
-| Parameter | Lokasi | Wajib | Tipe / aturan |
-| --- | --- | --- | --- |
-| `inventory` | path | ya | integer |
-
-Body `application/json`: [InventoryRequest](#inventoryrequest)
-
-| Status | Response |
-| --- | --- |
-| 200 | { data: [InventoryResource](#inventoryresource) / object } `InventoryResource` |
-| 404 | { message: string } Not found |
-| 422 | { message: string; errors: object } Validation error |
-| 401 | { message: string } Unauthenticated. |
-| 403 | { message: string } Inactive account or operation not permitted. |
 
 <a id="inventoriesdestroy"></a>
 
@@ -962,7 +846,7 @@ Body `application/json`: [InventoryRequest](#inventoryrequest)
 
 
 
-Autentikasi: session Sanctum, dengan policy ownership/role endpoint.
+Autentikasi: tanpa session pengguna; webhook tetap memerlukan verifikasi provider.
 
 | Parameter | Lokasi | Wajib | Tipe / aturan |
 | --- | --- | --- | --- |
@@ -972,8 +856,7 @@ Autentikasi: session Sanctum, dengan policy ownership/role endpoint.
 | --- | --- |
 | 204 | any No content |
 | 404 | { message: string } Not found |
-| 401 | { message: string } Unauthenticated. |
-| 403 | { message: string } Inactive account or operation not permitted. |
+| 401 | { message: string } Unauthenticated |
 
 <a id="inventorydispose"></a>
 
@@ -983,7 +866,7 @@ Autentikasi: session Sanctum, dengan policy ownership/role endpoint.
 
 
 
-Autentikasi: session Sanctum, dengan policy ownership/role endpoint.
+Autentikasi: tanpa session pengguna; webhook tetap memerlukan verifikasi provider.
 
 | Parameter | Lokasi | Wajib | Tipe / aturan |
 | --- | --- | --- | --- |
@@ -995,9 +878,8 @@ Body `application/json`: [DisposeInventoryRequest](#disposeinventoryrequest)
 | --- | --- |
 | 200 | { data: [InventoryResource](#inventoryresource) / object } `InventoryResource` |
 | 404 | { message: string } Not found |
+| 401 | { message: string } Unauthenticated |
 | 422 | { message: string; errors: object } Validation error |
-| 401 | { message: string } Unauthenticated. |
-| 403 | { message: string } Inactive account or operation not permitted. |
 
 <a id="inventory-categoriesindex"></a>
 
@@ -1007,7 +889,7 @@ Body `application/json`: [DisposeInventoryRequest](#disposeinventoryrequest)
 
 
 
-Autentikasi: session Sanctum, dengan policy ownership/role endpoint.
+Autentikasi: tanpa session pengguna; webhook tetap memerlukan verifikasi provider.
 
 | Parameter | Lokasi | Wajib | Tipe / aturan |
 | --- | --- | --- | --- |
@@ -1016,8 +898,7 @@ Autentikasi: session Sanctum, dengan policy ownership/role endpoint.
 | Status | Response |
 | --- | --- |
 | 200 | { data: array&lt;[InventoryCategoryResource](#inventorycategoryresource)&gt;; links: { first: string / null; last: string / null; prev: string / null; next: string / null }; meta: { current_page: integer; minimum=1; from: integer / null; minimum=1; last_page: integer; minimum=1; links: array&lt;{ url: string / null; label: string; active: boolean }&gt;; path: string / null; per_page: integer; minimum=0; to: integer / null; minimum=1; total: integer; minimum=0 } } Paginated set of `InventoryCategoryResource` |
-| 401 | { message: string } Unauthenticated. |
-| 403 | { message: string } Inactive account or operation not permitted. |
+| 401 | { message: string } Unauthenticated |
 
 <a id="inventory-categoriesstore"></a>
 
@@ -1027,16 +908,15 @@ Autentikasi: session Sanctum, dengan policy ownership/role endpoint.
 
 
 
-Autentikasi: session Sanctum, dengan policy ownership/role endpoint.
+Autentikasi: tanpa session pengguna; webhook tetap memerlukan verifikasi provider.
 
 Body `application/json`: [InventoryCategoryRequest](#inventorycategoryrequest)
 
 | Status | Response |
 | --- | --- |
 | 201 | { data: [InventoryCategoryResource](#inventorycategoryresource) } `InventoryCategoryResource` |
+| 401 | { message: string } Unauthenticated |
 | 422 | { message: string; errors: object } Validation error |
-| 401 | { message: string } Unauthenticated. |
-| 403 | { message: string } Inactive account or operation not permitted. |
 
 <a id="inventory-categoriesshow"></a>
 
@@ -1046,7 +926,7 @@ Body `application/json`: [InventoryCategoryRequest](#inventorycategoryrequest)
 
 
 
-Autentikasi: session Sanctum, dengan policy ownership/role endpoint.
+Autentikasi: tanpa session pengguna; webhook tetap memerlukan verifikasi provider.
 
 | Parameter | Lokasi | Wajib | Tipe / aturan |
 | --- | --- | --- | --- |
@@ -1056,8 +936,7 @@ Autentikasi: session Sanctum, dengan policy ownership/role endpoint.
 | --- | --- |
 | 200 | { data: [InventoryCategoryResource](#inventorycategoryresource) } `InventoryCategoryResource` |
 | 404 | { message: string } Not found |
-| 401 | { message: string } Unauthenticated. |
-| 403 | { message: string } Inactive account or operation not permitted. |
+| 401 | { message: string } Unauthenticated |
 
 <a id="inventory-categoriesupdate"></a>
 
@@ -1067,7 +946,7 @@ Autentikasi: session Sanctum, dengan policy ownership/role endpoint.
 
 
 
-Autentikasi: session Sanctum, dengan policy ownership/role endpoint.
+Autentikasi: tanpa session pengguna; webhook tetap memerlukan verifikasi provider.
 
 | Parameter | Lokasi | Wajib | Tipe / aturan |
 | --- | --- | --- | --- |
@@ -1079,33 +958,8 @@ Body `application/json`: [InventoryCategoryRequest](#inventorycategoryrequest)
 | --- | --- |
 | 200 | { data: [InventoryCategoryResource](#inventorycategoryresource) } `InventoryCategoryResource` |
 | 404 | { message: string } Not found |
+| 401 | { message: string } Unauthenticated |
 | 422 | { message: string; errors: object } Validation error |
-| 401 | { message: string } Unauthenticated. |
-| 403 | { message: string } Inactive account or operation not permitted. |
-
-<a id="inventory-categoriesupdatepatch"></a>
-
-## inventory-categories.update.patch
-
-`PATCH /api/v1/manager/inventory-categories/{inventory_category}`
-
-
-
-Autentikasi: session Sanctum, dengan policy ownership/role endpoint.
-
-| Parameter | Lokasi | Wajib | Tipe / aturan |
-| --- | --- | --- | --- |
-| `inventory_category` | path | ya | integer |
-
-Body `application/json`: [InventoryCategoryRequest](#inventorycategoryrequest)
-
-| Status | Response |
-| --- | --- |
-| 200 | { data: [InventoryCategoryResource](#inventorycategoryresource) } `InventoryCategoryResource` |
-| 404 | { message: string } Not found |
-| 422 | { message: string; errors: object } Validation error |
-| 401 | { message: string } Unauthenticated. |
-| 403 | { message: string } Inactive account or operation not permitted. |
 
 <a id="inventory-categoriesdestroy"></a>
 
@@ -1115,7 +969,7 @@ Body `application/json`: [InventoryCategoryRequest](#inventorycategoryrequest)
 
 
 
-Autentikasi: session Sanctum, dengan policy ownership/role endpoint.
+Autentikasi: tanpa session pengguna; webhook tetap memerlukan verifikasi provider.
 
 | Parameter | Lokasi | Wajib | Tipe / aturan |
 | --- | --- | --- | --- |
@@ -1125,8 +979,7 @@ Autentikasi: session Sanctum, dengan policy ownership/role endpoint.
 | --- | --- |
 | 204 | any No content |
 | 404 | { message: string } Not found |
-| 401 | { message: string } Unauthenticated. |
-| 403 | { message: string } Inactive account or operation not permitted. |
+| 401 | { message: string } Unauthenticated |
 
 <a id="invoiceindex"></a>
 
@@ -1136,13 +989,12 @@ Autentikasi: session Sanctum, dengan policy ownership/role endpoint.
 
 List client's own invoices
 
-Autentikasi: session Sanctum, dengan policy ownership/role endpoint.
+Autentikasi: tanpa session pengguna; webhook tetap memerlukan verifikasi provider.
 
 | Status | Response |
 | --- | --- |
 | 200 | { data: array&lt;[InvoiceListResource](#invoicelistresource) / object&gt;; links: { first: string / null; last: string / null; prev: string / null; next: string / null }; meta: { current_page: integer; minimum=1; from: integer / null; minimum=1; last_page: integer; minimum=1; links: array&lt;{ url: string / null; label: string; active: boolean }&gt;; path: string / null; per_page: integer; minimum=0; to: integer / null; minimum=1; total: integer; minimum=0 } } Paginated set of `InvoiceListResource` |
-| 401 | { message: string } Unauthenticated. |
-| 403 | { message: string } Inactive account or operation not permitted. |
+| 401 | { message: string } Unauthenticated |
 
 <a id="invoiceshow"></a>
 
@@ -1152,7 +1004,7 @@ Autentikasi: session Sanctum, dengan policy ownership/role endpoint.
 
 Show a single invoice detail
 
-Autentikasi: session Sanctum, dengan policy ownership/role endpoint.
+Autentikasi: tanpa session pengguna; webhook tetap memerlukan verifikasi provider.
 
 | Parameter | Lokasi | Wajib | Tipe / aturan |
 | --- | --- | --- | --- |
@@ -1161,9 +1013,9 @@ Autentikasi: session Sanctum, dengan policy ownership/role endpoint.
 | Status | Response |
 | --- | --- |
 | 200 | { data: [InvoiceResource](#invoiceresource) / object } `InvoiceResource` |
+| 403 | { message: string } Authorization error |
 | 404 | { message: string } Not found |
-| 401 | { message: string } Unauthenticated. |
-| 403 | { message: string } Inactive account or operation not permitted. |
+| 401 | { message: string } Unauthenticated |
 
 <a id="monthlyfinancesummaryshow"></a>
 
@@ -1173,7 +1025,7 @@ Autentikasi: session Sanctum, dengan policy ownership/role endpoint.
 
 
 
-Autentikasi: session Sanctum, dengan policy ownership/role endpoint.
+Autentikasi: tanpa session pengguna; webhook tetap memerlukan verifikasi provider.
 
 | Parameter | Lokasi | Wajib | Tipe / aturan |
 | --- | --- | --- | --- |
@@ -1183,10 +1035,8 @@ Autentikasi: session Sanctum, dengan policy ownership/role endpoint.
 | Status | Response |
 | --- | --- |
 | 200 | { data: [MonthlyFinanceSummaryResource](#monthlyfinancesummaryresource) } `MonthlyFinanceSummaryResource` |
+| 401 | { message: string } Unauthenticated |
 | 422 | { message: string; errors: object } Validation error |
-| 401 | { message: string } Unauthenticated. |
-| 403 | { message: string } Inactive account or operation not permitted. |
-| 429 | { message: string } Too many requests. Wait the Retry-After number of seconds before retrying. |
 
 <a id="monthlypayrollfinalizationstore"></a>
 
@@ -1196,96 +1046,15 @@ Autentikasi: session Sanctum, dengan policy ownership/role endpoint.
 
 
 
-Autentikasi: session Sanctum, dengan policy ownership/role endpoint.
+Autentikasi: tanpa session pengguna; webhook tetap memerlukan verifikasi provider.
 
 Body `application/json`: [FinalizeMonthlyPayrollRequest](#finalizemonthlypayrollrequest)
 
 | Status | Response |
 | --- | --- |
 | 200 | { data: [PayrollAllocationResource](#payrollallocationresource) } `PayrollAllocationResource` |
+| 401 | { message: string } Unauthenticated |
 | 422 | { message: string; errors: object } Validation error |
-| 401 | { message: string } Unauthenticated. |
-| 403 | { message: string } Inactive account or operation not permitted. |
-| 429 | { message: string } Too many requests. Wait the Retry-After number of seconds before retrying. |
-
-<a id="notificationsindex"></a>
-
-## notifications.index
-
-`GET /api/v1/notifications`
-
-
-
-Autentikasi: session Sanctum, dengan policy ownership/role endpoint.
-
-| Parameter | Lokasi | Wajib | Tipe / aturan |
-| --- | --- | --- | --- |
-| `unread` | query | tidak | boolean |
-| `per_page` | query | tidak | integer; minimum=1; maximum=100 |
-| `page` | query | tidak | integer; minimum=1 |
-
-| Status | Response |
-| --- | --- |
-| 200 | { data: array&lt;[NotificationResource](#notificationresource)&gt;; links: { first: string / null; last: string / null; prev: string / null; next: string / null }; meta: { current_page: integer; minimum=1; from: integer / null; minimum=1; last_page: integer; minimum=1; links: array&lt;{ url: string / null; label: string; active: boolean }&gt;; path: string / null; per_page: integer; minimum=0; to: integer / null; minimum=1; total: integer; minimum=0 } } Paginated set of `NotificationResource` |
-| 422 | { message: string; errors: object } Validation error |
-| 401 | { message: string } Unauthenticated. |
-| 403 | { message: string } Inactive account or operation not permitted. |
-| 429 | { message: string } Too many requests. Wait the Retry-After number of seconds before retrying. |
-
-<a id="notificationsunread-count"></a>
-
-## notifications.unread-count
-
-`GET /api/v1/notifications/unread-count`
-
-
-
-Autentikasi: session Sanctum, dengan policy ownership/role endpoint.
-
-| Status | Response |
-| --- | --- |
-| 200 | { data: { unread_count: integer; minimum=0 } }  |
-| 401 | { message: string } Unauthenticated. |
-| 403 | { message: string } Inactive account or operation not permitted. |
-| 429 | { message: string } Too many requests. Wait the Retry-After number of seconds before retrying. |
-
-<a id="notificationsread-all"></a>
-
-## notifications.read-all
-
-`PATCH /api/v1/notifications/read-all`
-
-
-
-Autentikasi: session Sanctum, dengan policy ownership/role endpoint.
-
-| Status | Response |
-| --- | --- |
-| 200 | { data: { updated_count: integer; minimum=0 } }  |
-| 401 | { message: string } Unauthenticated. |
-| 403 | { message: string } Inactive account or operation not permitted. |
-| 429 | { message: string } Too many requests. Wait the Retry-After number of seconds before retrying. |
-
-<a id="notificationsread"></a>
-
-## notifications.read
-
-`PATCH /api/v1/notifications/{notification}/read`
-
-
-
-Autentikasi: session Sanctum, dengan policy ownership/role endpoint.
-
-| Parameter | Lokasi | Wajib | Tipe / aturan |
-| --- | --- | --- | --- |
-| `notification` | path | ya | string |
-
-| Status | Response |
-| --- | --- |
-| 200 | { data: [NotificationResource](#notificationresource) }  |
-| 401 | { message: string } Unauthenticated. |
-| 403 | { message: string } Inactive account or operation not permitted. |
-| 429 | { message: string } Too many requests. Wait the Retry-After number of seconds before retrying. |
 
 <a id="packagecalculateprice"></a>
 
@@ -1295,16 +1064,30 @@ Autentikasi: session Sanctum, dengan policy ownership/role endpoint.
 
 Pratinjau harga otomatis untuk formulir, tanpa menyimpan apa pun
 
-Autentikasi: session Sanctum, dengan policy ownership/role endpoint.
+Autentikasi: tanpa session pengguna; webhook tetap memerlukan verifikasi provider.
 
 Body `application/json`: [CalculatePackagePriceRequest](#calculatepackagepricerequest)
 
 | Status | Response |
 | --- | --- |
 | 200 | { data: { auto_price: integer } }  |
+| 401 | { message: string } Unauthenticated |
 | 422 | { message: string; errors: object } Validation error |
-| 401 | { message: string } Unauthenticated. |
-| 403 | { message: string } Inactive account or operation not permitted. |
+
+<a id="packagesummary"></a>
+
+## package.summary
+
+`GET /api/v1/manager/packages/summary`
+
+
+
+Autentikasi: tanpa session pengguna; webhook tetap memerlukan verifikasi provider.
+
+| Status | Response |
+| --- | --- |
+| 200 | { data: { total: integer; minimum=0; by_stage: array&lt;string&gt; } }  |
+| 401 | { message: string } Unauthenticated |
 
 <a id="packagesindex"></a>
 
@@ -1314,7 +1097,7 @@ Body `application/json`: [CalculatePackagePriceRequest](#calculatepackagepricere
 
 Daftar paket. Tambahkan ?active=1 atau ?active=0 untuk menyaring
 
-Autentikasi: session Sanctum, dengan policy ownership/role endpoint.
+Autentikasi: tanpa session pengguna; webhook tetap memerlukan verifikasi provider.
 
 | Parameter | Lokasi | Wajib | Tipe / aturan |
 | --- | --- | --- | --- |
@@ -1323,8 +1106,7 @@ Autentikasi: session Sanctum, dengan policy ownership/role endpoint.
 | Status | Response |
 | --- | --- |
 | 200 | { data: array&lt;[PackageResource](#packageresource)&gt;; links: { first: string / null; last: string / null; prev: string / null; next: string / null }; meta: { current_page: integer; minimum=1; from: integer / null; minimum=1; last_page: integer; minimum=1; links: array&lt;{ url: string / null; label: string; active: boolean }&gt;; path: string / null; per_page: integer; minimum=0; to: integer / null; minimum=1; total: integer; minimum=0 } } Paginated set of `PackageResource` |
-| 401 | { message: string } Unauthenticated. |
-| 403 | { message: string } Inactive account or operation not permitted. |
+| 401 | { message: string } Unauthenticated |
 
 <a id="packagesstore"></a>
 
@@ -1334,16 +1116,15 @@ Autentikasi: session Sanctum, dengan policy ownership/role endpoint.
 
 
 
-Autentikasi: session Sanctum, dengan policy ownership/role endpoint.
+Autentikasi: tanpa session pengguna; webhook tetap memerlukan verifikasi provider.
 
 Body `application/json`: [PackageRequest](#packagerequest)
 
 | Status | Response |
 | --- | --- |
 | 201 | { data: [PackageResource](#packageresource) } `PackageResource` |
+| 401 | { message: string } Unauthenticated |
 | 422 | { message: string; errors: object } Validation error |
-| 401 | { message: string } Unauthenticated. |
-| 403 | { message: string } Inactive account or operation not permitted. |
 
 <a id="packagesshow"></a>
 
@@ -1353,7 +1134,7 @@ Body `application/json`: [PackageRequest](#packagerequest)
 
 
 
-Autentikasi: session Sanctum, dengan policy ownership/role endpoint.
+Autentikasi: tanpa session pengguna; webhook tetap memerlukan verifikasi provider.
 
 | Parameter | Lokasi | Wajib | Tipe / aturan |
 | --- | --- | --- | --- |
@@ -1363,8 +1144,7 @@ Autentikasi: session Sanctum, dengan policy ownership/role endpoint.
 | --- | --- |
 | 200 | { data: [PackageResource](#packageresource) } `PackageResource` |
 | 404 | { message: string } Not found |
-| 401 | { message: string } Unauthenticated. |
-| 403 | { message: string } Inactive account or operation not permitted. |
+| 401 | { message: string } Unauthenticated |
 
 <a id="packagesupdate"></a>
 
@@ -1374,7 +1154,7 @@ Autentikasi: session Sanctum, dengan policy ownership/role endpoint.
 
 
 
-Autentikasi: session Sanctum, dengan policy ownership/role endpoint.
+Autentikasi: tanpa session pengguna; webhook tetap memerlukan verifikasi provider.
 
 | Parameter | Lokasi | Wajib | Tipe / aturan |
 | --- | --- | --- | --- |
@@ -1386,33 +1166,8 @@ Body `application/json`: [PackageRequest](#packagerequest)
 | --- | --- |
 | 200 | { data: [PackageResource](#packageresource) } `PackageResource` |
 | 404 | { message: string } Not found |
+| 401 | { message: string } Unauthenticated |
 | 422 | { message: string; errors: object } Validation error |
-| 401 | { message: string } Unauthenticated. |
-| 403 | { message: string } Inactive account or operation not permitted. |
-
-<a id="packagesupdatepatch"></a>
-
-## packages.update.patch
-
-`PATCH /api/v1/manager/packages/{package}`
-
-
-
-Autentikasi: session Sanctum, dengan policy ownership/role endpoint.
-
-| Parameter | Lokasi | Wajib | Tipe / aturan |
-| --- | --- | --- | --- |
-| `package` | path | ya | integer |
-
-Body `application/json`: [PackageRequest](#packagerequest)
-
-| Status | Response |
-| --- | --- |
-| 200 | { data: [PackageResource](#packageresource) } `PackageResource` |
-| 404 | { message: string } Not found |
-| 422 | { message: string; errors: object } Validation error |
-| 401 | { message: string } Unauthenticated. |
-| 403 | { message: string } Inactive account or operation not permitted. |
 
 <a id="packagesdestroy"></a>
 
@@ -1422,7 +1177,7 @@ Body `application/json`: [PackageRequest](#packagerequest)
 
 Soft delete. Project yang sudah berjalan memakai snapshot, jadi tidak terpengaruh
 
-Autentikasi: session Sanctum, dengan policy ownership/role endpoint.
+Autentikasi: tanpa session pengguna; webhook tetap memerlukan verifikasi provider.
 
 | Parameter | Lokasi | Wajib | Tipe / aturan |
 | --- | --- | --- | --- |
@@ -1432,8 +1187,7 @@ Autentikasi: session Sanctum, dengan policy ownership/role endpoint.
 | --- | --- |
 | 204 | any No content |
 | 404 | { message: string } Not found |
-| 401 | { message: string } Unauthenticated. |
-| 403 | { message: string } Inactive account or operation not permitted. |
+| 401 | { message: string } Unauthenticated |
 
 <a id="packagecatalogindex"></a>
 
@@ -1444,13 +1198,12 @@ Autentikasi: session Sanctum, dengan policy ownership/role endpoint.
 Get all active packages for the catalog.
 Available to all authenticated users
 
-Autentikasi: session Sanctum, dengan policy ownership/role endpoint.
+Autentikasi: tanpa session pengguna; webhook tetap memerlukan verifikasi provider.
 
 | Status | Response |
 | --- | --- |
 | 200 | { data: array&lt;[PackageCatalogResource](#packagecatalogresource)&gt; } Array of `PackageCatalogResource` |
-| 401 | { message: string } Unauthenticated. |
-| 403 | { message: string } Inactive account or operation not permitted. |
+| 401 | { message: string } Unauthenticated |
 
 <a id="paymentindex"></a>
 
@@ -1460,7 +1213,7 @@ Autentikasi: session Sanctum, dengan policy ownership/role endpoint.
 
 List all payments with filtering
 
-Autentikasi: session Sanctum, dengan policy ownership/role endpoint.
+Autentikasi: tanpa session pengguna; webhook tetap memerlukan verifikasi provider.
 
 | Parameter | Lokasi | Wajib | Tipe / aturan |
 | --- | --- | --- | --- |
@@ -1478,8 +1231,7 @@ Autentikasi: session Sanctum, dengan policy ownership/role endpoint.
 | --- | --- |
 | 200 | { data: array&lt;[PaymentListResource](#paymentlistresource)&gt;; links: { first: string / null; last: string / null; prev: string / null; next: string / null }; meta: { current_page: integer; minimum=1; from: integer / null; minimum=1; last_page: integer; minimum=1; links: array&lt;{ url: string / null; label: string; active: boolean }&gt;; path: string / null; per_page: integer; minimum=0; to: integer / null; minimum=1; total: integer; minimum=0 } } Paginated set of `PaymentListResource` |
 | 422 | { message: string; errors: object } Validation error |
-| 401 | { message: string } Unauthenticated. |
-| 403 | { message: string } Inactive account or operation not permitted. |
+| 401 | { message: string } Unauthenticated |
 
 <a id="v1managerpaymentshow"></a>
 
@@ -1489,7 +1241,7 @@ Autentikasi: session Sanctum, dengan policy ownership/role endpoint.
 
 Show payment detail
 
-Autentikasi: session Sanctum, dengan policy ownership/role endpoint.
+Autentikasi: tanpa session pengguna; webhook tetap memerlukan verifikasi provider.
 
 | Parameter | Lokasi | Wajib | Tipe / aturan |
 | --- | --- | --- | --- |
@@ -1499,8 +1251,7 @@ Autentikasi: session Sanctum, dengan policy ownership/role endpoint.
 | --- | --- |
 | 200 | { data: [PaymentResource](#paymentresource) / object } `PaymentResource` |
 | 404 | { message: string } Not found |
-| 401 | { message: string } Unauthenticated. |
-| 403 | { message: string } Inactive account or operation not permitted. |
+| 401 | { message: string } Unauthenticated |
 
 <a id="paymentconfirm"></a>
 
@@ -1510,7 +1261,7 @@ Autentikasi: session Sanctum, dengan policy ownership/role endpoint.
 
 Confirm manual payment
 
-Autentikasi: session Sanctum, dengan policy ownership/role endpoint.
+Autentikasi: tanpa session pengguna; webhook tetap memerlukan verifikasi provider.
 
 | Parameter | Lokasi | Wajib | Tipe / aturan |
 | --- | --- | --- | --- |
@@ -1526,10 +1277,9 @@ Body `application/json`: { note: string; maxLength=500; paid_at?: string / null;
 | --- | --- |
 | 422 | { message: string; errors: object } Validation error |
 | 200 | { data: [PaymentResource](#paymentresource) / object } `PaymentResource` |
-| 403 | { message: string } Inactive account or operation not permitted. |
+| 403 | { message: string } An error |
 | 404 | { message: string } Not found |
-| 401 | { message: string } Unauthenticated. |
-| 429 | { message: string } Too many requests. Wait the Retry-After number of seconds before retrying. |
+| 401 | { message: string } Unauthenticated |
 
 <a id="paymentrefund"></a>
 
@@ -1537,9 +1287,9 @@ Body `application/json`: { note: string; maxLength=500; paid_at?: string / null;
 
 `POST /api/v1/manager/payments/{payment}/refund`
 
-Refund dilakukan di luar sistem (ADR Q13). Endpoint kompatibilitas ini menolak refund baru.
+Refund payment
 
-Autentikasi: session Sanctum, dengan policy ownership/role endpoint.
+Autentikasi: tanpa session pengguna; webhook tetap memerlukan verifikasi provider.
 
 | Parameter | Lokasi | Wajib | Tipe / aturan |
 | --- | --- | --- | --- |
@@ -1553,10 +1303,10 @@ Body `application/json`: { amount: integer; minimum=1; reason: string; maxLength
 
 | Status | Response |
 | --- | --- |
-| 422 | { message: string } Refunds are handled outside this system. |
-| 401 | { message: string } Unauthenticated. |
-| 403 | { message: string } Inactive account or operation not permitted. |
-| 429 | { message: string } Too many requests. Wait the Retry-After number of seconds before retrying. |
+| 422 | { message: string; errors: object } Validation error |
+| 200 | { data: [PaymentResource](#paymentresource) / object } `PaymentResource` |
+| 404 | { message: string } Not found |
+| 401 | { message: string } Unauthenticated |
 
 <a id="paymentcancel"></a>
 
@@ -1566,7 +1316,7 @@ Body `application/json`: { amount: integer; minimum=1; reason: string; maxLength
 
 Cancel payment
 
-Autentikasi: session Sanctum, dengan policy ownership/role endpoint.
+Autentikasi: tanpa session pengguna; webhook tetap memerlukan verifikasi provider.
 
 | Parameter | Lokasi | Wajib | Tipe / aturan |
 | --- | --- | --- | --- |
@@ -1582,9 +1332,7 @@ Body `application/json`: { reason: string; maxLength=500 }
 | 422 | { message: string; errors: object } Validation error |
 | 200 | { data: [PaymentResource](#paymentresource) / object } `PaymentResource` |
 | 404 | { message: string } Not found |
-| 401 | { message: string } Unauthenticated. |
-| 403 | { message: string } Inactive account or operation not permitted. |
-| 429 | { message: string } Too many requests. Wait the Retry-After number of seconds before retrying. |
+| 401 | { message: string } Unauthenticated |
 
 <a id="paymentinitiatepayment"></a>
 
@@ -1594,7 +1342,7 @@ Body `application/json`: { reason: string; maxLength=500 }
 
 Initiate payment for an invoice
 
-Autentikasi: session Sanctum, dengan policy ownership/role endpoint.
+Autentikasi: tanpa session pengguna; webhook tetap memerlukan verifikasi provider.
 
 | Parameter | Lokasi | Wajib | Tipe / aturan |
 | --- | --- | --- | --- |
@@ -1609,10 +1357,9 @@ Body `application/json`: { gateway: string; enum=["midtrans","xendit"] }
 | --- | --- |
 | 422 | { message: string; errors: object } Validation error |
 | 201 | { data: [App.Http.Resources.PaymentResource](#apphttpresourcespaymentresource) } `App.Http.Resources.PaymentResource` |
+| 403 | { message: string } Authorization error |
 | 404 | { message: string } Not found |
-| 401 | { message: string } Unauthenticated. |
-| 403 | { message: string } Inactive account or operation not permitted. |
-| 429 | { message: string } Too many requests. Wait the Retry-After number of seconds before retrying. |
+| 401 | { message: string } Unauthenticated |
 
 <a id="v1clientpaymentshow"></a>
 
@@ -1622,7 +1369,7 @@ Body `application/json`: { gateway: string; enum=["midtrans","xendit"] }
 
 Show payment status
 
-Autentikasi: session Sanctum, dengan policy ownership/role endpoint.
+Autentikasi: tanpa session pengguna; webhook tetap memerlukan verifikasi provider.
 
 | Parameter | Lokasi | Wajib | Tipe / aturan |
 | --- | --- | --- | --- |
@@ -1631,9 +1378,9 @@ Autentikasi: session Sanctum, dengan policy ownership/role endpoint.
 | Status | Response |
 | --- | --- |
 | 200 | { data: [App.Http.Resources.PaymentResource](#apphttpresourcespaymentresource) / object } `App.Http.Resources.PaymentResource` |
+| 403 | { message: string } Authorization error |
 | 404 | { message: string } Not found |
-| 401 | { message: string } Unauthenticated. |
-| 403 | { message: string } Inactive account or operation not permitted. |
+| 401 | { message: string } Unauthenticated |
 
 <a id="paymentinitiatefinalpayment"></a>
 
@@ -1643,7 +1390,7 @@ Autentikasi: session Sanctum, dengan policy ownership/role endpoint.
 
 
 
-Autentikasi: session Sanctum, dengan policy ownership/role endpoint.
+Autentikasi: tanpa session pengguna; webhook tetap memerlukan verifikasi provider.
 
 | Parameter | Lokasi | Wajib | Tipe / aturan |
 | --- | --- | --- | --- |
@@ -1658,10 +1405,9 @@ Body `application/json`: { provider: string; enum=["midtrans","xendit","cash"] }
 | --- | --- |
 | 422 | { message: string; errors: object } Validation error |
 | 200 | { data: [App.Http.Resources.PaymentResource](#apphttpresourcespaymentresource) } `App.Http.Resources.PaymentResource` |
-| 403 | { message: string } Inactive account or operation not permitted. |
+| 403 | { message: string } Authorization error |
 | 404 | { message: string } Not found |
-| 401 | { message: string } Unauthenticated. |
-| 429 | { message: string } Too many requests. Wait the Retry-After number of seconds before retrying. |
+| 401 | { message: string } Unauthenticated |
 
 <a id="payrollallocationshow"></a>
 
@@ -1671,7 +1417,7 @@ Body `application/json`: { provider: string; enum=["midtrans","xendit","cash"] }
 
 
 
-Autentikasi: session Sanctum, dengan policy ownership/role endpoint.
+Autentikasi: tanpa session pengguna; webhook tetap memerlukan verifikasi provider.
 
 | Parameter | Lokasi | Wajib | Tipe / aturan |
 | --- | --- | --- | --- |
@@ -1682,9 +1428,7 @@ Autentikasi: session Sanctum, dengan policy ownership/role endpoint.
 | --- | --- |
 | 200 | { data: [PayrollAllocationResource](#payrollallocationresource) } `PayrollAllocationResource` |
 | 422 | { message: string; errors: object } Validation error |
-| 401 | { message: string } Unauthenticated. |
-| 403 | { message: string } Inactive account or operation not permitted. |
-| 429 | { message: string } Too many requests. Wait the Retry-After number of seconds before retrying. |
+| 401 | { message: string } Unauthenticated |
 
 <a id="payrollallocationupdate"></a>
 
@@ -1694,17 +1438,39 @@ Autentikasi: session Sanctum, dengan policy ownership/role endpoint.
 
 
 
-Autentikasi: session Sanctum, dengan policy ownership/role endpoint.
+Autentikasi: tanpa session pengguna; webhook tetap memerlukan verifikasi provider.
 
 Body `application/json`: [PayrollAllocationRequest](#payrollallocationrequest)
 
 | Status | Response |
 | --- | --- |
 | 200 | { data: [PayrollAllocationResource](#payrollallocationresource) } `PayrollAllocationResource` |
+| 401 | { message: string } Unauthenticated |
 | 422 | { message: string; errors: object } Validation error |
-| 401 | { message: string } Unauthenticated. |
-| 403 | { message: string } Inactive account or operation not permitted. |
-| 429 | { message: string } Too many requests. Wait the Retry-After number of seconds before retrying. |
+
+<a id="projectindex"></a>
+
+## project.index
+
+`GET /api/v1/manager/projects`
+
+List projects for Manager project cards. Newest and oldest sorting use project creation date
+
+Autentikasi: tanpa session pengguna; webhook tetap memerlukan verifikasi provider.
+
+| Parameter | Lokasi | Wajib | Tipe / aturan |
+| --- | --- | --- | --- |
+| `search` | query | tidak | string; maxLength=150 |
+| `status` | query | tidak | string; enum=["pending_payment","awaiting_assignment","in_progress","awaiting_final_payment","completed","cancelled"] |
+| `stage` | query | tidak | string; enum=["recording","editing","mixing","mastering"] |
+| `sort` | query | tidak | string; enum=["newest","oldest","name_asc","name_desc"] |
+| `per_page` | query | tidak | integer; minimum=1; maximum=100 |
+
+| Status | Response |
+| --- | --- |
+| 200 | { data: array&lt;[ProjectIndexResource](#projectindexresource)&gt; } Array of `ProjectIndexResource` |
+| 401 | { message: string } Unauthenticated |
+| 422 | { message: string; errors: object } Validation error |
 
 <a id="projectassignmentstore"></a>
 
@@ -1714,7 +1480,7 @@ Body `application/json`: [PayrollAllocationRequest](#payrollallocationrequest)
 
 
 
-Autentikasi: session Sanctum, dengan policy ownership/role endpoint.
+Autentikasi: tanpa session pengguna; webhook tetap memerlukan verifikasi provider.
 
 | Parameter | Lokasi | Wajib | Tipe / aturan |
 | --- | --- | --- | --- |
@@ -1726,10 +1492,8 @@ Body `application/json`: [AssignOperatorsRequest](#assignoperatorsrequest)
 | --- | --- |
 | 200 | { data: array&lt;[ProjectStageAssignmentResource](#projectstageassignmentresource) / object&gt;; meta: { project_id: integer; project_status: string } } Array of `ProjectStageAssignmentResource` |
 | 404 | { message: string } Not found |
+| 401 | { message: string } Unauthenticated |
 | 422 | { message: string; errors: object } Validation error |
-| 401 | { message: string } Unauthenticated. |
-| 403 | { message: string } Inactive account or operation not permitted. |
-| 429 | { message: string } Too many requests. Wait the Retry-After number of seconds before retrying. |
 
 <a id="v1managerquotationindex"></a>
 
@@ -1739,13 +1503,13 @@ Body `application/json`: [AssignOperatorsRequest](#assignoperatorsrequest)
 
 
 
-Autentikasi: session Sanctum, dengan policy ownership/role endpoint.
+Autentikasi: tanpa session pengguna; webhook tetap memerlukan verifikasi provider.
 
 | Status | Response |
 | --- | --- |
 | 200 | { data: array&lt;[QuotationResource](#quotationresource) / object&gt;; links: { first: string / null; last: string / null; prev: string / null; next: string / null }; meta: { current_page: integer; minimum=1; from: integer / null; minimum=1; last_page: integer; minimum=1; links: array&lt;{ url: string / null; label: string; active: boolean }&gt;; path: string / null; per_page: integer; minimum=0; to: integer / null; minimum=1; total: integer; minimum=0 } } Paginated set of `QuotationResource` |
-| 401 | { message: string } Unauthenticated. |
-| 403 | { message: string } Inactive account or operation not permitted. |
+| 403 | { message: string } Authorization error |
+| 401 | { message: string } Unauthenticated |
 
 <a id="v1managerquotationshow"></a>
 
@@ -1755,7 +1519,7 @@ Autentikasi: session Sanctum, dengan policy ownership/role endpoint.
 
 
 
-Autentikasi: session Sanctum, dengan policy ownership/role endpoint.
+Autentikasi: tanpa session pengguna; webhook tetap memerlukan verifikasi provider.
 
 | Parameter | Lokasi | Wajib | Tipe / aturan |
 | --- | --- | --- | --- |
@@ -1764,9 +1528,9 @@ Autentikasi: session Sanctum, dengan policy ownership/role endpoint.
 | Status | Response |
 | --- | --- |
 | 200 | { data: [QuotationResource](#quotationresource) / object } `QuotationResource` |
+| 403 | { message: string } Authorization error |
 | 404 | { message: string } Not found |
-| 401 | { message: string } Unauthenticated. |
-| 403 | { message: string } Inactive account or operation not permitted. |
+| 401 | { message: string } Unauthenticated |
 
 <a id="v1managerquotationrespond"></a>
 
@@ -1776,7 +1540,7 @@ Autentikasi: session Sanctum, dengan policy ownership/role endpoint.
 
 
 
-Autentikasi: session Sanctum, dengan policy ownership/role endpoint.
+Autentikasi: tanpa session pengguna; webhook tetap memerlukan verifikasi provider.
 
 | Parameter | Lokasi | Wajib | Tipe / aturan |
 | --- | --- | --- | --- |
@@ -1789,10 +1553,9 @@ Body `application/json`: [RespondToQuotationRequest](#respondtoquotationrequest)
 | 200 | { data: [QuotationResource](#quotationresource) } `QuotationResource` |
 | 400 | { message: string } An error |
 | 422 | { message: string; errors: object } Validation error |
+| 403 | { message: string } Authorization error |
 | 404 | { message: string } Not found |
-| 401 | { message: string } Unauthenticated. |
-| 403 | { message: string } Inactive account or operation not permitted. |
-| 429 | { message: string } Too many requests. Wait the Retry-After number of seconds before retrying. |
+| 401 | { message: string } Unauthenticated |
 
 <a id="v1clientquotationindex"></a>
 
@@ -1802,13 +1565,13 @@ Body `application/json`: [RespondToQuotationRequest](#respondtoquotationrequest)
 
 
 
-Autentikasi: session Sanctum, dengan policy ownership/role endpoint.
+Autentikasi: tanpa session pengguna; webhook tetap memerlukan verifikasi provider.
 
 | Status | Response |
 | --- | --- |
 | 200 | { data: array&lt;[QuotationResource](#quotationresource) / object&gt;; links: { first: string / null; last: string / null; prev: string / null; next: string / null }; meta: { current_page: integer; minimum=1; from: integer / null; minimum=1; last_page: integer; minimum=1; links: array&lt;{ url: string / null; label: string; active: boolean }&gt;; path: string / null; per_page: integer; minimum=0; to: integer / null; minimum=1; total: integer; minimum=0 } } Paginated set of `QuotationResource` |
-| 401 | { message: string } Unauthenticated. |
-| 403 | { message: string } Inactive account or operation not permitted. |
+| 403 | { message: string } Authorization error |
+| 401 | { message: string } Unauthenticated |
 
 <a id="quotationstore"></a>
 
@@ -1818,17 +1581,16 @@ Autentikasi: session Sanctum, dengan policy ownership/role endpoint.
 
 
 
-Autentikasi: session Sanctum, dengan policy ownership/role endpoint.
+Autentikasi: tanpa session pengguna; webhook tetap memerlukan verifikasi provider.
 
 Body `application/json`: [SubmitQuotationRequest](#submitquotationrequest)
 
 | Status | Response |
 | --- | --- |
 | 200 | { data: [QuotationResource](#quotationresource) / object } `QuotationResource` |
+| 401 | { message: string } Unauthenticated |
 | 422 | { message: string; errors: object } Validation error |
-| 401 | { message: string } Unauthenticated. |
-| 403 | { message: string } Inactive account or operation not permitted. |
-| 429 | { message: string } Too many requests. Wait the Retry-After number of seconds before retrying. |
+| 403 | { message: string } Authorization error |
 
 <a id="v1clientquotationshow"></a>
 
@@ -1838,7 +1600,7 @@ Body `application/json`: [SubmitQuotationRequest](#submitquotationrequest)
 
 
 
-Autentikasi: session Sanctum, dengan policy ownership/role endpoint.
+Autentikasi: tanpa session pengguna; webhook tetap memerlukan verifikasi provider.
 
 | Parameter | Lokasi | Wajib | Tipe / aturan |
 | --- | --- | --- | --- |
@@ -1847,9 +1609,9 @@ Autentikasi: session Sanctum, dengan policy ownership/role endpoint.
 | Status | Response |
 | --- | --- |
 | 200 | { data: [QuotationResource](#quotationresource) / object } `QuotationResource` |
+| 403 | { message: string } Authorization error |
 | 404 | { message: string } Not found |
-| 401 | { message: string } Unauthenticated. |
-| 403 | { message: string } Inactive account or operation not permitted. |
+| 401 | { message: string } Unauthenticated |
 
 <a id="v1clientquotationrespond"></a>
 
@@ -1859,7 +1621,7 @@ Autentikasi: session Sanctum, dengan policy ownership/role endpoint.
 
 
 
-Autentikasi: session Sanctum, dengan policy ownership/role endpoint.
+Autentikasi: tanpa session pengguna; webhook tetap memerlukan verifikasi provider.
 
 | Parameter | Lokasi | Wajib | Tipe / aturan |
 | --- | --- | --- | --- |
@@ -1872,10 +1634,9 @@ Body `application/json`: [App.Http.Requests.Client.RespondToQuotationRequest](#a
 | 200 | { data: [QuotationResource](#quotationresource) } `QuotationResource` |
 | 400 | { message: string } An error |
 | 422 | { message: string; errors: object } Validation error |
+| 403 | { message: string } Authorization error |
 | 404 | { message: string } Not found |
-| 401 | { message: string } Unauthenticated. |
-| 403 | { message: string } Inactive account or operation not permitted. |
-| 429 | { message: string } Too many requests. Wait the Retry-After number of seconds before retrying. |
+| 401 | { message: string } Unauthenticated |
 
 <a id="recordingextensionstore"></a>
 
@@ -1885,7 +1646,7 @@ Body `application/json`: [App.Http.Requests.Client.RespondToQuotationRequest](#a
 
 
 
-Autentikasi: session Sanctum, dengan policy ownership/role endpoint.
+Autentikasi: tanpa session pengguna; webhook tetap memerlukan verifikasi provider.
 
 | Parameter | Lokasi | Wajib | Tipe / aturan |
 | --- | --- | --- | --- |
@@ -1896,11 +1657,10 @@ Body `application/json`: [RequestRecordingExtensionRequest](#requestrecordingext
 | Status | Response |
 | --- | --- |
 | 201 | { data: [RecordingExtensionResource](#recordingextensionresource) / object } `RecordingExtensionResource` |
+| 403 | { message: string } Authorization error |
 | 404 | { message: string } Not found |
+| 401 | { message: string } Unauthenticated |
 | 422 | { message: string; errors: object } Validation error |
-| 401 | { message: string } Unauthenticated. |
-| 403 | { message: string } Inactive account or operation not permitted. |
-| 429 | { message: string } Too many requests. Wait the Retry-After number of seconds before retrying. |
 
 <a id="v1resendwebhook"></a>
 
@@ -1926,7 +1686,7 @@ Autentikasi: tanpa session pengguna; webhook tetap memerlukan verifikasi provide
 
 
 
-Autentikasi: session Sanctum, dengan policy ownership/role endpoint.
+Autentikasi: tanpa session pengguna; webhook tetap memerlukan verifikasi provider.
 
 | Parameter | Lokasi | Wajib | Tipe / aturan |
 | --- | --- | --- | --- |
@@ -1938,10 +1698,8 @@ Body `application/json`: [ConfirmStageDeadlineRequest](#confirmstagedeadlinerequ
 | --- | --- |
 | 200 | { data: [OperatorProjectStageResource](#operatorprojectstageresource) } `OperatorProjectStageResource` |
 | 404 | { message: string } Not found |
+| 401 | { message: string } Unauthenticated |
 | 422 | { message: string; errors: object } Validation error |
-| 401 | { message: string } Unauthenticated. |
-| 403 | { message: string } Inactive account or operation not permitted. |
-| 429 | { message: string } Too many requests. Wait the Retry-After number of seconds before retrying. |
 
 <a id="sessionsubmittrackresult"></a>
 
@@ -1951,7 +1709,7 @@ Body `application/json`: [ConfirmStageDeadlineRequest](#confirmstagedeadlinerequ
 
 
 
-Autentikasi: session Sanctum, dengan policy ownership/role endpoint.
+Autentikasi: tanpa session pengguna; webhook tetap memerlukan verifikasi provider.
 
 | Parameter | Lokasi | Wajib | Tipe / aturan |
 | --- | --- | --- | --- |
@@ -1963,11 +1721,10 @@ Body `application/json`: [SubmitTrackResultRequest](#submittrackresultrequest)
 | Status | Response |
 | --- | --- |
 | 201 | { data: [TrackStageSubmissionResource](#trackstagesubmissionresource) } `TrackStageSubmissionResource` |
+| 403 | { message: string } Authorization error |
 | 404 | { message: string } Not found |
+| 401 | { message: string } Unauthenticated |
 | 422 | { message: string; errors: object } Validation error |
-| 401 | { message: string } Unauthenticated. |
-| 403 | { message: string } Inactive account or operation not permitted. |
-| 429 | { message: string } Too many requests. Wait the Retry-After number of seconds before retrying. |
 
 <a id="sessionindex"></a>
 
@@ -1977,13 +1734,12 @@ Body `application/json`: [SubmitTrackResultRequest](#submittrackresultrequest)
 
 List sessions assigned to the authenticated operator
 
-Autentikasi: session Sanctum, dengan policy ownership/role endpoint.
+Autentikasi: tanpa session pengguna; webhook tetap memerlukan verifikasi provider.
 
 | Status | Response |
 | --- | --- |
 | 200 | { data: array&lt;[RecordingSessionListResource](#recordingsessionlistresource)&gt;; links: { first: string / null; last: string / null; prev: string / null; next: string / null }; meta: { current_page: integer; minimum=1; from: integer / null; minimum=1; last_page: integer; minimum=1; links: array&lt;{ url: string / null; label: string; active: boolean }&gt;; path: string / null; per_page: integer; minimum=0; to: integer / null; minimum=1; total: integer; minimum=0 } } Paginated set of `RecordingSessionListResource` |
-| 401 | { message: string } Unauthenticated. |
-| 403 | { message: string } Inactive account or operation not permitted. |
+| 401 | { message: string } Unauthenticated |
 
 <a id="sessionshow"></a>
 
@@ -1993,7 +1749,7 @@ Autentikasi: session Sanctum, dengan policy ownership/role endpoint.
 
 View a single session detail (must be assigned to operator)
 
-Autentikasi: session Sanctum, dengan policy ownership/role endpoint.
+Autentikasi: tanpa session pengguna; webhook tetap memerlukan verifikasi provider.
 
 | Parameter | Lokasi | Wajib | Tipe / aturan |
 | --- | --- | --- | --- |
@@ -2002,9 +1758,9 @@ Autentikasi: session Sanctum, dengan policy ownership/role endpoint.
 | Status | Response |
 | --- | --- |
 | 200 | { data: [RecordingSessionResource](#recordingsessionresource) } `RecordingSessionResource` |
+| 403 | { message: string } Authorization error |
 | 404 | { message: string } Not found |
-| 401 | { message: string } Unauthenticated. |
-| 403 | { message: string } Inactive account or operation not permitted. |
+| 401 | { message: string } Unauthenticated |
 
 <a id="studiosettingindex"></a>
 
@@ -2014,13 +1770,12 @@ Autentikasi: session Sanctum, dengan policy ownership/role endpoint.
 
 Get all studio settings
 
-Autentikasi: session Sanctum, dengan policy ownership/role endpoint.
+Autentikasi: tanpa session pengguna; webhook tetap memerlukan verifikasi provider.
 
 | Status | Response |
 | --- | --- |
 | 200 | { data: array&lt;[StudioSettingResource](#studiosettingresource)&gt; } Array of `StudioSettingResource` |
-| 401 | { message: string } Unauthenticated. |
-| 403 | { message: string } Inactive account or operation not permitted. |
+| 401 | { message: string } Unauthenticated |
 
 <a id="studiosettingupdate"></a>
 
@@ -2030,7 +1785,7 @@ Autentikasi: session Sanctum, dengan policy ownership/role endpoint.
 
 Update a specific studio setting
 
-Autentikasi: session Sanctum, dengan policy ownership/role endpoint.
+Autentikasi: tanpa session pengguna; webhook tetap memerlukan verifikasi provider.
 
 | Parameter | Lokasi | Wajib | Tipe / aturan |
 | --- | --- | --- | --- |
@@ -2040,10 +1795,9 @@ Body `application/json`: [UpdateStudioSettingRequest](#updatestudiosettingreques
 
 | Status | Response |
 | --- | --- |
-| 200 | { data: [StudioSettingResource](#studiosettingresource) } `StudioSettingResource` |
+| 200 | { data: [StudioSettingResource](#studiosettingresource) / object } `StudioSettingResource` |
+| 401 | { message: string } Unauthenticated |
 | 422 | { message: string; errors: object } Validation error |
-| 401 | { message: string } Unauthenticated. |
-| 403 | { message: string } Inactive account or operation not permitted. |
 
 <a id="trackstagereviewstore"></a>
 
@@ -2053,7 +1807,7 @@ Body `application/json`: [UpdateStudioSettingRequest](#updatestudiosettingreques
 
 
 
-Autentikasi: session Sanctum, dengan policy ownership/role endpoint.
+Autentikasi: tanpa session pengguna; webhook tetap memerlukan verifikasi provider.
 
 | Parameter | Lokasi | Wajib | Tipe / aturan |
 | --- | --- | --- | --- |
@@ -2065,11 +1819,10 @@ Body `application/json`: [ReviewTrackResultRequest](#reviewtrackresultrequest)
 | Status | Response |
 | --- | --- |
 | 200 | { data: [TrackStageReviewResource](#trackstagereviewresource) } `TrackStageReviewResource` |
+| 403 | { message: string } Authorization error |
 | 404 | { message: string } Not found |
+| 401 | { message: string } Unauthenticated |
 | 422 | { message: string; errors: object } Validation error |
-| 401 | { message: string } Unauthenticated. |
-| 403 | { message: string } Inactive account or operation not permitted. |
-| 429 | { message: string } Too many requests. Wait the Retry-After number of seconds before retrying. |
 
 <a id="v1managertrackstagesubmissionhistoryindex"></a>
 
@@ -2079,7 +1832,7 @@ Body `application/json`: [ReviewTrackResultRequest](#reviewtrackresultrequest)
 
 
 
-Autentikasi: session Sanctum, dengan policy ownership/role endpoint.
+Autentikasi: tanpa session pengguna; webhook tetap memerlukan verifikasi provider.
 
 | Parameter | Lokasi | Wajib | Tipe / aturan |
 | --- | --- | --- | --- |
@@ -2090,8 +1843,8 @@ Autentikasi: session Sanctum, dengan policy ownership/role endpoint.
 | Status | Response |
 | --- | --- |
 | 200 | { data: array&lt;[TrackStageSubmissionResource](#trackstagesubmissionresource) / object&gt;; links: { first: string / null; last: string / null; prev: string / null; next: string / null }; meta: { current_page: integer; minimum=1; from: integer / null; minimum=1; last_page: integer; minimum=1; links: array&lt;{ url: string / null; label: string; active: boolean }&gt;; path: string / null; per_page: integer; minimum=0; to: integer / null; minimum=1; total: integer; minimum=0 } } Paginated set of `TrackStageSubmissionResource` |
-| 401 | { message: string } Unauthenticated. |
-| 403 | { message: string } Inactive account or operation not permitted. |
+| 403 | { message: string } Authorization error |
+| 401 | { message: string } Unauthenticated |
 
 <a id="v1operatortrackstagesubmissionhistoryindex"></a>
 
@@ -2101,7 +1854,7 @@ Autentikasi: session Sanctum, dengan policy ownership/role endpoint.
 
 
 
-Autentikasi: session Sanctum, dengan policy ownership/role endpoint.
+Autentikasi: tanpa session pengguna; webhook tetap memerlukan verifikasi provider.
 
 | Parameter | Lokasi | Wajib | Tipe / aturan |
 | --- | --- | --- | --- |
@@ -2110,9 +1863,9 @@ Autentikasi: session Sanctum, dengan policy ownership/role endpoint.
 | Status | Response |
 | --- | --- |
 | 200 | { data: array&lt;[TrackStageSubmissionResource](#trackstagesubmissionresource) / object&gt;; links: { first: string / null; last: string / null; prev: string / null; next: string / null }; meta: { current_page: integer; minimum=1; from: integer / null; minimum=1; last_page: integer; minimum=1; links: array&lt;{ url: string / null; label: string; active: boolean }&gt;; path: string / null; per_page: integer; minimum=0; to: integer / null; minimum=1; total: integer; minimum=0 } } Paginated set of `TrackStageSubmissionResource` |
+| 403 | { message: string } Authorization error |
 | 404 | { message: string } Not found |
-| 401 | { message: string } Unauthenticated. |
-| 403 | { message: string } Inactive account or operation not permitted. |
+| 401 | { message: string } Unauthenticated |
 
 <a id="webhookhandlepaymentwebhook"></a>
 
@@ -2179,11 +1932,11 @@ Autentikasi: tanpa session pengguna; webhook tetap memerlukan verifikasi provide
 
 | Field | Wajib | Tipe / aturan |
 | --- | --- | --- |
-| `available` | ya | boolean |
+| `available` | ya | string |
 | `reason` | ya | string / null |
 | `requested_start` | ya | string |
 | `requested_end` | ya | string |
-| `room_id` | ya | integer |
+| `room_id` | ya | string |
 
 ## BasePriceResource
 
@@ -2200,29 +1953,29 @@ Autentikasi: tanpa session pengguna; webhook tetap memerlukan verifikasi provide
 
 | Field | Wajib | Tipe / aturan |
 | --- | --- | --- |
-| `id` | ya | integer |
-| `client_id` | ya | integer |
+| `id` | ya | string |
+| `client_id` | ya | string |
 | `client_name` | ya | string / null |
 | `channel` | ya | string |
 | `status` | ya | string |
-| `sent_at` | ya | string / null; format="date-time" |
-| `delivered_at` | ya | string / null; format="date-time" |
-| `error` | ya | string / null |
+| `sent_at` | ya | string |
+| `delivered_at` | ya | string |
+| `error` | ya | string |
 
 ## CRMCampaignResource
 
 | Field | Wajib | Tipe / aturan |
 | --- | --- | --- |
-| `id` | ya | integer |
+| `id` | ya | string |
 | `name` | ya | string |
 | `message` | ya | string |
-| `package_id` | ya | integer / null |
-| `channels` | ya | array&lt;string&gt; |
+| `package_id` | ya | string |
+| `channels` | ya | string |
 | `status` | ya | string |
-| `sent_at` | ya | string / null; format="date-time" |
-| `recipient_counts` | ya | { total: integer / null; pending: integer / null; sent: integer / null; failed: integer / null } |
+| `sent_at` | ya | string |
+| `recipient_counts` | ya | { total: string; pending: string; sent: string; failed: string } |
 | `recipients` | ya | array&lt;[CRMCampaignRecipientResource](#crmcampaignrecipientresource)&gt; |
-| `created_at` | ya | string / null; format="date-time" |
+| `created_at` | ya | string |
 
 ## CalculatePackagePriceRequest
 
@@ -2280,22 +2033,22 @@ Autentikasi: tanpa session pengguna; webhook tetap memerlukan verifikasi provide
 | Field | Wajib | Tipe / aturan |
 | --- | --- | --- |
 | `as_of` | ya | string |
-| `period` | ya | { year: integer; month: integer; timezone: string; today: string; month_start: string; next_month_start: string } |
-| `revenue` | ya | { current: integer; previous: integer; delta: integer; percentage: number / null; percentage_reason: string / null; direction: string } |
-| `expense` | ya | { current: integer; previous: integer; delta: integer; percentage: number / null; percentage_reason: string / null; direction: string } |
-| `monthly` | ya | array&lt;{ month: integer; revenue: integer; expense: integer }&gt; |
-| `annual_totals` | ya | { revenue: integer; expense: integer } |
-| `awaiting_final_payment` | ya | { amount: integer; project_count: integer; positive_balance_project_count: integer } |
-| `in_progress_projects` | ya | { count: integer; track_count: integer } |
-| `tracks_by_stage` | ya | array&lt;{ stage: string; stage_label: string; track_count: integer }&gt; |
-| `unclassified_track_count` | ya | integer |
-| `quotations` | ya | { open_count: integer; awaiting_studio_count: integer } |
-| `package_sales` | ya | { total_count: integer; items: array&lt;{ key: string; package_id: integer / null; quotation_id: integer / null; name: string; project_count: integer; percentage: number }&gt; } |
-| `expense_categories` | ya | { total_amount: integer; transaction_count: integer; items: array&lt;{ category_id: integer / null; category_name: string; transaction_count: integer; amount: integer; percentage: number }&gt; } |
-| `recording_schedule` | ya | array&lt;{ id: integer; project_id: integer / null; project_name: string / null; client_id: integer / null; client_name: string / null; start_at: string; end_at: string; status: string; status_label: string }&gt; |
-| `project_progress` | ya | array&lt;{ id: integer; name: string; client_id: integer / null; client_name: string / null; status: string; status_label: string; current_stage: string / null; current_stage_label: string / null; stage_status: string / null; stage_status_label: string / null }&gt; |
-| `quotation_progress` | ya | array&lt;{ id: integer; name: string / null; package_display_name: string; client_id: integer / null; client_name: string / null; status: string; status_label: string }&gt; |
-| `operator_activities` | ya | array&lt;{ id: integer; type: string; actor: { id: integer / null; name: string / null; is_system: boolean }; operator: { id: integer / null; name: string / null }; project: { id: integer / null; name: string / null }; stage: { id: integer / null; type: string; label: string }; track: { id: integer / null; title: string / null }; occurred_at: string; recorded_at: string; deadline_at: string / null; age_seconds: integer; description: string }&gt; |
+| `period` | ya | string |
+| `revenue` | ya | string |
+| `expense` | ya | string |
+| `monthly` | ya | string |
+| `annual_totals` | ya | string |
+| `awaiting_final_payment` | ya | string |
+| `in_progress_projects` | ya | string |
+| `tracks_by_stage` | ya | string |
+| `unclassified_track_count` | ya | string |
+| `quotations` | ya | string |
+| `package_sales` | ya | string |
+| `expense_categories` | ya | string |
+| `recording_schedule` | ya | string |
+| `project_progress` | ya | string |
+| `quotation_progress` | ya | string |
+| `operator_activities` | ya | string |
 
 ## DisposeInventoryRequest
 
@@ -2506,20 +2259,10 @@ Autentikasi: tanpa session pengguna; webhook tetap memerlukan verifikasi provide
 
 | Field | Wajib | Tipe / aturan |
 | --- | --- | --- |
-| `period` | ya | { year: integer; month: integer; timezone: string } |
-| `totals` | ya | { revenue: integer; expense: integer; net_profit: integer } |
-| `expenses_by_category` | ya | array&lt;{ category_id: integer; category_name: string; amount: integer }&gt; |
+| `period` | ya | string |
+| `totals` | ya | string |
+| `expenses_by_category` | ya | string |
 | `status` | ya | string |
-
-## NotificationResource
-
-| Field | Wajib | Tipe / aturan |
-| --- | --- | --- |
-| `id` | ya | string |
-| `type` | ya | string |
-| `data` | ya | array&lt;string&gt;; minItems=0; maxItems=0 / { type: string; payment_id?: integer; order_id?: string; amount?: integer; invoice_id?: integer; invoice_number?: string; schema_version?: integer; event_key?: string; title?: string; body?: string; target?: { type: string; id: integer } / null; metadata?: object } |
-| `read_at` | ya | string / null |
-| `created_at` | ya | string / null |
 
 ## OperatorActivityFeedResource
 
@@ -2527,7 +2270,7 @@ Autentikasi: tanpa session pengguna; webhook tetap memerlukan verifikasi provide
 | --- | --- | --- |
 | `as_of` | ya | string |
 | `timezone` | ya | string |
-| `items` | ya | array&lt;{ id: integer; type: string; actor: { id: integer / null; name: string / null; is_system: boolean }; operator: { id: integer / null; name: string / null }; project: { id: integer / null; name: string / null }; stage: { id: integer / null; type: string; label: string }; track: { id: integer / null; title: string / null }; occurred_at: string; recorded_at: string; deadline_at: string / null; age_seconds: integer; description: string }&gt; |
+| `items` | ya | string |
 
 ## OperatorProjectStageResource
 
@@ -2651,11 +2394,28 @@ Autentikasi: tanpa session pengguna; webhook tetap memerlukan verifikasi provide
 
 | Field | Wajib | Tipe / aturan |
 | --- | --- | --- |
-| `period` | ya | { year: integer; month: integer; timezone: string } |
+| `period` | ya | string |
 | `status` | ya | string |
 | `studio_profit_percentage` | ya | string |
-| `studio_profit_amount` | ya | integer |
-| `allocations` | ya | array&lt;{ operator_id: integer; operator_name: string; jobs_count: integer; recommended_percentage: string; percentage: string / null; amount: integer }&gt; |
+| `studio_profit_amount` | ya | string |
+| `allocations` | ya | string |
+
+## ProjectIndexResource
+
+| Field | Wajib | Tipe / aturan |
+| --- | --- | --- |
+| `id` | ya | integer |
+| `code` | ya | string |
+| `name` | ya | string |
+| `client` | tidak | { id: integer; name: string; avatar_url: null } |
+| `status` | ya | string |
+| `status_label` | ya | string; enum=["Pembayaran PO","Penugasan","In Progress","Pelunasan","Selesai","Dibatalkan"] |
+| `started_at` | ya | string / null |
+| `created_at` | ya | string / null |
+| `current_stage` | ya | { stage: string; stage_label: string; enum=["Recording","Editing","Mixing","Mastering"]; status: string; status_label: string; enum=["Terkunci","Ready","In Progress","Selesai"]; operator: { id: integer; name: string; avatar_url: null } / null } / null |
+| `progress_percent` | ya | string |
+| `tracks_count` | ya | string |
+| `tracks_approved_count` | ya | string |
 
 ## ProjectStageAssignmentResource
 
