@@ -11,6 +11,7 @@ use App\Http\Controllers\Api\V1\Manager\InventoryCategoryController;
 use App\Http\Controllers\Api\V1\Manager\InventoryController;
 use App\Http\Controllers\Api\V1\Manager\MonthlyFinanceSummaryController;
 use App\Http\Controllers\Api\V1\Manager\MonthlyPayrollFinalizationController;
+use App\Http\Controllers\Api\V1\Manager\OperatorController;
 use App\Http\Controllers\Api\V1\Manager\PackageController;
 use App\Http\Controllers\Api\V1\Manager\PaymentController;
 use App\Http\Controllers\Api\V1\Manager\PayrollAllocationController;
@@ -27,6 +28,9 @@ Route::middleware(['auth:sanctum', 'active', 'role:manager'])
     ->group(function () {
         Route::get('dashboard', [DashboardController::class, 'show']);
         Route::get('dashboard/operator-activities', [DashboardController::class, 'activities']);
+        Route::get('operators', [OperatorController::class, 'index']);
+        Route::post('operators', [OperatorController::class, 'store']);
+        Route::patch('operators/{operator}/status', [OperatorController::class, 'updateStatus'])->whereNumber('operator');
         Route::get('base-prices', [BasePriceController::class, 'index']);
         Route::put('base-prices', [BasePriceController::class, 'update']);
         Route::get('crm/recommendations', [ClientRecommendationController::class, 'index']);

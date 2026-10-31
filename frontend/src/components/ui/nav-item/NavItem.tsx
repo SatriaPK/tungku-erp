@@ -1,5 +1,6 @@
 import { Icon } from '../icon'
 import type { IconName } from '../icon'
+import { Link } from 'react-router-dom'
 import './styles.css'
 
 export interface NavItemProps {
@@ -26,7 +27,7 @@ export function NavItem({ label, icon, href, badge, badgeTone = 'primary', activ
   )
 
   if (href) {
-    return <a aria-current={active ? 'page' : undefined} className={classes} href={href}>{content}</a>
+    return <Link aria-current={active ? 'page' : undefined} className={classes} onClick={onClick} to={href}>{content}</Link>
   }
 
   return <button aria-current={active ? 'page' : undefined} className={classes} onClick={onClick} type="button">{content}</button>

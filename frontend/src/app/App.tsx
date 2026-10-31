@@ -6,6 +6,7 @@ import AuthScreen from '../features/auth/AuthScreen'
 const ManagerDashboard = lazy(() => import('../features/manager/dashboard/ManagerDashboard'))
 const ManagerPackagesPage = lazy(() => import('../features/manager/packages/ManagerPackagesPage'))
 const ManagerProjectsPage = lazy(() => import('../features/manager/projects/ManagerProjectsPage'))
+const ManagerOperatorsPage = lazy(() => import('../features/manager/operators/ManagerOperatorsPage'))
 import ManagerPlaceholderPage from '../features/manager/placeholder/ManagerPlaceholderPage'
 import { managerPages, type ManagerPagePath } from '../features/manager/placeholder/manager-pages'
 import { getCurrentUser } from '../lib/auth-api'
@@ -259,6 +260,24 @@ function ManagerPlaceholderRoute({ path }: { path: ManagerPagePath }) {
   return <ManagerPlaceholderPage path={path} />
 }
 
+function ManagerOperatorsRoute() {
+  const [state, setState] = useState<{ status: 'loading' | 'allowed' | 'denied'; message?: string }>({ status: 'loading' })
+
+  useEffect(() => {
+    let mounted = true
+    void getCurrentUser().then((user) => {
+      if (mounted) setState({ status: user.role === 'manager' ? 'allowed' : 'denied' })
+    }).catch(() => {
+      if (mounted) setState({ status: 'denied', message: 'Silakan login sebagai Manager untuk membuka halaman ini.' })
+    })
+    return () => { mounted = false }
+  }, [])
+
+  if (state.status === 'loading') return <LoadingScreen label="Memeriksa sesi Manager" />
+  if (state.status === 'denied') return <main className="app-root"><p role="alert">{state.message ?? 'Halaman ini hanya tersedia untuk Manager.'}</p><a href="/staff/login">Masuk portal Studio</a></main>
+  return <Suspense fallback={<LoadingScreen label="Memuat halaman Operator" />}><ManagerOperatorsPage /></Suspense>
+}
+
 function ManagerNavigationFeedback() {
   const location = useLocation()
   const [pendingPath, setPendingPath] = useState('')
@@ -299,6 +318,7 @@ function ManagerRoutes() {
         <Route element={<ManagerDashboardRoute />} path="/dashboard" />
         <Route element={<ManagerPackagesRoute />} path="/manajemen-paket" />
         <Route element={<ManagerProjectsRoute />} path="/project" />
+        <Route element={<ManagerOperatorsRoute />} path="/operator" />
         {Object.keys(managerPages).filter((path) => path !== '/manajemen-paket' && path !== '/project').map((path) => (
           <Route element={<ManagerPlaceholderRoute path={path as ManagerPagePath} />} key={path} path={path} />
         ))}

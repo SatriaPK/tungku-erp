@@ -20,8 +20,8 @@ export const managerNavigation: ManagerNavSection[] = [
   { label: 'UTAMA', defaultExpanded: true, items: [{ label: 'Dashboard', icon: 'grid', href: '/dashboard' }] },
   { label: 'OPERASIONAL', defaultExpanded: true, items: [
     { label: 'Booking', icon: 'calendar', href: '/booking' },
-    { label: 'Quotation', icon: 'handshake', href: '/quotation', badge: 2 },
-    { label: 'Project', icon: 'folder', href: '/project', badge: 2 },
+    { label: 'Quotation', icon: 'handshake', href: '/quotation' },
+    { label: 'Project', icon: 'folder', href: '/project' },
     { label: 'Inventaris', icon: 'inventory', href: '/inventaris' },
   ] },
   { label: 'PENJUALAN', defaultExpanded: true, items: [

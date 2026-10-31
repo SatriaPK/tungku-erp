@@ -83,8 +83,9 @@
 .manager-project-cards-view > .manager-project-grid { min-height: 0; }
 .manager-project-cards-view > .manager-project-pagination { min-height: 36px; height: 36px; margin: 0; align-self: stretch; }
 .manager-project-grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); grid-auto-rows: minmax(236px, auto); align-items: stretch; gap: 16px; }
-.manager-project-card { min-width: 0; height: 100%; min-height: 236px; transition: border-color 150ms ease, box-shadow 150ms ease; }
-.manager-project-card:hover { border-color: var(--ts-primary); box-shadow: var(--ts-elevation-1); }
+.manager-project-card { min-width: 0; height: 100%; min-height: 236px; cursor: pointer; transition: border-color 140ms ease, box-shadow 140ms ease, transform 140ms ease; }
+.manager-project-card:hover { border-color: var(--ts-primary); box-shadow: var(--ts-elevation-2); }
+.manager-project-card:focus-within { border-color: var(--ts-primary); box-shadow: var(--ts-elevation-2); }
 .manager-project-card .ts-project-card__top { gap: 12px; }
 .manager-project-card .ts-project-card__title h3 { font: var(--ts-title-large); }
 .manager-project-card .ts-project-card__title p { font: var(--ts-body-medium); }

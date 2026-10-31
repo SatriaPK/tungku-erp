@@ -18,6 +18,7 @@ class DatabaseSeeder extends Seeder
             InventoryCategorySeeder::class,
             StudioSettingSeeder::class,
             UserSeeder::class,
+            OperatorSeeder::class,
         ]);
 
         if (app()->environment('local', 'testing')) {

@@ -106,6 +106,11 @@ export function getCurrentUser() {
   return getData<ManagerUser>('/api/v1/auth/me')
 }
 
+export async function getPendingProjectAssignmentCount(): Promise<number> {
+  const dashboard = await getManagerDashboard()
+  return dashboard.pending_project_assignments
+}
+
 export async function getManagerProjects(filters: ManagerProjectFilters = {}): Promise<ManagerProjectPage> {
   const params = new URLSearchParams()
   Object.entries(filters).forEach(([key, value]) => {

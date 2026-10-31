@@ -11,6 +11,7 @@ export interface ProjectCardProps {
   progressLabel?: string
   date?: string
   operators?: readonly { name: string; avatarUrl?: string }[]
+  operatorsLabel?: string
   clientAvatarUrl?: string
   onDetails?: () => void
   className?: string
@@ -32,6 +33,7 @@ export function ProjectCard({
   progressLabel,
   date,
   operators = [],
+  operatorsLabel = 'Operator:',
   clientAvatarUrl,
   onDetails,
   className,
@@ -60,7 +62,7 @@ export function ProjectCard({
       </div>
       <div className="ts-project-card__footer">
         <div className="ts-project-card__operators">
-          <span className="ts-project-card__operators-label">Operator:</span>
+          <span className="ts-project-card__operators-label">{operatorsLabel}</span>
           <div aria-label="Operator proyek" className="ts-avatar-stack">
             {operators.slice(0, 4).map((operator) => (
               <span className="ts-avatar" key={operator.name} title={operator.name}>
