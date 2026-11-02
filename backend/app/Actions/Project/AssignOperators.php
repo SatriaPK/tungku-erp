@@ -2,6 +2,7 @@
 
 namespace App\Actions\Project;
 
+use App\Actions\Notification\NotifyBusinessEvent;
 use App\Enum\ProjectStatus;
 use App\Enum\StageStatus;
 use App\Enum\StageType;
@@ -95,6 +96,7 @@ class AssignOperators
                     'assigned_at' => $now,
                     'status' => $index === 0 ? StageStatus::Ready : StageStatus::Locked,
                 ]);
+                app(NotifyBusinessEvent::class)->stage($stage, 'stage_assigned');
 
                 foreach ($project->tracks()->orderBy('id')->get() as $track) {
                     /** @var ProjectTrack $track */

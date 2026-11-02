@@ -6,6 +6,7 @@ use App\Enum\SessionStatus;
 use App\Enum\StageStatus;
 use App\Enum\StageType;
 use App\Models\Package;
+use App\Models\Payment;
 use App\Models\Project;
 use App\Models\RecordingSession;
 use App\Models\Room;
@@ -50,6 +51,8 @@ class BookingFlowIntegrationTest extends TestCase
 
         $holdResponse->assertCreated();
         $sessionId = $holdResponse->json('data.id');
+        $payment = Payment::factory()->paid()->create();
+        RecordingSession::query()->whereKey($sessionId)->update(['payment_id' => $payment->id]);
 
         // 3. List bookings
         $this->actingAs($client, 'sanctum')

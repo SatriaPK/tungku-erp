@@ -16,6 +16,10 @@ class ConfirmStageDeadline
 
     public function handle(ProjectStage $stage, User $operator, CarbonImmutable $deadline): ProjectStage
     {
+        if (! $operator->is_active) {
+            throw ValidationException::withMessages(['operator' => 'Operator account is inactive.']);
+        }
+
         return DB::transaction(function () use ($stage, $operator, $deadline): ProjectStage {
             $stage = ProjectStage::query()
                 ->with('project')

@@ -2,9 +2,12 @@
 
 namespace App\Console\Commands;
 
+use App\Actions\Audit\AuditActor;
+use App\Actions\Audit\RecordBusinessChange;
 use App\Enum\SessionStatus;
 use App\Models\RecordingSession;
 use Illuminate\Console\Command;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 
 class ReleaseExpiredHolds extends Command
@@ -22,9 +25,16 @@ class ReleaseExpiredHolds extends Command
             ->get();
 
         foreach ($expiredHolds as $session) {
-            $session->update(['status' => SessionStatus::Expired->value]);
-            $session->held_until = null;
-            $session->save();
+            DB::transaction(function () use ($session): void {
+                $session = RecordingSession::query()->lockForUpdate()->findOrFail($session->id);
+                if ($session->status !== SessionStatus::Held) {
+                    return;
+                }
+                $audit = app(RecordBusinessChange::class);
+                $before = $audit->snapshot($session);
+                $session->update(['status' => SessionStatus::Expired, 'held_until' => null]);
+                $audit->handle($session, 'booking.expired', $before, AuditActor::system('bookings:release-expired-holds'));
+            });
 
             Log::info('Released expired recording session hold.', [
                 'recording_session_id' => $session->id,

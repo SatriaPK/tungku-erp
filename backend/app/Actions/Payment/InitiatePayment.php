@@ -2,6 +2,7 @@
 
 namespace App\Actions\Payment;
 
+use App\Actions\Notification\NotifyBusinessEvent;
 use App\Enum\InvoiceStatus;
 use App\Enum\PaymentProvider;
 use App\Enum\PaymentStatus;
@@ -96,7 +97,10 @@ class InitiatePayment
                 'order_id' => $orderId,
             ]);
 
-            return $payment->refresh();
+            $payment = $payment->refresh();
+            app(NotifyBusinessEvent::class)->paymentCreated($payment);
+
+            return $payment;
         });
     }
 

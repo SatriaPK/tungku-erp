@@ -2,7 +2,10 @@
 
 namespace App\Actions\Booking;
 
+use App\Actions\Audit\AuditActor;
+use App\Actions\Audit\RecordBusinessChange;
 use App\Actions\Invoice\GenerateInvoice;
+use App\Actions\Notification\NotifyBusinessEvent;
 use App\Enum\ProjectStatus;
 use App\Enum\QuotationStatus;
 use App\Enum\SessionStatus;
@@ -53,8 +56,12 @@ class HoldSlot
         }
 
         // Validate client exists
-        if (! User::where('id', $clientId)->exists()) {
+        $client = User::query()->find($clientId);
+        if ($client === null) {
             throw new InvalidArgumentException("Client with ID {$clientId} not found.");
+        }
+        if (! $client->isClient() || ! $client->is_active) {
+            throw new InvalidArgumentException('Booking requires an active client.');
         }
 
         // Validate time order
@@ -135,10 +142,13 @@ class HoldSlot
                 'extra_fee' => 0,
                 'requested_by' => null,
             ]);
+            $audit = app(RecordBusinessChange::class);
+            $audit->handle($session, 'booking.held', [], AuditActor::user(User::query()->findOrFail($clientId)));
 
             // Generate Invoice
             if ($project !== null) {
                 $this->generateInvoice->fromProject($project);
+                app(NotifyBusinessEvent::class)->project($project, 'project_created');
             } else {
                 $this->generateInvoice->fromRecordingSession($session);
             }

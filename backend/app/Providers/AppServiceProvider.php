@@ -2,6 +2,7 @@
 
 namespace App\Providers;
 
+use App\Actions\Documentation\DescribeApiContracts;
 use App\Contracts\CRMCampaignEmailProvider;
 use App\Models\Invoice;
 use App\Models\Payment;
@@ -18,6 +19,9 @@ use App\Policies\QuotationPolicy;
 use App\Policies\RecordingSessionPolicy;
 use App\Policies\TrackStageProgressPolicy;
 use App\Services\CRM\ResendCampaignEmailProvider;
+use Dedoc\Scramble\Scramble;
+use Dedoc\Scramble\Support\Generator\OpenApi;
+use Dedoc\Scramble\Support\Generator\SecurityScheme;
 use Illuminate\Cache\RateLimiting\Limit;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Gate;
@@ -57,15 +61,28 @@ class AppServiceProvider extends ServiceProvider
      */
     public function boot(): void
     {
+        Scramble::configure()->withOperationTransformers(DescribeApiContracts::class)
+            ->withDocumentTransformers(function (OpenApi $api): void {
+                $api->secure(SecurityScheme::apiKey('cookie', 'laravel_session')->as('sessionCookie'));
+                app(DescribeApiContracts::class)->document($api);
+            });
+        Gate::before(fn ($user) => $user->is_active ? null : false);
         // Register policies
         foreach ($this->policies as $model => $policy) {
             Gate::policy($model, $policy);
         }
 
         RateLimiter::for('login', function (Request $request) {
-            return Limit::perMinute(5)->by(
-                Str::lower((string) $request->input('email')).'|'.$request->ip()
-            );
+            return [
+                Limit::perMinute((int) config('rate-limits.login', 5))->by(Str::lower((string) $request->input('email')).'|'.$request->ip()),
+                Limit::perMinute((int) config('rate-limits.login_ip', 30))->by('ip:'.$request->ip()),
+            ];
         });
+
+        RateLimiter::for('register', fn (Request $request) => Limit::perMinute((int) config('rate-limits.register', 10))->by($request->ip()));
+        foreach (array_keys(config('rate-limits.authenticated', [])) as $bucket) {
+            RateLimiter::for($bucket, fn (Request $request) => Limit::perMinute((int) config('rate-limits.authenticated.'.$bucket, 30))
+                ->by($bucket.'|'.($request->user()?->id ?? $request->ip())));
+        }
     }
 }

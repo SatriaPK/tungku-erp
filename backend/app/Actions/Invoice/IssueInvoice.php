@@ -2,6 +2,8 @@
 
 namespace App\Actions\Invoice;
 
+use App\Actions\Audit\AuditActor;
+use App\Actions\Audit\RecordBusinessChange;
 use App\Enum\InvoiceStatus;
 use App\Models\Invoice;
 use App\Notifications\InvoiceIssuedNotification;
@@ -28,10 +30,13 @@ class IssueInvoice
         $this->validate($invoice);
 
         return DB::transaction(function () use ($invoice) {
+            $audit = app(RecordBusinessChange::class);
+            $before = $audit->snapshot($invoice);
             $invoice->update([
                 'status' => InvoiceStatus::Issued,
                 'issue_date' => now(),
             ]);
+            $audit->handle($invoice, 'invoice.issued', $before, AuditActor::system(self::class));
 
             Log::info('Invoice issued', [
                 'invoice_id' => $invoice->id,

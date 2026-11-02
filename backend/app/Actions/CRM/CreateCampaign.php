@@ -2,6 +2,8 @@
 
 namespace App\Actions\CRM;
 
+use App\Actions\Audit\AuditActor;
+use App\Actions\Audit\RecordBusinessChange;
 use App\Enum\CampaignStatus;
 use App\Enum\CRMChannel;
 use App\Enum\Role;
@@ -98,6 +100,7 @@ class CreateCampaign
             ));
 
             CRMCampaignRecipient::query()->insert($recipients->all());
+            app(RecordBusinessChange::class)->handle($campaign, 'campaign.created', [], AuditActor::user($manager));
 
             return $campaign->load('recipients');
         });

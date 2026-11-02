@@ -1,6 +1,7 @@
 <?php
 
 use App\Enum\SessionStatus;
+use App\Models\Payment;
 use App\Models\RecordingSession;
 use App\Models\Room;
 use App\Models\User;
@@ -19,6 +20,8 @@ function confirmPayload(int $id): array
 
 test('confirms an active held session', function () {
     $session = RecordingSession::factory()->for($this->room)->for($this->client, 'client')->held(15)->create();
+    $payment = Payment::factory()->paid()->create();
+    $session->update(['payment_id' => $payment->id]);
 
     $response = $this->actingAs($this->client)->postJson('/api/v1/client/bookings/confirm', confirmPayload($session->id));
 

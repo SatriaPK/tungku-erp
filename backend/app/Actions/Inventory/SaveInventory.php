@@ -2,6 +2,8 @@
 
 namespace App\Actions\Inventory;
 
+use App\Actions\Audit\AuditActor;
+use App\Actions\Audit\RecordBusinessChange;
 use App\Enum\InventoryStatus;
 use App\Models\Inventory;
 use App\Models\InventoryCategory;
@@ -42,6 +44,8 @@ class SaveInventory
             }
 
             $lockedInventory ??= new Inventory;
+            $audit = app(RecordBusinessChange::class);
+            $before = $audit->snapshot($lockedInventory);
             $lockedInventory->fill([
                 'code' => $data['code'],
                 'name' => $data['name'],
@@ -64,6 +68,7 @@ class SaveInventory
             }
 
             $lockedInventory->save();
+            $audit->handle($lockedInventory, $before === [] ? 'inventory.created' : 'inventory.updated', $before, AuditActor::user($manager));
 
             return $lockedInventory->load(['category', 'room', 'expense']);
         });

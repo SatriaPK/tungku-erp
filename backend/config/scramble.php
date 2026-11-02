@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Middleware\EnsureApiDocumentationAccess;
+use Dedoc\Scramble\OpenApiVersion;
 
 return [
     /*
@@ -44,7 +45,7 @@ return [
     /*
      * OpenAPI version of the resulting document.
      */
-    'openapi_version' => '3.1.2',
+    'openapi_version' => OpenApiVersion::V3_1,
 
     'info' => [
         /*
@@ -55,7 +56,7 @@ return [
         /*
          * Description rendered on the home page of the API documentation (`/docs/api`).
          */
-        'description' => 'ERP Tungku API v1. Authentication uses Sanctum SPA session cookies: first GET /sanctum/csrf-cookie, then POST /api/v1/auth/login with credentials and X-XSRF-TOKEN. Include cookies and X-XSRF-TOKEN for state-changing requests. No public token issuance endpoint is provided. Amounts are integer IDR; dates use Asia/Jakarta (UTC+07:00), date-only values are calendar dates. Paginated resources return data, links and meta. Validation errors use 422 with message and errors; authentication/authorization use 401/403. A 429 response includes Retry-After in seconds; wait before retrying. Manual payment means cash. Refunds are handled outside this system.',
+        'description' => 'ERP Tungku API v1. Authentication uses Sanctum SPA session cookies: first GET /sanctum/csrf-cookie, then POST /api/v1/auth/login with credentials and X-XSRF-TOKEN. Include cookies and X-XSRF-TOKEN for state-changing requests. No public token issuance endpoint is provided. Amounts are integer IDR; dates use Asia/Jakarta (UTC+07:00), date-only values are calendar dates. Paginated resources return data, links and meta. Validation errors use 422 with message and errors; authentication/authorization use 401/403. A 429 response includes Retry-After in seconds; wait before retrying. Manual payment means cash. Refund requests require Manager access.',
     ],
 
     'ui' => [

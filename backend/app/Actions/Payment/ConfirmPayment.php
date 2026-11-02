@@ -2,14 +2,15 @@
 
 namespace App\Actions\Payment;
 
+use App\Actions\Audit\AuditActor;
+use App\Actions\Audit\RecordBusinessChange;
+use App\Actions\Notification\RecordNotification;
 use App\Actions\Project\SettleFinalPayment;
 use App\Enum\PaymentStatus;
 use App\Enum\PaymentType;
 use App\Enum\ProjectStatus;
-use App\Enum\SessionStatus;
 use App\Exceptions\InvalidWebhookSignatureException;
 use App\Models\Payment;
-use App\Models\RecordingSession;
 use App\Notifications\PaymentConfirmedNotification;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
@@ -70,6 +71,8 @@ class ConfirmPayment
                 $this->validateFinalPaymentAmount($payment, $reportedAmount);
             }
 
+            $audit = app(RecordBusinessChange::class);
+            $before = $audit->snapshot($payment);
             // Update payment status
             $payment->update([
                 'status' => PaymentStatus::Paid,
@@ -78,25 +81,12 @@ class ConfirmPayment
                 'paid_at' => now(),
                 'raw_payload' => empty($rawPayload) ? $payment->raw_payload : $rawPayload,
             ]);
+            $audit->handle($payment, 'payment.paid', $before, AuditActor::provider($payment->provider->value), 'payment:'.$payment->id.':paid');
 
-            // Update invoice if exists
-            if ($payment->invoice) {
-                $payment->invoice->markAsPaid();
-            }
+            app(ApplyPaidPaymentEffects::class)->handle($payment, AuditActor::provider($payment->provider->value));
 
             if ($payment->type === PaymentType::Final) {
                 app(SettleFinalPayment::class)->execute($payment);
-            }
-
-            // Confirm related recording sessions
-            foreach ($payment->recordingSessions()->get() as $session) {
-                /** @var RecordingSession $session */
-                if ($session->status === SessionStatus::Held) {
-                    $session->update([
-                        'status' => SessionStatus::Confirmed,
-                        'held_until' => null,
-                    ]);
-                }
             }
 
             Log::info('Payment confirmed successfully', [
@@ -108,7 +98,7 @@ class ConfirmPayment
 
             $client = $payment->invoice->client ?? $payment->project->client;
             if ($client) {
-                $client->notify(new PaymentConfirmedNotification($payment->fresh()));
+                app(RecordNotification::class)->handle($client, new PaymentConfirmedNotification($payment->fresh()));
             }
 
             return $payment->fresh();

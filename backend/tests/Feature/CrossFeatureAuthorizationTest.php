@@ -1,8 +1,6 @@
 <?php
 
 use App\Actions\Booking\HoldSlot;
-use App\Actions\Payment\ProcessRefund;
-use App\Actions\Payment\RefundPayment;
 use App\Actions\Project\ConfirmStageDeadline;
 use App\Actions\Project\ReviewTrackResult;
 use App\Actions\Project\SubmitTrackResult;
@@ -85,19 +83,21 @@ test('direct booking actions reject inactive clients', function () {
     $this->assertDatabaseCount('recording_sessions', 0);
 });
 
-test('refund actions cannot call providers or mutate paid history', function (string $action, string $provider) {
+test('clients cannot request refunds or call payment providers', function (string $provider) {
     $payment = Payment::factory()->paid()->create(['provider' => $provider]);
     $gateway = Mockery::mock(PaymentGatewayInterface::class);
     $gateway->shouldNotReceive('processRefund');
     PaymentGatewayFactory::fake($gateway);
     Notification::fake();
 
-    expect(fn () => app($action)->execute($payment, $payment->amount, 'Requested outside system'))
-        ->toThrow(InvalidArgumentException::class, 'outside the system');
+    $this->actingAs(User::factory()->client()->create())
+        ->postJson('/api/v1/manager/payments/'.$payment->id.'/refund', [
+            'amount' => $payment->amount, 'reason' => 'Unauthorized request',
+        ])->assertForbidden();
 
     expect($payment->fresh()->status)->toBe(PaymentStatus::Paid);
     Notification::assertNothingSent();
-})->with([RefundPayment::class, ProcessRefund::class])->with(array_map(fn (PaymentProvider $provider): string => $provider->value, PaymentProvider::cases()));
+})->with(array_map(fn (PaymentProvider $provider): string => $provider->value, PaymentProvider::cases()));
 
 test('inactive actors cannot mutate production through direct actions', function (string $operation) {
     $operator = User::factory()->operator()->inactive()->create();

@@ -132,7 +132,7 @@ class MidtransGateway implements PaymentGatewayInterface
 
         $expectedSignature = hash('sha512', $orderId.$statusCode.$grossAmount.$serverKey);
 
-        if (! hash_equals($expectedSignature, $signatureKey)) {
+        if (! is_string($signatureKey) || ! hash_equals($expectedSignature, $signatureKey)) {
             Log::warning('Invalid Midtrans webhook signature', ['order_id' => $orderId]);
             throw new InvalidWebhookSignatureException('Midtrans');
         }

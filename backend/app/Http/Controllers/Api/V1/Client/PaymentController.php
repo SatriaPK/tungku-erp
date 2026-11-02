@@ -22,6 +22,7 @@ class PaymentController extends Controller
     public function initiatePayment(Request $request, Invoice $invoice): JsonResponse
     {
         $this->authorize('view', $invoice);
+        abort_unless($request->user()->isClient() && $invoice->client_id === $request->user()->id, 403);
 
         $validated = $request->validate([
             'gateway' => 'required|string|in:midtrans,xendit',

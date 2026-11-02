@@ -42,7 +42,7 @@ Route::middleware(['auth:sanctum', 'active', 'role:manager'])
         Route::get('crm/campaigns', [CRMCampaignController::class, 'index']);
         Route::post('crm/campaigns', [CRMCampaignController::class, 'store']);
         Route::get('crm/campaigns/{campaign}', [CRMCampaignController::class, 'show'])->whereNumber('campaign');
-        Route::post('crm/campaigns/{campaign}/dispatch', [CRMCampaignController::class, 'dispatch'])->whereNumber('campaign');
+        Route::post('crm/campaigns/{campaign}/dispatch', [CRMCampaignController::class, 'dispatch'])->whereNumber('campaign')->middleware('throttle:bulk-write');
 
         Route::apiResource('expense-categories', ExpenseCategoryController::class);
         Route::apiResource('expenses', ExpenseController::class);
@@ -51,7 +51,7 @@ Route::middleware(['auth:sanctum', 'active', 'role:manager'])
             ->whereNumber('inventory_category');
         Route::apiResource('inventories', InventoryController::class)->whereNumber('inventory');
         Route::post('inventories/{inventory}/dispose', [InventoryController::class, 'dispose'])->whereNumber('inventory');
-        Route::get('finance/monthly-summary', [MonthlyFinanceSummaryController::class, 'show']);
+        Route::get('finance/monthly-summary', [MonthlyFinanceSummaryController::class, 'show'])->middleware('throttle:expensive-read');
         Route::post('finance/payroll-finalization', [MonthlyPayrollFinalizationController::class, 'store']);
         Route::get('finance/payroll-allocations', [PayrollAllocationController::class, 'show']);
         Route::put('finance/payroll-allocations', [PayrollAllocationController::class, 'update']);
@@ -92,7 +92,7 @@ Route::middleware(['auth:sanctum', 'active', 'role:manager'])
         Route::prefix('payments')->group(function () {
             Route::get('/', [PaymentController::class, 'index']);
             Route::get('{payment}', [PaymentController::class, 'show']);
-            Route::post('{payment}/confirm', [PaymentController::class, 'confirm']);
+            Route::post('{payment}/confirm', [PaymentController::class, 'confirm'])->middleware('throttle:finance-write');
             Route::post('{payment}/refund', [PaymentController::class, 'refund']);
             Route::post('{payment}/cancel', [PaymentController::class, 'cancel']);
         });

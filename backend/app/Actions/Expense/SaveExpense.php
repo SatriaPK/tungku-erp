@@ -2,6 +2,8 @@
 
 namespace App\Actions\Expense;
 
+use App\Actions\Audit\AuditActor;
+use App\Actions\Audit\RecordBusinessChange;
 use App\Models\Expense;
 use App\Models\ExpenseCategory;
 use App\Models\User;
@@ -31,6 +33,8 @@ class SaveExpense
             }
 
             $lockedExpense ??= new Expense;
+            $audit = app(RecordBusinessChange::class);
+            $before = $audit->snapshot($lockedExpense);
             $lockedExpense->fill([
                 'expense_category_id' => $category->id,
                 'recorded_by' => $lockedExpense->exists ? $lockedExpense->recorded_by : $recorder->id,
@@ -39,6 +43,7 @@ class SaveExpense
                 'spent_on' => $data['spent_on'],
             ]);
             $lockedExpense->save();
+            $audit->handle($lockedExpense, $before === [] ? 'expense.created' : 'expense.updated', $before, AuditActor::user($recorder));
 
             return $lockedExpense->load(['category', 'recorder']);
         });

@@ -2,6 +2,8 @@
 
 namespace App\Actions\Invoice;
 
+use App\Actions\Audit\AuditActor;
+use App\Actions\Audit\RecordBusinessChange;
 use App\Enum\InvoiceStatus;
 use App\Enum\StageType;
 use App\Models\BasePrice;
@@ -151,6 +153,7 @@ class GenerateInvoice
                 $invoice->project_id = $sourceId;
             } // Payment has invoice_id mapped back instead
             $invoice->save();
+            app(RecordBusinessChange::class)->handle($invoice, 'invoice.created', [], AuditActor::system(self::class));
 
             // Create invoice items with line numbers
             foreach ($items as $index => $itemData) {

@@ -19,10 +19,6 @@ class DescribeApiContracts implements OperationTransformer
 {
     public function handle(Operation $operation, RouteInfo $routeInfo): void
     {
-        if ($routeInfo->route->uri() === 'api/v1/manager/payments/{payment}/refund') {
-            $operation->description = 'Refund dilakukan di luar sistem (ADR Q13). Endpoint kompatibilitas ini menolak refund baru.';
-            $operation->responses = [$this->error(422, 'Refunds are handled outside this system.')];
-        }
         $middleware = $routeInfo->route->gatherMiddleware();
         $operation->security = [];
         if (in_array('auth:sanctum', $middleware, true)) {

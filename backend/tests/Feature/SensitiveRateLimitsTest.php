@@ -4,6 +4,7 @@ use App\Models\Invoice;
 use App\Models\Payment;
 use App\Models\Project;
 use App\Models\User;
+use App\Services\Payment\PaymentGatewayFactory;
 use Illuminate\Support\Str;
 use Laravel\Sanctum\Sanctum;
 
@@ -99,6 +100,8 @@ test('sensitive route groups enforce their configured bucket', function (string 
 ]);
 
 test('user throttling does not replace authentication or throttle provider callbacks', function () {
+    $this->app['auth']->forgetGuards();
+    PaymentGatewayFactory::clearFake();
     $this->getJson('/api/v1/notifications')->assertUnauthorized();
     for ($attempt = 0; $attempt < 6; $attempt++) {
         $this->postJson('/api/v1/webhooks/payment/midtrans', [])->assertUnauthorized();

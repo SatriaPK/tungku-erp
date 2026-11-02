@@ -2,6 +2,9 @@
 
 namespace App\Actions\Booking;
 
+use App\Actions\Audit\AuditActor;
+use App\Actions\Audit\RecordBusinessChange;
+use App\Actions\Notification\NotifyBusinessEvent;
 use App\Enum\PriceUnit;
 use App\Enum\ProjectStatus;
 use App\Enum\Role;
@@ -88,7 +91,7 @@ class RequestRecordingExtension
 
             $billableHours = intdiv($durationMinutes + 59, 60);
 
-            return RecordingSession::query()->create([
+            $session = RecordingSession::query()->create([
                 'room_id' => $roomId,
                 'client_id' => $project->client_id,
                 'project_id' => $project->id,
@@ -101,6 +104,10 @@ class RequestRecordingExtension
                 'extra_fee' => $billableHours * $price->price,
                 'requested_by' => $operator->id,
             ]);
+            app(NotifyBusinessEvent::class)->extension($session, $billableHours, $price->price);
+            app(RecordBusinessChange::class)->handle($session, 'booking.extended', [], AuditActor::user($operator));
+
+            return $session;
         });
     }
 }
