@@ -4,8 +4,8 @@ namespace App\Http\Resources\Manager;
 
 use App\Models\User;
 use Illuminate\Http\Request;
-use Illuminate\Support\Arr;
 use Illuminate\Http\Resources\Json\JsonResource;
+use Illuminate\Support\Arr;
 
 /** @mixin User */
 class OperatorResource extends JsonResource
@@ -28,9 +28,9 @@ class OperatorResource extends JsonResource
                     $project = $stages->first()->project;
 
                     $data = Arr::only((new ProjectIndexResource($project))->resolve($request), [
-                            'id', 'name', 'status', 'status_label', 'client', 'current_stage',
-                            'progress_percent', 'started_at', 'created_at',
-                        ]);
+                        'id', 'name', 'status', 'status_label', 'client', 'current_stage',
+                        'progress_percent', 'started_at', 'created_at',
+                    ]);
 
                     return [
                         'id' => $data['id'],

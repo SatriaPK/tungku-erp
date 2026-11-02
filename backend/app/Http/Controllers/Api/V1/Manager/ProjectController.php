@@ -2,11 +2,11 @@
 
 namespace App\Http\Controllers\Api\V1\Manager;
 
+use App\Actions\Project\LoadProjectCardProgress;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Manager\ProjectIndexRequest;
 use App\Http\Resources\Manager\ProjectIndexResource;
 use App\Models\Project;
-use App\Actions\Project\LoadProjectCardProgress;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Http\Resources\Json\AnonymousResourceCollection;
 

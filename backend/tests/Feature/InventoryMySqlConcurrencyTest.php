@@ -25,7 +25,6 @@ test('inventory lifecycle serializes competing writers on MySQL', function (stri
         'prefix' => '', 'strict' => true,
     ]]);
 
-
     $worker = null;
     try {
         expect(Artisan::call('migrate:fresh', ['--database' => 'phase16_mysql', '--force' => true]))->toBe(0);
@@ -78,7 +77,6 @@ PHP;
             usleep(10000);
         } while (microtime(true) < $deadline);
         expect($waiting)->toBeTrue('The competing connection must wait for the asset or category lock.');
-
 
         if ($scenario === 'category disabled before save') {
             app(SaveInventoryCategory::class)->handle(['name' => 'Kamera', 'is_active' => false], $category);

@@ -3,7 +3,6 @@
 use App\Actions\Booking\RequestRecordingExtension;
 use App\Models\BasePrice;
 use App\Models\Project;
-use App\Models\ProjectStage;
 use App\Models\RecordingSession;
 use App\Models\Room;
 use App\Models\User;
@@ -27,9 +26,6 @@ test('competing recording extensions cannot double book a room on MySQL', functi
         'username' => 'root', 'password' => '', 'charset' => 'utf8mb4', 'collation' => 'utf8mb4_unicode_ci',
         'prefix' => '', 'strict' => true,
     ]]);
-
-
-
 
     $worker = null;
     try {
@@ -74,9 +70,6 @@ PHP;
             usleep(10000);
         } while (microtime(true) < $deadline);
         expect($waiting)->toBeTrue('The competing connection must wait for the room lock.');
-
-
-
 
         app(RequestRecordingExtension::class)->handle($stage, $operator, $room->id,
             CarbonImmutable::parse('2026-10-25 10:00:00'), CarbonImmutable::parse('2026-10-25 11:01:00'));

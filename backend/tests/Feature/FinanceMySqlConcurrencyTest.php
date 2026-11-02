@@ -5,11 +5,11 @@ use App\Actions\Finance\FinalizeMonthlyPayroll;
 use App\Actions\Finance\SavePayrollAllocations;
 use App\Models\Expense;
 use App\Models\ExpenseCategory;
+use App\Models\Payment;
 use App\Models\Payroll;
 use App\Models\Project;
 use App\Models\ProjectTrack;
 use App\Models\TrackStageProgress;
-use App\Models\Payment;
 use App\Models\User;
 use Illuminate\Support\Facades\Artisan;
 use Illuminate\Support\Facades\DB;
@@ -120,4 +120,3 @@ PHP;
         config(['database.default' => $originalConnection]);
     }
 })->with(['expense before finalization', 'finalization before expense', 'allocation before finalization', 'finalization before allocation', 'allocation before allocation', 'duplicate finalization']);
-

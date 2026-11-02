@@ -25,8 +25,6 @@ test('final payment protects settlement from competing cash requests on MySQL', 
         'prefix' => '', 'strict' => true,
     ]]);
 
-
-
     $worker = null;
     try {
         expect(Artisan::call('migrate:fresh', ['--database' => 'phase13_mysql', '--force' => true]))->toBe(0);
@@ -74,8 +72,6 @@ PHP;
             usleep(10000);
         } while (microtime(true) < $deadline);
         expect($waiting)->toBeTrue('The competing connection must wait for the payment lock.');
-
-
 
         if ($scenario === 'duplicate callback') {
             app(ConfirmPayment::class)->execute($payment->fresh(), 'provider-transaction');
