@@ -4,11 +4,20 @@ namespace App\Http\Controllers\Api\V1\Client;
 
 use App\Http\Controllers\Controller;
 use App\Http\Resources\PackageCatalogResource;
+use App\Http\Resources\BasePriceResource;
+use App\Models\BasePrice;
 use App\Models\Package;
 use Illuminate\Http\Resources\Json\AnonymousResourceCollection;
 
 class PackageCatalogController extends Controller
 {
+    public function prices(): AnonymousResourceCollection
+    {
+        return BasePriceResource::collection(
+            BasePrice::query()->get()->sortBy(fn (BasePrice $price) => $price->stage->sequence())->values()
+        );
+    }
+
     /**
      * Get all active packages for the catalog.
      * Available to all authenticated users.

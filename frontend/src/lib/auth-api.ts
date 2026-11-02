@@ -62,6 +62,11 @@ export async function login(email: string, password: string) {
   return apiRequest('/api/v1/auth/login', { email, password, remember: false })
 }
 
+export async function logout() {
+  await prepareSession()
+  await apiRequest('/api/v1/auth/logout', {})
+}
+
 export async function getCurrentUser(): Promise<AuthUser> {
   let response: Response
   try {

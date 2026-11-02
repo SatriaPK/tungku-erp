@@ -1,4 +1,4 @@
-import type { HTMLAttributes } from 'react'
+import type { HTMLAttributes, ReactNode } from 'react'
 import { Badge } from '../badge'
 import type { PhaseChipProps } from '../badge'
 import { Icon } from '../icon'
@@ -11,6 +11,9 @@ export interface PackageCardProps extends HTMLAttributes<HTMLElement> {
   recordingHours: number
   songCount: number
   onMenuClick?: () => void
+  phaseIcons?: Partial<Record<PhaseChipProps['phase'], ReactNode>>
+  menuIcon?: ReactNode
+  separator?: ReactNode
 }
 
 const phaseIcon = {
@@ -29,6 +32,9 @@ export function PackageCard({
   recordingHours,
   songCount,
   onMenuClick,
+  phaseIcons,
+  menuIcon,
+  separator,
   className,
   ...props
 }: PackageCardProps) {
@@ -38,18 +44,20 @@ export function PackageCard({
         <h3>{name}</h3>
         {onMenuClick && (
           <button aria-label={`Aksi untuk ${name}`} className="ts-icon-button" onClick={onMenuClick} type="button">
-            <Icon name="more" size={20} />
+            {menuIcon ?? <Icon name="more" size={20} />}
           </button>
         )}
       </div>
       <p className="ts-package-card__description">{description}</p>
       <div aria-label="Tahap dalam paket" className="ts-package-card__phases">
         {phases.map((phase) => (
-          <Badge icon={phaseIcon[phase]} key={phase} tone={phaseTone[phase]}>
+          <Badge icon={phaseIcons?.[phase] ? undefined : phaseIcon[phase]} key={phase} tone={phaseTone[phase]}>
+            {phaseIcons?.[phase]}
             {phase}
           </Badge>
         ))}
       </div>
+      {separator && <div className="ts-package-card__separator">{separator}</div>}
       <div className="ts-package-card__footer">
         <p className="ts-package-card__price">{price}</p>
         <p className="ts-package-card__details"><span>{recordingHours} Jam Rekaman</span><span>{songCount} Lagu</span></p>

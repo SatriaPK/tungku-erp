@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+import { lazy, Suspense, useEffect, useState } from 'react'
 import { BrowserRouter, Route, Routes } from 'react-router-dom'
 import { Badge, Button, Card, CardHeader, Icon, Input, PackageCard, PhaseChip, ProjectCard, SegmentedButton, StatCard, Switch } from '../components/ui'
 import type { ButtonVariant, IconName } from '../components/ui'
@@ -6,6 +6,8 @@ import AuthScreen from '../features/auth/AuthScreen'
 import ManagerDashboard from '../features/manager/dashboard/ManagerDashboard'
 import { getCurrentUser } from '../lib/auth-api'
 import './App.css'
+
+const ClientPortal = lazy(() => import('../features/client/ClientPortal'))
 
 const buttonVariants: readonly ButtonVariant[] = ['filled', 'outlined', 'tonal', 'text', 'dark']
 
@@ -209,6 +211,12 @@ export default function App() {
   return (
     <BrowserRouter>
       <Routes>
+        <Route element={<Suspense fallback={<main className="app-root" role="status">Memuat portal klien…</main>}><ClientPortal /></Suspense>} path="/client" />
+        <Route element={<Suspense fallback={<main className="app-root" role="status">Memuat portal klien…</main>}><ClientPortal /></Suspense>} path="/client/packages" />
+        <Route element={<Suspense fallback={<main className="app-root" role="status">Memuat portal klien…</main>}><ClientPortal /></Suspense>} path="/client/booking" />
+        <Route element={<Suspense fallback={<main className="app-root" role="status">Memuat portal klien…</main>}><ClientPortal /></Suspense>} path="/client/penawaran" />
+        <Route element={<Suspense fallback={<main className="app-root" role="status">Memuat portal klien…</main>}><ClientPortal /></Suspense>} path="/client/project" />
+        <Route element={<Suspense fallback={<main className="app-root" role="status">Memuat portal klien…</main>}><ClientPortal /></Suspense>} path="/client/transaksi" />
         <Route element={<ManagerDashboardRoute />} path="/dashboard" />
         <Route element={<AuthScreen />} path="*" />
       </Routes>
