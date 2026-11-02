@@ -8,6 +8,7 @@ import { getCurrentUser } from '../lib/auth-api'
 import './App.css'
 
 const ClientPortal = lazy(() => import('../features/client/ClientPortal'))
+const OperatorPortal = lazy(() => import('../features/operator/OperatorPortal'))
 
 const buttonVariants: readonly ButtonVariant[] = ['filled', 'outlined', 'tonal', 'text', 'dark']
 
@@ -217,7 +218,8 @@ export default function App() {
         <Route element={<Suspense fallback={<main className="app-root" role="status">Memuat portal klien…</main>}><ClientPortal /></Suspense>} path="/client/penawaran" />
         <Route element={<Suspense fallback={<main className="app-root" role="status">Memuat portal klien…</main>}><ClientPortal /></Suspense>} path="/client/project" />
         <Route element={<Suspense fallback={<main className="app-root" role="status">Memuat portal klien…</main>}><ClientPortal /></Suspense>} path="/client/transaksi" />
-        <Route element={<ManagerDashboardRoute />} path="/dashboard" />
+        <Route element={<ManagerDashboardRoute />} path="/dashboard/*" />
+        <Route element={<Suspense fallback={<main className="app-root" role="status">Memuat portal Operator?</main>}><OperatorPortal /></Suspense>} path="/operator" />
         <Route element={<AuthScreen />} path="*" />
       </Routes>
     </BrowserRouter>

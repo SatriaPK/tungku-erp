@@ -9,6 +9,7 @@ use App\Http\Controllers\Api\V1\Manager\ExpenseCategoryController;
 use App\Http\Controllers\Api\V1\Manager\ExpenseController;
 use App\Http\Controllers\Api\V1\Manager\InventoryCategoryController;
 use App\Http\Controllers\Api\V1\Manager\InventoryController;
+use App\Http\Controllers\Api\V1\Manager\ManagerWorkspaceController;
 use App\Http\Controllers\Api\V1\Manager\MonthlyFinanceSummaryController;
 use App\Http\Controllers\Api\V1\Manager\MonthlyPayrollFinalizationController;
 use App\Http\Controllers\Api\V1\Manager\PackageController;
@@ -25,6 +26,10 @@ Route::middleware(['auth:sanctum', 'active', 'role:manager'])
     ->prefix('manager')
     ->group(function () {
         Route::get('dashboard', [DashboardController::class, 'show']);
+        Route::get('projects', [ManagerWorkspaceController::class, 'projects']);
+        Route::get('operators', [ManagerWorkspaceController::class, 'operators']);
+        Route::get('clients', [ManagerWorkspaceController::class, 'clients']);
+        Route::get('invoices', [ManagerWorkspaceController::class, 'invoices']);
         Route::get('dashboard/operator-activities', [DashboardController::class, 'activities']);
         Route::get('base-prices', [BasePriceController::class, 'index']);
         Route::put('base-prices', [BasePriceController::class, 'update']);
