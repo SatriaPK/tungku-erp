@@ -27,11 +27,21 @@ class OperatorResource extends JsonResource
                 return $this->stageAssignments->groupBy('project_id')->map(function ($stages) use ($request) {
                     $project = $stages->first()->project;
 
-                    return [
-                        ...Arr::only((new ProjectIndexResource($project))->resolve($request), [
+                    $data = Arr::only((new ProjectIndexResource($project))->resolve($request), [
                             'id', 'name', 'status', 'status_label', 'client', 'current_stage',
                             'progress_percent', 'started_at', 'created_at',
-                        ]),
+                        ]);
+
+                    return [
+                        'id' => $data['id'],
+                        'name' => $data['name'],
+                        'status' => $data['status'],
+                        'status_label' => $data['status_label'],
+                        'client' => $data['client'],
+                        'current_stage' => $data['current_stage'],
+                        'progress_percent' => $data['progress_percent'],
+                        'started_at' => $data['started_at'],
+                        'created_at' => $data['created_at'],
                         'stages' => $stages->map(fn ($stage) => $stage->stage->label())->values()->all(),
                     ];
                 })->values()->all();

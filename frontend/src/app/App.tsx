@@ -7,6 +7,7 @@ const ManagerDashboard = lazy(() => import('../features/manager/dashboard/Manage
 const ManagerPackagesPage = lazy(() => import('../features/manager/packages/ManagerPackagesPage'))
 const ManagerProjectsPage = lazy(() => import('../features/manager/projects/ManagerProjectsPage'))
 const ManagerOperatorsPage = lazy(() => import('../features/manager/operators/ManagerOperatorsPage'))
+const OperatorPortal = lazy(() => import('../features/operator/OperatorPortal'))
 import ManagerPlaceholderPage from '../features/manager/placeholder/ManagerPlaceholderPage'
 import { managerPages, type ManagerPagePath } from '../features/manager/placeholder/manager-pages'
 import { getCurrentUser } from '../lib/auth-api'
@@ -319,6 +320,7 @@ function ManagerRoutes() {
         <Route element={<ManagerPackagesRoute />} path="/manajemen-paket" />
         <Route element={<ManagerProjectsRoute />} path="/project" />
         <Route element={<ManagerOperatorsRoute />} path="/operator" />
+        <Route element={<Suspense fallback={<LoadingScreen label="Memuat tugas Operator" />}><OperatorPortal /></Suspense>} path="/operator/workspace" />
         {Object.keys(managerPages).filter((path) => path !== '/manajemen-paket' && path !== '/project').map((path) => (
           <Route element={<ManagerPlaceholderRoute path={path as ManagerPagePath} />} key={path} path={path} />
         ))}

@@ -13,7 +13,11 @@ use App\Models\Project;
 use App\Models\User;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
+use Illuminate\Http\Response;
 use Illuminate\Http\Resources\Json\AnonymousResourceCollection;
+use Illuminate\Support\Str;
+use Illuminate\Validation\Rule;
+use Illuminate\Validation\ValidationException;
 
 class OperatorController extends Controller
 {
@@ -82,5 +86,34 @@ class OperatorController extends Controller
         $operator->forceFill(['is_active' => $request->validated('is_active')])->save();
 
         return new OperatorResource($operator);
+    }
+
+    public function update(Request $request, User $operator): OperatorResource
+    {
+        abort_unless($operator->isOperator(), 404);
+        $digits = preg_replace('/\D+/', '', (string) $request->input('phone'));
+        if (str_starts_with($digits, '0')) {
+            $digits = '62'.substr($digits, 1);
+        }
+        $request->merge(['name' => trim((string) $request->input('name')), 'email' => Str::lower(trim((string) $request->input('email'))), 'phone' => $digits]);
+        $data = $request->validate([
+            'name' => ['required', 'string', 'max:255'],
+            'email' => ['required', 'email', 'max:255', Rule::unique('users', 'email')->ignore($operator->id)],
+            'phone' => ['required', 'regex:/^628\d{8,11}$/'],
+        ]);
+        $operator->update($data);
+
+        return new OperatorResource($operator->refresh());
+    }
+
+    public function destroy(User $operator): Response
+    {
+        abort_unless($operator->isOperator(), 404);
+        if ($operator->stageAssignments()->exists()) {
+            throw ValidationException::withMessages(['operator' => 'Operator memiliki riwayat tugas. Nonaktifkan akun untuk mempertahankan data proyek.']);
+        }
+        $operator->delete();
+
+        return response()->noContent();
     }
 }

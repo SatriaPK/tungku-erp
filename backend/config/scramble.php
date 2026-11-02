@@ -1,7 +1,6 @@
 <?php
 
 use App\Http\Middleware\EnsureApiDocumentationAccess;
-use Dedoc\Scramble\OpenApiVersion;
 
 return [
     /*
@@ -45,7 +44,7 @@ return [
     /*
      * OpenAPI version of the resulting document.
      */
-    'openapi_version' => OpenApiVersion::V3_1,
+    'openapi_version' => '3.1.2',
 
     'info' => [
         /*

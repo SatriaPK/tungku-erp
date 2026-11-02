@@ -236,7 +236,8 @@ export default function ManagerPackagesPage() {
   const goTo = (path: string) => navigate(path)
 
   useEffect(() => {
-    if (isMobile && view !== 'Kartu') setView('Kartu')
+    const frame = window.requestAnimationFrame(() => { if (isMobile && view !== 'Kartu') setView('Kartu') })
+    return () => window.cancelAnimationFrame(frame)
   }, [isMobile, view])
 
   if (loading && packages.length === 0) return <LoadingScreen label="Memuat manajemen paket" />

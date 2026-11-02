@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useRef, useState } from 'react'
+import { useEffect, useMemo, useRef, useState, type CSSProperties } from 'react'
 import { createPortal } from 'react-dom'
 import { useNavigate } from 'react-router-dom'
 import { ManagerSideNav, UpperNavBar } from '../../../components/layout'
@@ -221,10 +221,11 @@ export default function ManagerProjectsPage() {
   }, [statusPopoverOpen])
 
   useEffect(() => {
-    if (isMobile && view !== 'Kartu') setView('Kartu')
+    const frame = window.requestAnimationFrame(() => { if (isMobile && view !== 'Kartu') setView('Kartu') })
+    return () => window.cancelAnimationFrame(frame)
   }, [isMobile, view])
 
-  const projects = data?.data ?? []
+  const projects = useMemo(() => data?.data ?? [], [data?.data])
   const counts = useMemo(() => stageCounts(projects), [projects])
   const filteredProjects = useMemo(() => {
     const normalizedQuery = query.trim().toLocaleLowerCase('id-ID')
@@ -306,7 +307,7 @@ export default function ManagerProjectsPage() {
                   {sortPopoverOpen && createPortal(<div className={`manager-project-sort-layer${isMobile ? ' is-mobile' : ''}`}>
                     <div aria-hidden="true" className="manager-project-sort-layer__backdrop" onClick={() => setSortPopoverOpen(false)} />
                     {isMobile && <div aria-hidden="true" className="manager-project-sort-layer__scrim" onClick={() => setSortPopoverOpen(false)} />}
-                    <section aria-label="Urutkan project" aria-modal={isMobile || undefined} className={`manager-project-sort-popover${isMobile ? ' is-mobile' : ''}`} ref={sortPopoverRef} role="dialog" style={{ '--manager-project-sort-top': `${sortPopoverPosition.top}px`, '--manager-project-sort-right': `${sortPopoverPosition.right}px` } as React.CSSProperties}>
+                    <section aria-label="Urutkan project" aria-modal={isMobile || undefined} className={`manager-project-sort-popover${isMobile ? ' is-mobile' : ''}`} ref={sortPopoverRef} role="dialog" style={{ '--manager-project-sort-top': `${sortPopoverPosition.top}px`, '--manager-project-sort-right': `${sortPopoverPosition.right}px` } as CSSProperties}>
                       <fieldset className="manager-project-sort-group"><legend>Nama project</legend><div role="group" aria-label="Urutkan nama project"><button aria-pressed={sort === 'az'} className={sort === 'az' ? 'is-selected' : ''} onClick={() => updateFilters(() => setSort('az'))} type="button"><span>Abjad A ke Z</span><span aria-hidden="true" className="manager-project-sort-option__indicator">{sort === 'az' && <Icon name="check" size={14} />}</span></button><button aria-pressed={sort === 'za'} className={sort === 'za' ? 'is-selected' : ''} onClick={() => updateFilters(() => setSort('za'))} type="button"><span>Abjad Z ke A</span><span aria-hidden="true" className="manager-project-sort-option__indicator">{sort === 'za' && <Icon name="check" size={14} />}</span></button></div></fieldset>
                       <span aria-hidden="true" className="manager-project-sort-popover__separator" />
                       <fieldset className="manager-project-sort-group"><legend>Tanggal dibuat</legend><div role="group" aria-label="Urutkan tanggal project"><button aria-pressed={sort === 'newest'} className={sort === 'newest' ? 'is-selected' : ''} onClick={() => updateFilters(() => setSort('newest'))} type="button"><span>Tanggal terbaru</span><span aria-hidden="true" className="manager-project-sort-option__indicator">{sort === 'newest' && <Icon name="check" size={14} />}</span></button><button aria-pressed={sort === 'oldest'} className={sort === 'oldest' ? 'is-selected' : ''} onClick={() => updateFilters(() => setSort('oldest'))} type="button"><span>Tanggal terlama</span><span aria-hidden="true" className="manager-project-sort-option__indicator">{sort === 'oldest' && <Icon name="check" size={14} />}</span></button></div></fieldset>
@@ -330,7 +331,7 @@ export default function ManagerProjectsPage() {
                 {statusPopoverOpen && createPortal(<div className={`manager-project-status-layer${statusPopoverPosition.mobile ? ' is-mobile' : ''}`}>
                   <div aria-hidden="true" className="manager-project-status-layer__backdrop" onClick={() => setStatusPopoverOpen(false)} />
                   {statusPopoverPosition.mobile && <div aria-hidden="true" className="manager-project-status-layer__scrim" onClick={() => setStatusPopoverOpen(false)} />}
-                  <section aria-label="Filter status project" aria-modal={statusPopoverPosition.mobile || undefined} className={`manager-project-status-popover${statusPopoverPosition.mobile ? ' is-mobile' : ''}`} ref={statusPopoverRef} role="dialog" style={{ '--manager-project-status-top': `${statusPopoverPosition.top}px`, '--manager-project-status-left': `${statusPopoverPosition.left}px` } as React.CSSProperties}>
+                  <section aria-label="Filter status project" aria-modal={statusPopoverPosition.mobile || undefined} className={`manager-project-status-popover${statusPopoverPosition.mobile ? ' is-mobile' : ''}`} ref={statusPopoverRef} role="dialog" style={{ '--manager-project-status-top': `${statusPopoverPosition.top}px`, '--manager-project-status-left': `${statusPopoverPosition.left}px` } as CSSProperties}>
                     <header className="manager-project-status-popover__header"><strong>Status project</strong>{statusFilter !== 'all' && <button onClick={() => { updateFilters(() => setStatusFilter('all')); setStatusSearch('') }} type="button">Reset</button>}</header>
                     <label className="manager-project-status-search"><Icon name="search" size={18} /><input aria-label="Cari status project" onChange={(event) => setStatusSearch(event.target.value)} placeholder="Cari status..." value={statusSearch} />{statusSearch && <button aria-label="Hapus pencarian status" onClick={() => setStatusSearch('')} type="button"><Icon name="close" size={16} /></button>}</label>
                     <div aria-label="Status project" className="manager-project-status-options" role="group">

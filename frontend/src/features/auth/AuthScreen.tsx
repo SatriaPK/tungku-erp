@@ -48,7 +48,7 @@ function AuthFeedback({ message, success = false }: { message: string; success?:
 
 function destinationForRole(role: UserRole) {
   if (role === 'manager') return '/dashboard'
-  if (role === 'operator') return '/operator'
+  if (role === 'operator') return '/operator/workspace'
   return '/client'
 }
 

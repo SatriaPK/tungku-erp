@@ -23,7 +23,7 @@ return [
     |
     */
 
-    'expiration_hours' => env('PAYMENT_EXPIRATION_HOURS', 24),
+    'expiration_hours' => (int) env('PAYMENT_EXPIRATION_HOURS', 24),
 
     /*
     |--------------------------------------------------------------------------
@@ -65,5 +65,5 @@ return [
         'default_expiration_days' => 7,
     ],
 
-    'refund_window_days' => env('PAYMENT_REFUND_WINDOW_DAYS', 90),
+    'refund_window_days' => (int) env('PAYMENT_REFUND_WINDOW_DAYS', 90),
 ];

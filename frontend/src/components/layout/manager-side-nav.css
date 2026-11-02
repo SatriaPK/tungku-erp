@@ -296,3 +296,4 @@
   .manager-side-nav,
   .manager-side-nav__backdrop { transition-duration: 0.01ms; }
 }
+.manager-side-nav__profile-copy:is(button){border:0;background:transparent;text-align:left;cursor:pointer;font:inherit;color:inherit;padding:0}

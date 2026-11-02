@@ -21,15 +21,20 @@ use App\Http\Controllers\Api\V1\Manager\QuotationController;
 use App\Http\Controllers\Api\V1\Manager\StudioSettingController;
 use App\Http\Controllers\Api\V1\Manager\TrackStageReviewController;
 use App\Http\Controllers\Api\V1\Manager\TrackStageSubmissionHistoryController;
+use App\Http\Controllers\Api\V1\Manager\WorkspaceLookupController;
 use Illuminate\Support\Facades\Route;
 
 Route::middleware(['auth:sanctum', 'active', 'role:manager'])
     ->prefix('manager')
     ->group(function () {
         Route::get('dashboard', [DashboardController::class, 'show']);
+        Route::get('clients', [WorkspaceLookupController::class, 'clients']);
+        Route::get('invoices', [WorkspaceLookupController::class, 'invoices']);
         Route::get('dashboard/operator-activities', [DashboardController::class, 'activities']);
         Route::get('operators', [OperatorController::class, 'index']);
         Route::post('operators', [OperatorController::class, 'store']);
+        Route::put('operators/{operator}', [OperatorController::class, 'update'])->whereNumber('operator');
+        Route::delete('operators/{operator}', [OperatorController::class, 'destroy'])->whereNumber('operator');
         Route::patch('operators/{operator}/status', [OperatorController::class, 'updateStatus'])->whereNumber('operator');
         Route::get('base-prices', [BasePriceController::class, 'index']);
         Route::put('base-prices', [BasePriceController::class, 'update']);

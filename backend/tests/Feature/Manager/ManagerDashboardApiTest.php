@@ -55,7 +55,7 @@ it('returns the complete empty dashboard contract using server time', function (
         ->assertJsonPath('data.unclassified_track_count', 0)
         ->assertJsonPath('data.recording_schedule', [])->assertJsonPath('data.project_progress', [])
         ->assertJsonPath('data.quotation_progress', [])->assertJsonPath('data.operator_activities', []);
-    expect(array_keys($response->json('data')))->toHaveCount(17);
+    expect(array_keys($response->json('data')))->toHaveCount(18);
     expect($response->json('data.expense'))->toBe($response->json('data.revenue'));
 });
 

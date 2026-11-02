@@ -1,10 +1,12 @@
 import { useEffect, useId, useRef, useState } from 'react'
-import { Link, useLocation } from 'react-router-dom'
+import { Link, useLocation, useNavigate } from 'react-router-dom'
 import { Icon, NavAccordion, NavItem } from '../ui'
 import type { IconName } from '../ui'
 import tungkuIcon from '../../assets/tungku-icon.svg'
 import { managerNavigation } from './manager-navigation'
 import { getPendingProjectAssignmentCount } from '../../lib/manager-dashboard-api'
+import { getCurrentUser, logout, type AuthUser } from '../../lib/auth-api'
+import ProfileDialog from '../../features/auth/ProfileDialog'
 import './manager-side-nav.css'
 
 export interface ManagerSideNavItem {
@@ -46,6 +48,15 @@ export function ManagerSideNav({
   className = '',
 }: ManagerSideNavProps) {
   const location = useLocation()
+  const navigate = useNavigate()
+  const [profile, setProfile] = useState<AuthUser | null>(null)
+  const [profileName, setProfileName] = useState('')
+  const [actionError, setActionError] = useState('')
+  async function leave() {
+    if (onLogout) { onLogout(); return }
+    try { await logout(); navigate('/staff/login', { replace: true }) }
+    catch { setActionError('Gagal keluar. Silakan coba lagi.') }
+  }
   const currentPath = location.pathname
   const [isOpen, setIsOpen] = useState(false)
   const [sharedProjectAssignmentCount, setSharedProjectAssignmentCount] = useState<number>()
@@ -149,15 +160,17 @@ export function ManagerSideNav({
           {profileImageSrc
             ? <img alt="" className="manager-side-nav__avatar" src={profileImageSrc} />
             : <span aria-hidden="true" className="manager-side-nav__avatar manager-side-nav__avatar--placeholder"><Icon name="user" size={24} /></span>}
-          <span className="manager-side-nav__profile-copy">
-            <strong>{managerName}</strong>
+          <button className="manager-side-nav__profile-copy" type="button" onClick={() => void getCurrentUser().then(setProfile).catch(() => setActionError('Profil gagal dimuat.'))} aria-label="Edit Profil">
+            <strong>{profileName || managerName}</strong>
             <small>Manager</small>
-          </span>
+          </button>
           {logoutHref
             ? <a aria-label="Keluar" className="manager-side-nav__logout" href={logoutHref}><Icon name="logout" size={24} /></a>
-            : <button aria-label="Keluar" className="manager-side-nav__logout" onClick={onLogout} type="button"><Icon name="logout" size={24} /></button>}
+            : <button aria-label="Keluar" className="manager-side-nav__logout" onClick={() => void leave()} type="button"><Icon name="logout" size={24} /></button>}
         </div>
+        {actionError && <p role="alert">{actionError}</p>}
       </aside>
+      {profile && <ProfileDialog user={profile} onClose={() => setProfile(null)} onSaved={(saved) => { setProfileName(saved.name); setProfile(null) }} />}
     </>
   )
 }
