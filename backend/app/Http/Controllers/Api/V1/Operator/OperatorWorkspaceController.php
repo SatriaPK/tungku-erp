@@ -3,6 +3,8 @@
 namespace App\Http\Controllers\Api\V1\Operator;
 
 use App\Http\Controllers\Controller;
+use App\Http\Resources\RoomResource;
+use App\Models\Room;
 use App\Models\ProjectStage;
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\AnonymousResourceCollection;
@@ -10,6 +12,11 @@ use Illuminate\Http\Resources\Json\JsonResource;
 
 class OperatorWorkspaceController extends Controller
 {
+    public function rooms(): AnonymousResourceCollection
+    {
+        return RoomResource::collection(Room::query()->active()->orderBy('name')->get());
+    }
+
     public function stages(Request $request): AnonymousResourceCollection
     {
         $stages = ProjectStage::query()

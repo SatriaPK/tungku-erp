@@ -12,6 +12,7 @@ use App\Http\Controllers\Api\V1\Manager\InventoryController;
 use App\Http\Controllers\Api\V1\Manager\ManagerWorkspaceController;
 use App\Http\Controllers\Api\V1\Manager\MonthlyFinanceSummaryController;
 use App\Http\Controllers\Api\V1\Manager\MonthlyPayrollFinalizationController;
+use App\Http\Controllers\Api\V1\Manager\OperatorAccountController;
 use App\Http\Controllers\Api\V1\Manager\PackageController;
 use App\Http\Controllers\Api\V1\Manager\PaymentController;
 use App\Http\Controllers\Api\V1\Manager\PayrollAllocationController;
@@ -28,6 +29,9 @@ Route::middleware(['auth:sanctum', 'active', 'role:manager'])
         Route::get('dashboard', [DashboardController::class, 'show']);
         Route::get('projects', [ManagerWorkspaceController::class, 'projects']);
         Route::get('operators', [ManagerWorkspaceController::class, 'operators']);
+        Route::get('operator-accounts', [OperatorAccountController::class, 'index']);
+        Route::post('operator-accounts', [OperatorAccountController::class, 'store']);
+        Route::put('operator-accounts/{operator}', [OperatorAccountController::class, 'update'])->whereNumber('operator');
         Route::get('clients', [ManagerWorkspaceController::class, 'clients']);
         Route::get('invoices', [ManagerWorkspaceController::class, 'invoices']);
         Route::get('dashboard/operator-activities', [DashboardController::class, 'activities']);

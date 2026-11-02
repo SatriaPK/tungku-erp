@@ -89,3 +89,38 @@ test('animated loading screen appears while staff login waits for server', async
   await expect(page.getByRole('status', { name: 'Masuk ke Tungku Studio' })).toBeVisible()
   await expect(page).toHaveURL(/\/dashboard$/)
 })
+
+test('manager can add an operator account', async ({ page }) => {
+  let created: Record<string, unknown> | undefined
+  await page.route('**/api/v1/auth/me', (route) => route.fulfill({ contentType: 'application/json', body: JSON.stringify({ data: { id: 1, name: 'Manager Studio', role: 'manager' } }) }))
+  await page.route('**/api/v1/manager/dashboard', (route) => route.fulfill({ contentType: 'application/json', body: JSON.stringify({ data: dashboard }) }))
+  await page.route('**/api/v1/manager/operator-accounts**', (route) => {
+    if (route.request().method() === 'POST') created = route.request().postDataJSON()
+    return route.fulfill({ contentType: 'application/json', body: JSON.stringify({ data: [] }) })
+  })
+  await page.route('**/sanctum/csrf-cookie', (route) => route.fulfill({ status: 204 }))
+  await page.goto('/dashboard/operator')
+  await page.getByRole('button', { name: 'Tambah Operator' }).click()
+  const dialog = page.getByRole('dialog', { name: 'Tambah operator' })
+  await dialog.getByRole('textbox', { name: 'Nama' }).fill('Raka Studio')
+  await dialog.getByRole('textbox', { name: 'Email' }).fill('raka@studio.test')
+  await dialog.getByRole('textbox', { name: 'Nomor telepon' }).fill('081234567890')
+  await dialog.getByLabel('Password', { exact: true }).fill('password123')
+  await dialog.getByLabel('Ulangi password').fill('password123')
+  await dialog.getByRole('button', { name: 'Simpan Operator' }).click()
+  await expect(dialog).toBeHidden()
+  expect(created).toMatchObject({ name: 'Raka Studio', email: 'raka@studio.test', password: 'password123' })
+})
+
+test('operator can view sessions and submission history', async ({ page }) => {
+  await page.route('**/api/v1/auth/me', (route) => route.fulfill({ contentType: 'application/json', body: JSON.stringify({ data: { id: 2, name: 'Raka', role: 'operator' } }) }))
+  await page.route('**/api/v1/operator/stages**', (route) => route.fulfill({ contentType: 'application/json', body: JSON.stringify({ data: [{ id: 10, project_id: 8, project_name: 'Single Baru', client_name: 'Nadine', stage: 'recording', status: 'in_progress', deadline_at: null, tracks: [{ id: 12, title: 'Lagu Pertama', progress_id: 15, status: 'in_review', review_notes: null }] }] }) }))
+  await page.route('**/api/v1/operator/sessions**', (route) => route.fulfill({ contentType: 'application/json', body: JSON.stringify({ data: [{ id: 7, room_id: 3, room_name: 'Studio A', client_name: 'Nadine', start_at: '2026-11-03T10:00:00+07:00', end_at: '2026-11-03T12:00:00+07:00', status_label: 'Terjadwal' }] }) }))
+  await page.route('**/api/v1/operator/rooms**', (route) => route.fulfill({ contentType: 'application/json', body: JSON.stringify({ data: [{ id: 3, name: 'Studio A' }] }) }))
+  await page.route('**/api/v1/operator/track-progress/15/submissions', (route) => route.fulfill({ contentType: 'application/json', body: JSON.stringify({ data: [{ id: 19, version: 1, result_url: 'https://example.com/result', submitted_at: '2026-11-03T12:00:00+07:00', review_decision: null, review_notes: null }] }) }))
+  await page.goto('/operator')
+  await expect(page.getByRole('heading', { name: 'Jadwal rekaman' })).toBeVisible()
+  await expect(page.locator('.operator-session-list')).toContainText('Studio A')
+  await page.getByRole('button', { name: 'Riwayat' }).click()
+  await expect(page.getByRole('dialog', { name: 'Lagu Pertama' })).toContainText('Versi 1')
+})
