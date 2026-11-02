@@ -9,10 +9,10 @@ Route::get('/user', function (Request $request) {
 })->middleware(['auth:sanctum', 'active']);
 
 Route::prefix('v1')->group(function () {
-    require __DIR__.'/api/auth.php';
-    require __DIR__.'/api/manager.php';
-    require __DIR__.'/api/client.php';
-    require __DIR__.'/api/operator.php';
+    require __DIR__.'/Api/auth.php';
+    require __DIR__.'/Api/manager.php';
+    require __DIR__.'/Api/client.php';
+    require __DIR__.'/Api/operator.php';
 
     Route::middleware(['auth:sanctum', 'active'])->prefix('notifications')->group(function () {
         Route::get('/', [NotificationController::class, 'index'])->middleware('throttle:inbox-read');
@@ -21,5 +21,5 @@ Route::prefix('v1')->group(function () {
         Route::patch('{notification}/read', [NotificationController::class, 'read'])->middleware('throttle:inbox-write')->whereUuid('notification');
     });
 
-    require __DIR__.'/api/webhooks.php';
+    require __DIR__.'/Api/webhooks.php';
 });
