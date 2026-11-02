@@ -1,6 +1,6 @@
 import { useEffect, useState, type ReactNode } from 'react'
 import { Link, NavLink, useLocation, useNavigate } from 'react-router-dom'
-import { Button, Icon, Input } from '../../../components/ui'
+import { Button, Icon, Input, LoadingScreen } from '../../../components/ui'
 import type { IconName } from '../../../components/ui'
 import { getCurrentUser, getManagerDashboard } from '../../../lib/manager-dashboard-api'
 import type { ManagerDashboardData, ManagerUser } from '../../../lib/manager-dashboard-api'
@@ -175,7 +175,7 @@ export default function ManagerDashboard() {
     return () => { cancelled = true }
   }, [])
 
-  if (loading) return <main aria-busy="true" className="manager-state"><span className="manager-state__spinner" /><p>Memuat dashboard...</p></main>
+  if (loading) return <LoadingScreen label="Memuat dashboard Manager" />
   if (error) return <main className="manager-state"><Icon name="activity" size={32} /><h1>Dashboard belum dapat dimuat</h1><p>{error}</p><button onClick={() => window.location.reload()} type="button">Coba lagi</button></main>
   if (!data) return null
 

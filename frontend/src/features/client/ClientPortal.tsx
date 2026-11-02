@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState, type FormEvent, type ReactNode } from 'react'
 import { Link, Navigate, NavLink, useLocation, useNavigate } from 'react-router-dom'
-import { Badge, Button, Input, PackageCard, Switch } from '../../components/ui'
+import { Badge, Button, Input, LoadingScreen, PackageCard, Switch } from '../../components/ui'
 import { getCurrentUser, getApiErrorMessage, logout, type AuthUser } from '../../lib/auth-api'
 import ProfileDialog from '../auth/ProfileDialog'
 import { assets, stages } from './assets'
@@ -313,7 +313,7 @@ export default function ClientPortal() {
     return () => { active = false }
   }, [])
   if (status === 'guest') return <Navigate to="/login" replace />
-  if (status === 'loading') return <div className="client-portal client-access" role="status">Memeriksa sesi klien…</div>
+  if (status === 'loading') return <LoadingScreen label="Memeriksa sesi klien" />
   if (status === 'error') return <div className="client-portal client-access"><Notice>{error}</Notice><Button onClick={() => window.location.reload()}>Coba lagi</Button></div>
   if (!user || user.role !== 'client') return <div className="client-portal client-access"><h1>Portal Klien</h1><p>Halaman ini untuk akun Klien. Akun Manager dan Operator dapat masuk melalui portal Studio.</p><a href="/staff/login">Buka portal Studio</a></div>
   return <ClientPackages user={user} onUserChange={setUser} />

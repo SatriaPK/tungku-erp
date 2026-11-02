@@ -1,6 +1,6 @@
 import { lazy, Suspense, useEffect, useState } from 'react'
 import { BrowserRouter, Route, Routes } from 'react-router-dom'
-import { Badge, Button, Card, CardHeader, Icon, Input, PackageCard, PhaseChip, ProjectCard, SegmentedButton, StatCard, Switch } from '../components/ui'
+import { Badge, Button, Card, CardHeader, Icon, Input, LoadingScreen, PackageCard, PhaseChip, ProjectCard, SegmentedButton, StatCard, Switch } from '../components/ui'
 import type { ButtonVariant, IconName } from '../components/ui'
 import AuthScreen from '../features/auth/AuthScreen'
 import ManagerDashboard from '../features/manager/dashboard/ManagerDashboard'
@@ -199,7 +199,7 @@ function ManagerDashboardRoute() {
     return () => { mounted = false }
   }, [])
 
-  if (state.status === 'loading') return <main aria-live="polite" className="app-root">Memeriksa sesi…</main>
+  if (state.status === 'loading') return <LoadingScreen label="Memeriksa sesi Manager" />
   if (state.status === 'denied') return <main className="app-root"><p role="alert">{state.message ?? 'Dashboard ini hanya tersedia untuk Manager.'}</p><a href="/staff/login">Masuk portal Studio</a></main>
   return <ManagerDashboard />
 }
@@ -212,14 +212,14 @@ export default function App() {
   return (
     <BrowserRouter>
       <Routes>
-        <Route element={<Suspense fallback={<main className="app-root" role="status">Memuat portal klien…</main>}><ClientPortal /></Suspense>} path="/client" />
-        <Route element={<Suspense fallback={<main className="app-root" role="status">Memuat portal klien…</main>}><ClientPortal /></Suspense>} path="/client/packages" />
-        <Route element={<Suspense fallback={<main className="app-root" role="status">Memuat portal klien…</main>}><ClientPortal /></Suspense>} path="/client/booking" />
-        <Route element={<Suspense fallback={<main className="app-root" role="status">Memuat portal klien…</main>}><ClientPortal /></Suspense>} path="/client/penawaran" />
-        <Route element={<Suspense fallback={<main className="app-root" role="status">Memuat portal klien…</main>}><ClientPortal /></Suspense>} path="/client/project" />
-        <Route element={<Suspense fallback={<main className="app-root" role="status">Memuat portal klien…</main>}><ClientPortal /></Suspense>} path="/client/transaksi" />
+        <Route element={<Suspense fallback={<LoadingScreen label="Memuat portal klien" />}><ClientPortal /></Suspense>} path="/client" />
+        <Route element={<Suspense fallback={<LoadingScreen label="Memuat portal klien" />}><ClientPortal /></Suspense>} path="/client/packages" />
+        <Route element={<Suspense fallback={<LoadingScreen label="Memuat portal klien" />}><ClientPortal /></Suspense>} path="/client/booking" />
+        <Route element={<Suspense fallback={<LoadingScreen label="Memuat portal klien" />}><ClientPortal /></Suspense>} path="/client/penawaran" />
+        <Route element={<Suspense fallback={<LoadingScreen label="Memuat portal klien" />}><ClientPortal /></Suspense>} path="/client/project" />
+        <Route element={<Suspense fallback={<LoadingScreen label="Memuat portal klien" />}><ClientPortal /></Suspense>} path="/client/transaksi" />
         <Route element={<ManagerDashboardRoute />} path="/dashboard/*" />
-        <Route element={<Suspense fallback={<main className="app-root" role="status">Memuat portal Operator?</main>}><OperatorPortal /></Suspense>} path="/operator" />
+        <Route element={<Suspense fallback={<LoadingScreen label="Memuat portal Operator" />}><OperatorPortal /></Suspense>} path="/operator" />
         <Route element={<AuthScreen />} path="*" />
       </Routes>
     </BrowserRouter>

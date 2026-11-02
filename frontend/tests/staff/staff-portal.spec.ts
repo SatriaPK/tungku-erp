@@ -72,3 +72,20 @@ test('manager can edit profile and log out', async ({ page }) => {
   await page.getByRole('button', { name: 'Logout' }).first().click()
   await expect(page).toHaveURL(/\/staff\/login$/)
 })
+
+
+test('animated loading screen appears while staff login waits for server', async ({ page }) => {
+  await page.route('**/sanctum/csrf-cookie', (route) => route.fulfill({ status: 204 }))
+  await page.route('**/api/v1/auth/login', async (route) => {
+    await new Promise((resolve) => setTimeout(resolve, 700))
+    await route.fulfill({ contentType: 'application/json', body: JSON.stringify({ data: { id: 1 } }) })
+  })
+  await page.route('**/api/v1/auth/me', (route) => route.fulfill({ contentType: 'application/json', body: JSON.stringify({ data: { id: 1, name: 'Manager Studio', email: 'manager@studio.test', role: 'manager' } }) }))
+  await page.route('**/api/v1/manager/dashboard', (route) => route.fulfill({ contentType: 'application/json', body: JSON.stringify({ data: dashboard }) }))
+  await page.goto('/staff/login')
+  await page.getByRole('textbox', { name: 'Email' }).fill('manager@studio.test')
+  await page.getByLabel('Password', { exact: true }).fill('password')
+  await page.getByRole('button', { name: 'Masuk', exact: true }).click()
+  await expect(page.getByRole('status', { name: 'Masuk ke Tungku Studio' })).toBeVisible()
+  await expect(page).toHaveURL(/\/dashboard$/)
+})

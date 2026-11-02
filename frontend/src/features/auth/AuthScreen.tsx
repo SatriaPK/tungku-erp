@@ -1,7 +1,7 @@
 import { useState, type FormEvent, type ReactNode } from 'react'
 import type { ApiError } from '../../lib/auth-api'
 import { Link, Navigate, Route, Routes, useLocation, useNavigate } from 'react-router-dom'
-import { Button, Icon, Input } from '../../components/ui'
+import { Button, Icon, Input, LoadingScreen } from '../../components/ui'
 import { getApiErrorMessage, getCurrentUser, login, register, type UserRole } from '../../lib/auth-api'
 import tungkuLogo from '../../assets/tungku-primary.svg'
 import './LoginScreen.css'
@@ -69,6 +69,7 @@ function LoginForm({ entry }: { entry: 'client' | 'staff' }) {
     setFeedback('')
     setFieldErrors({})
     setIsSubmitting(true)
+    const startedAt = performance.now()
     const form = new FormData(event.currentTarget)
 
     try {
@@ -80,6 +81,7 @@ function LoginForm({ entry }: { entry: 'client' | 'staff' }) {
           : 'Akun ini adalah akun Klien. Silakan masuk melalui portal Klien.')
         return
       }
+      await new Promise<void>((resolve) => window.setTimeout(resolve, Math.max(0, 700 - (performance.now() - startedAt))))
       navigate(destinationForRole(user.role), { replace: true })
     } catch (error) {
       setFeedback(getApiErrorMessage(error))
@@ -94,6 +96,7 @@ function LoginForm({ entry }: { entry: 'client' | 'staff' }) {
 
   return (
     <>
+      {isSubmitting && <LoadingScreen label="Masuk ke Tungku Studio" />}
       {entry === 'client' && (
         <header className="login-panel__intro">
           <h1>Login</h1>
@@ -151,6 +154,7 @@ function RegisterForm() {
     setFeedback('')
     setFieldErrors({})
     setIsSubmitting(true)
+    const startedAt = performance.now()
     const form = new FormData(event.currentTarget)
 
     try {
@@ -162,6 +166,7 @@ function RegisterForm() {
         password_confirmation: String(form.get('password_confirmation')),
         crm_consent: form.get('crm_consent') === 'on',
       })
+      await new Promise<void>((resolve) => window.setTimeout(resolve, Math.max(0, 700 - (performance.now() - startedAt))))
       navigate('/login', { state: { registered: true } })
     } catch (error) {
       setFeedback(getApiErrorMessage(error))
@@ -176,6 +181,7 @@ function RegisterForm() {
 
   return (
     <>
+      {isSubmitting && <LoadingScreen label="Menyiapkan akun" />}
       <header className="login-panel__intro">
         <h1>Daftar akun</h1>
       </header>

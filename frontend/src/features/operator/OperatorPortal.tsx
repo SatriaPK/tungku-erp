@@ -1,6 +1,6 @@
 import { useEffect, useState, type FormEvent } from 'react'
 import { Navigate, useNavigate } from 'react-router-dom'
-import { Button, Icon } from '../../components/ui'
+import { Button, Icon, LoadingScreen } from '../../components/ui'
 import { getCurrentUser, getApiErrorMessage, logout, type AuthUser } from '../../lib/auth-api'
 import tungkuIcon from '../../assets/tungku-icon.svg'
 import ProfileDialog from '../auth/ProfileDialog'
@@ -54,7 +54,7 @@ export default function OperatorPortal() {
   const [user, setUser] = useState<AuthUser | null>(null)
   const [state, setState] = useState<'loading' | 'ready' | 'guest'>('loading')
   useEffect(() => { let active = true; void getCurrentUser().then((current) => { if (active) { setUser(current); setState('ready') } }).catch(() => { if (active) setState('guest') }); return () => { active = false } }, [])
-  if (state === 'loading') return <main role="status" className="operator-loading">Memeriksa sesi Operator...</main>
+  if (state === 'loading') return <LoadingScreen label="Memeriksa sesi Operator" />
   if (state === 'guest') return <Navigate to="/staff/login" replace />
   if (user?.role !== 'operator') return <main className="operator-loading">Halaman ini untuk akun Operator.</main>
   return <OperatorWorkspace user={user} onUserChange={setUser} />
