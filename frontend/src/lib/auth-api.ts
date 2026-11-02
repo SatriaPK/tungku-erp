@@ -11,6 +11,7 @@ export interface AuthUser {
   id: number
   name: string
   email: string
+  phone: string
   role: UserRole
   role_label: string
 }
@@ -65,6 +66,20 @@ export async function login(email: string, password: string) {
 export async function logout() {
   await prepareSession()
   await apiRequest('/api/v1/auth/logout', {})
+}
+
+export async function updateProfile(details: { name: string; email: string; phone: string; current_password?: string; password?: string; password_confirmation?: string }): Promise<AuthUser> {
+  await prepareSession()
+  const token = xsrfToken()
+  const response = await fetch(`${apiOrigin}/api/v1/auth/profile`, { method: 'PUT', credentials: 'include', headers: { Accept: 'application/json', 'Content-Type': 'application/json', 'X-XSRF-TOKEN': token }, body: JSON.stringify(details) })
+  const data = await response.json().catch(() => null)
+  if (!response.ok) {
+    const error: ApiError = new Error(data?.message ?? 'Profil gagal disimpan.')
+    error.status = response.status
+    error.errors = data?.errors
+    throw error
+  }
+  return data.data as AuthUser
 }
 
 export async function getCurrentUser(): Promise<AuthUser> {

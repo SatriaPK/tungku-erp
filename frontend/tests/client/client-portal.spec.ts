@@ -119,3 +119,21 @@ test('client navigation opens workspace pages and displays live records', async 
   await page.getByRole('navigation', { name: 'Navigasi klien' }).getByRole('link', { name: 'Transaksi' }).click()
   await expect(page.getByRole('heading', { name: 'Transaksi Saya' })).toBeVisible()
 })
+
+
+test('client can open profile editor and log out from account menu', async ({ page }) => {
+  await page.route('**/sanctum/csrf-cookie', (route) => route.fulfill({ status: 204 }))
+  await page.route('**/api/v1/auth/profile', (route) => route.fulfill({ contentType: 'application/json', body: JSON.stringify({ data: { id: 4, name: 'Klien Baru', email: 'klien@studio.test', phone: '6281234567890', role: 'client', role_label: 'Klien' } }) }))
+  await page.route('**/api/v1/auth/logout', (route) => route.fulfill({ status: 204 }))
+  await page.goto('/client/packages')
+  await page.getByRole('button', { name: /Akun Klien Contoh/ }).click()
+  await page.getByRole('button', { name: 'Edit Profil' }).click()
+  await expect(page.getByRole('dialog', { name: 'Edit profil' })).toBeVisible()
+  await page.getByRole('textbox', { name: 'Nama lengkap' }).fill('Klien Baru')
+  await page.getByRole('textbox', { name: 'Nomor telepon' }).fill('081234567890')
+  await page.getByRole('button', { name: 'Simpan Perubahan' }).click()
+  await expect(page.getByRole('button', { name: /Akun Klien Baru/ })).toBeVisible()
+  await page.getByRole('button', { name: /Akun Klien Baru/ }).click()
+  await page.getByRole('button', { name: 'Logout' }).click()
+  await expect(page).toHaveURL(/\/login$/)
+})

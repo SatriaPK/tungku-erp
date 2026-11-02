@@ -2,6 +2,7 @@ import { useEffect, useRef, useState, type FormEvent, type ReactNode } from 'rea
 import { Link, Navigate, NavLink, useLocation, useNavigate } from 'react-router-dom'
 import { Badge, Button, Input, PackageCard, Switch } from '../../components/ui'
 import { getCurrentUser, getApiErrorMessage, logout, type AuthUser } from '../../lib/auth-api'
+import ProfileDialog from '../auth/ProfileDialog'
 import { assets, stages } from './assets'
 import { ClientWorkspace } from './ClientWorkspace'
 import {
@@ -77,7 +78,7 @@ function QuoteHistory({ quote, loading, onSelect, onReload, error, quotations, p
   </aside>
 }
 
-function ClientPackages({ user }: { user: AuthUser }) {
+function ClientPackages({ user, onUserChange }: { user: AuthUser; onUserChange: (user: AuthUser) => void }) {
   const navigate = useNavigate()
   const location = useLocation()
   const isPackagePage = location.pathname === '/client/packages'
@@ -104,6 +105,7 @@ function ClientPackages({ user }: { user: AuthUser }) {
   const [responseAction, setResponseAction] = useState<'accept' | 'decline' | 'counter' | null>(null)
   const [counterPrice, setCounterPrice] = useState('')
   const [accountOpen, setAccountOpen] = useState(false)
+  const [editingProfile, setEditingProfile] = useState(false)
   const [updatesOpen, setUpdatesOpen] = useState(false)
   const [search, setSearch] = useState('')
   const [showAllPackages, setShowAllPackages] = useState(false)
@@ -239,7 +241,7 @@ function ClientPackages({ user }: { user: AuthUser }) {
           {updatesOpen && <div className="client-popover"><h3>Pembaruan penawaran</h3>{pending.length ? pending.map((item) => <button type="button" key={item.id} onClick={() => { setUpdatesOpen(false); navigate(`/client/packages?penawaran=${item.id}#riwayat-penawaran`) }}>{item.name}<small>Studio menunggu tanggapanmu</small></button>) : <p>Belum ada penawaran yang perlu ditanggapi.</p>}</div>}
         </div>
         <div className="client-popover-anchor" ref={account}><button className="client-avatar" type="button" aria-label={`Akun ${user.name}`} aria-expanded={accountOpen} onClick={() => setAccountOpen(!accountOpen)}>{initials}</button>
-          {accountOpen && <div className="client-popover"><h3>{user.name}</h3><p>{user.email}</p><Button variant="text" disabled={busy} onClick={() => void leave()}>Keluar</Button></div>}
+          {accountOpen && <div className="client-popover"><h3>{user.name}</h3><p>{user.email}</p><Button variant="text" onClick={() => { setAccountOpen(false); setEditingProfile(true) }}>Edit Profil</Button><Button variant="text" disabled={busy} onClick={() => void leave()}>Logout</Button></div>}
         </div>
       </div>
     </header>
@@ -290,6 +292,7 @@ function ClientPackages({ user }: { user: AuthUser }) {
     </main>
     <footer className="client-footer">© {new Date().getFullYear()} Studio Recording Tungku. All Rights Reserved</footer>
 
+    {editingProfile && <ProfileDialog user={user} onClose={() => setEditingProfile(false)} onSaved={(saved) => { onUserChange(saved); setEditingProfile(false) }} />}
     {selectedPackage && <Modal title={selectedPackage.name} onClose={() => setSelectedPackage(null)}><p>Pilih langkah berikutnya untuk paket {selectedPackage.name}.</p><div className="client-modal-actions"><Button variant="outlined" onClick={() => { choosePackage(selectedPackage); setSelectedPackage(null) }}>Sesuaikan Penawaran</Button><Button onClick={() => { navigate(`/client/booking?package=${selectedPackage.id}`); setSelectedPackage(null) }}>Booking Paket</Button></div></Modal>}
     {confirming && <Modal title="Kirim Penawaran" onClose={() => { if (!busy) setConfirming(false) }}><form onSubmit={sendQuote}><p>Beri nama proyek agar studio mudah mengenali penawaranmu.</p><Input label="Nama Proyek" placeholder="Contoh: Single Pertama" value={name} onChange={(event) => setName(event.target.value)} maxLength={100} required autoFocus /><p className="client-modal-total">Harga tawaran <strong>{rupiah(total)}</strong></p>{actionError && <Notice>{actionError}</Notice>}<div className="client-modal-actions"><Button variant="text" disabled={busy} onClick={() => setConfirming(false)}>Kembali</Button><Button type="submit" disabled={busy || !name.trim()}>{busy ? 'Mengirim…' : 'Kirim ke Studio'}</Button></div></form></Modal>}
     {responseAction && quote && <Modal title={responseAction === 'counter' ? 'Tawar Harga Kembali' : responseAction === 'accept' ? 'Terima Penawaran Studio' : 'Tolak Penawaran Studio'} onClose={() => { if (!busy) setResponseAction(null) }}><form onSubmit={sendResponse}><p>{quote.name}</p>{responseAction === 'counter' ? <Input label="Harga Tawaran (Rp)" value={counterPrice} type="number" min={1} step={1} required autoFocus onChange={(event) => setCounterPrice(event.target.value)} /> : <p>{responseAction === 'accept' ? 'Harga dari studio akan menjadi harga yang disepakati.' : 'Penawaran ini akan ditutup setelah ditolak.'}</p>}{actionError && <Notice>{actionError}</Notice>}<div className="client-modal-actions"><Button variant="text" disabled={busy} onClick={() => setResponseAction(null)}>Batal</Button><Button type="submit" disabled={busy}>{busy ? 'Mengirim…' : 'Konfirmasi'}</Button></div></form></Modal>}
@@ -313,5 +316,5 @@ export default function ClientPortal() {
   if (status === 'loading') return <div className="client-portal client-access" role="status">Memeriksa sesi klien…</div>
   if (status === 'error') return <div className="client-portal client-access"><Notice>{error}</Notice><Button onClick={() => window.location.reload()}>Coba lagi</Button></div>
   if (!user || user.role !== 'client') return <div className="client-portal client-access"><h1>Portal Klien</h1><p>Halaman ini untuk akun Klien. Akun Manager dan Operator dapat masuk melalui portal Studio.</p><a href="/staff/login">Buka portal Studio</a></div>
-  return <ClientPackages user={user} />
+  return <ClientPackages user={user} onUserChange={setUser} />
 }

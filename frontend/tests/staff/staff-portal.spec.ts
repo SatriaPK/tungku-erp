@@ -53,3 +53,22 @@ test('manager reviews an operator result from project stages', async ({ page }) 
   await expect(page.getByRole('dialog')).toBeHidden()
   expect(review).toEqual({ decision: 'request_revision', review_notes: 'Mohon perbaiki bagian vokal utama.' })
 })
+
+
+test('manager can edit profile and log out', async ({ page }) => {
+  let saved: Record<string, unknown> | undefined
+  await page.route('**/api/v1/auth/me', (route) => route.fulfill({ contentType: 'application/json', body: JSON.stringify({ data: { id: 1, name: 'Manager Studio', email: 'manager@studio.test', phone: '6281234567890', role: 'manager', role_label: 'Manager' } }) }))
+  await page.route('**/api/v1/manager/dashboard', (route) => route.fulfill({ contentType: 'application/json', body: JSON.stringify({ data: dashboard }) }))
+  await page.route('**/sanctum/csrf-cookie', (route) => route.fulfill({ status: 204 }))
+  await page.route('**/api/v1/auth/profile', (route) => { saved = route.request().postDataJSON(); return route.fulfill({ contentType: 'application/json', body: JSON.stringify({ data: { id: 1, name: saved?.name, email: saved?.email, phone: saved?.phone, role: 'manager', role_label: 'Manager' } }) }) })
+  await page.route('**/api/v1/auth/logout', (route) => route.fulfill({ status: 204 }))
+  await page.goto('/dashboard')
+  await page.getByRole('button', { name: 'Edit Profil' }).first().click()
+  await page.getByRole('textbox', { name: 'Nama lengkap' }).fill('Manager Baru')
+  await page.getByRole('button', { name: 'Simpan Perubahan' }).click()
+  await expect(page.getByRole('dialog', { name: 'Edit profil' })).toBeHidden()
+  await expect(page.locator('.manager-profile__details strong')).toHaveText('Manager Baru')
+  expect(saved).toMatchObject({ name: 'Manager Baru', email: 'manager@studio.test', phone: '6281234567890' })
+  await page.getByRole('button', { name: 'Logout' }).first().click()
+  await expect(page).toHaveURL(/\/staff\/login$/)
+})

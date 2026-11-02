@@ -1,4 +1,4 @@
-import type { ApiError } from './auth-api'
+import type { ApiError, UserRole } from './auth-api'
 
 const apiOrigin = import.meta.env.VITE_API_ORIGIN ?? 'http://localhost:8000'
 
@@ -35,7 +35,8 @@ export interface ManagerUser {
   id: number
   name: string
   email: string
-  role: string
+  phone: string
+  role: UserRole
   role_label: string
 }
 

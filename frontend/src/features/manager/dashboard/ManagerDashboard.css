@@ -174,3 +174,6 @@
   .manager-state__spinner { animation-duration: 2s; }
 }
 .manager-topbar__tools{position:relative}.manager-menu-results{position:absolute;z-index:10;top:54px;left:150px;width:270px;display:flex;flex-direction:column;padding:8px;border:1px solid var(--ts-outline-variant);border-radius:6px;background:white;box-shadow:0 10px 25px #21130d22}.manager-menu-results a{padding:9px 12px;color:var(--ts-on-surface);text-decoration:none}.manager-menu-results a:hover{background:var(--ts-surface-variant)}
+
+.manager-profile__edit{border:0;background:transparent;color:var(--ts-primary);font-size:12px;white-space:nowrap;cursor:pointer}.manager-profile__logout{width:auto;gap:5px;padding:0 4px;font-size:12px;cursor:pointer}.manager-profile__logout span{display:inline}.manager-profile__details{min-width:0}@media(max-width:1120px){.manager-profile__edit,.manager-profile__logout{display:none}}
+.manager-profile{flex-wrap:wrap;min-height:92px;padding:9px 0}.manager-profile__details{flex:1 1 calc(100% - 52px)}.manager-profile__edit{margin-left:52px}@media(max-width:740px){.manager-topbar__tools .manager-topbar__icon:nth-last-child(-n+2){display:none}}

@@ -6,6 +6,7 @@ use App\Actions\Auth\RegisterClient;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Auth\LoginRequest;
 use App\Http\Requests\Auth\RegisterRequest;
+use App\Http\Requests\Auth\UpdateProfileRequest;
 use App\Http\Resources\UserResource;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
@@ -59,6 +60,17 @@ class AuthController extends Controller
     public function me(Request $request): UserResource
     {
         return new UserResource($request->user());
+    }
+
+    public function updateProfile(UpdateProfileRequest $request): UserResource
+    {
+        $data = $request->safe()->only(['name', 'email', 'phone', 'password']);
+        if (empty($data['password'])) {
+            unset($data['password']);
+        }
+        $request->user()->update($data);
+
+        return new UserResource($request->user()->refresh());
     }
 
     public function revokeCrmConsent(Request $request): Response

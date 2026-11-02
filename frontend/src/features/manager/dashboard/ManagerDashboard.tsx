@@ -5,6 +5,7 @@ import type { IconName } from '../../../components/ui'
 import { getCurrentUser, getManagerDashboard } from '../../../lib/manager-dashboard-api'
 import type { ManagerDashboardData, ManagerUser } from '../../../lib/manager-dashboard-api'
 import ManagerWorkspace from '../workspace/ManagerWorkspace'
+import ProfileDialog from '../../auth/ProfileDialog'
 import tungkuIcon from '../../../assets/tungku-icon.svg'
 import { logout } from '../../../lib/auth-api'
 import './ManagerDashboard.css'
@@ -103,12 +104,13 @@ function DonutPanel({ title, items, label, total, className = '' }: { title: str
   )
 }
 
-function ManagerDashboardContent({ data, user }: { data: ManagerDashboardData; user: ManagerUser | null }) {
+function ManagerDashboardContent({ data, user, onUserChange }: { data: ManagerDashboardData; user: ManagerUser | null; onUserChange: (user: ManagerUser) => void }) {
   const location = useLocation()
   const navigate = useNavigate()
   const section = location.pathname.split('/')[2] ?? ''
   const currentLabel = Object.keys(sectionPaths).find((key) => sectionPaths[key] === section) ?? 'Dashboard'
   const [search, setSearch] = useState('')
+  const [editingProfile, setEditingProfile] = useState(false)
   async function leave() { try { await logout(); navigate('/staff/login', { replace: true }) } catch { window.alert('Gagal keluar. Silakan coba lagi.') } }
   const sales = data.package_sales.items.map((item) => ({ name: item.name, count: item.project_count, percentage: item.percentage }))
   const expenses = data.expense_categories.items.map((item) => ({ name: item.category_name, count: item.transaction_count, percentage: item.percentage }))
@@ -121,11 +123,11 @@ function ManagerDashboardContent({ data, user }: { data: ManagerDashboardData; u
         <nav aria-label="Navigasi utama" className="manager-nav">
           {navigationGroups.map((group) => <section className="manager-nav__group" key={group.title}><h2>{group.title}<Icon name="chevron-down" size={16} /></h2>{group.items.map((item) => <NavLink className={({ isActive }) => `manager-nav__item${isActive ? ' is-active' : ''}`} end={item.label === 'Dashboard'} key={item.label} to={`/dashboard${sectionPaths[item.label] ? `/${sectionPaths[item.label]}` : ''}`}><Icon name={item.icon} size={20} /><span>{item.label}</span></NavLink>)}</section>)}
         </nav>
-        <div className="manager-profile"><span aria-hidden="true" className="manager-profile__avatar"><Icon name="user" size={22} /></span><span className="manager-profile__details"><strong>{displayName}</strong><small>Manager</small></span><button aria-label="Keluar" className="manager-profile__logout" onClick={() => void leave()} type="button"><Icon name="logout" size={20} /></button></div>
+        <div className="manager-profile"><span aria-hidden="true" className="manager-profile__avatar"><Icon name="user" size={22} /></span><span className="manager-profile__details"><strong>{displayName}</strong><small>Manager</small></span><button className="manager-profile__edit" onClick={() => setEditingProfile(true)} type="button">Edit Profil</button><button aria-label="Logout" className="manager-profile__logout" onClick={() => void leave()} type="button"><Icon name="logout" size={20} /><span>Logout</span></button></div>
       </aside>
 
       <main className="manager-main">
-        <header className="manager-topbar"><div><span className="manager-breadcrumb">Utama / {currentLabel}</span><h1>{currentLabel}</h1></div><div className="manager-topbar__tools"><Button className="manager-create-button" leadingIcon="plus" onClick={() => navigate("/dashboard/packages")}>Kelola Paket</Button><Input aria-label="Cari menu" className="manager-search" leadingIcon="search" placeholder="Cari menu..." value={search} onChange={(event) => setSearch(event.target.value)} />{search && <div className="manager-menu-results">{Object.entries(sectionPaths).filter(([label]) => label.toLowerCase().includes(search.toLowerCase())).map(([label, path]) => <Link key={label} onClick={() => setSearch("")} to={`/dashboard${path ? `/${path}` : ""}`}>{label}</Link>)}</div>}<button aria-label="Pengaturan" className="manager-topbar__icon" onClick={() => navigate("/dashboard/settings")} type="button"><Icon name="settings" size={25} /></button><button aria-label="Penawaran menunggu" className="manager-topbar__icon" onClick={() => navigate("/dashboard/quotation")} type="button"><Icon name="bell" size={25} /></button></div></header>
+        <header className="manager-topbar"><div><span className="manager-breadcrumb">Utama / {currentLabel}</span><h1>{currentLabel}</h1></div><div className="manager-topbar__tools"><Button className="manager-create-button" leadingIcon="plus" onClick={() => navigate("/dashboard/packages")}>Kelola Paket</Button><Input aria-label="Cari menu" className="manager-search" leadingIcon="search" placeholder="Cari menu..." value={search} onChange={(event) => setSearch(event.target.value)} />{search && <div className="manager-menu-results">{Object.entries(sectionPaths).filter(([label]) => label.toLowerCase().includes(search.toLowerCase())).map(([label, path]) => <Link key={label} onClick={() => setSearch("")} to={`/dashboard${path ? `/${path}` : ""}`}>{label}</Link>)}</div>}<button aria-label="Edit Profil" className="manager-topbar__icon" onClick={() => setEditingProfile(true)} type="button"><Icon name="user" size={23} /></button><button aria-label="Logout" className="manager-topbar__icon" onClick={() => void leave()} type="button"><Icon name="logout" size={23} /></button><button aria-label="Pengaturan" className="manager-topbar__icon" onClick={() => navigate("/dashboard/settings")} type="button"><Icon name="settings" size={25} /></button><button aria-label="Penawaran menunggu" className="manager-topbar__icon" onClick={() => navigate("/dashboard/quotation")} type="button"><Icon name="bell" size={25} /></button></div></header>
 
         {section ? <ManagerWorkspace section={section as Parameters<typeof ManagerWorkspace>[0]["section"]} /> : <div className="manager-dashboard">
           <section aria-label="Ringkasan" className="manager-stats">
@@ -146,6 +148,7 @@ function ManagerDashboardContent({ data, user }: { data: ManagerDashboardData; u
           </section>
         </div>}
       </main>
+      {editingProfile && user && <ProfileDialog user={user} onClose={() => setEditingProfile(false)} onSaved={(saved) => { onUserChange(saved); setEditingProfile(false) }} />}
     </div>
   )
 }
@@ -176,5 +179,5 @@ export default function ManagerDashboard() {
   if (error) return <main className="manager-state"><Icon name="activity" size={32} /><h1>Dashboard belum dapat dimuat</h1><p>{error}</p><button onClick={() => window.location.reload()} type="button">Coba lagi</button></main>
   if (!data) return null
 
-  return <ManagerDashboardContent data={data} user={user} />
+  return <ManagerDashboardContent data={data} user={user} onUserChange={setUser} />
 }
