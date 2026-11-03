@@ -50,6 +50,7 @@ class TrackStageProgress extends Model
         return $this->belongsTo(ProjectStage::class, 'project_stage_id');
     }
 
+    /** @return BelongsTo<ProjectTrack, $this> */
     public function track(): BelongsTo
     {
         return $this->belongsTo(ProjectTrack::class, 'project_track_id');

@@ -82,7 +82,7 @@ class AppServiceProvider extends ServiceProvider
         RateLimiter::for('register', fn (Request $request) => Limit::perMinute((int) config('rate-limits.register', 10))->by($request->ip()));
         foreach (array_keys(config('rate-limits.authenticated', [])) as $bucket) {
             RateLimiter::for($bucket, fn (Request $request) => Limit::perMinute((int) config('rate-limits.authenticated.'.$bucket, 30))
-                ->by($bucket.'|'.($request->user()?->id ?? $request->ip())));
+                ->by($bucket.'|'.($request->user()->id ?? $request->ip())));
         }
     }
 }

@@ -40,9 +40,9 @@ class ProjectIndexResource extends JsonResource
                     'avatar_url' => null,
                 ] : null,
             ],
-            'progress_percent' => $this->progress_percent,
+            'progress_percent' => $this->resource->getAttribute('progress_percent'),
             'tracks_count' => $this->tracks_count,
-            'tracks_approved_count' => $this->tracks_approved_count,
+            'tracks_approved_count' => $this->resource->getAttribute('tracks_approved_count'),
         ];
     }
 }

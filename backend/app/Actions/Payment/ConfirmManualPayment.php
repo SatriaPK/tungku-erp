@@ -76,7 +76,10 @@ class ConfirmManualPayment
                 app(SettleFinalPayment::class)->execute($payment);
             }
 
-            $client = $payment->invoice?->client ?? $payment->project?->client;
+            $client = $payment->invoice?->client;
+            if ($client === null && $payment->project_id !== null) {
+                $client = $payment->project->client;
+            }
             if ($client !== null) {
                 app(RecordNotification::class)->handle($client, new PaymentConfirmedNotification($payment->fresh()));
             }

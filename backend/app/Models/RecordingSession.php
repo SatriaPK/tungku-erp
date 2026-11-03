@@ -116,6 +116,7 @@ class RecordingSession extends Model
         return $this->belongsTo(User::class, 'requested_by');
     }
 
+    /** @return BelongsTo<Payment, $this> */
     public function payment(): BelongsTo
     {
         return $this->belongsTo(Payment::class);

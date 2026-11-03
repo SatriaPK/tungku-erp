@@ -70,6 +70,7 @@ class ProjectStage extends Model
     /**
      * Progres per track untuk tahap ini.
      */
+    /** @return HasMany<TrackStageProgress, $this> */
     public function trackProgress(): HasMany
     {
         return $this->hasMany(TrackStageProgress::class);
