@@ -20,7 +20,7 @@ return new class extends Migration
             $table->timestamp('occurred_at');
             $table->string('status', 16)->default('pending');
             $table->unsignedInteger('attempts')->default(0);
-            $table->timestamp('available_at');
+            $table->dateTime('available_at');
             $table->timestamp('lease_until')->nullable();
             $table->uuid('lease_token')->nullable();
             $table->timestamp('delivered_at')->nullable();
