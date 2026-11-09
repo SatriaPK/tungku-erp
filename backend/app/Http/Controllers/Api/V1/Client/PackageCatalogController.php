@@ -11,7 +11,7 @@ class PackageCatalogController extends Controller
 {
     /**
      * Get all active packages for the catalog.
-     * Available to all authenticated users.
+     * Available to authenticated active clients.
      */
     public function index(): AnonymousResourceCollection
     {

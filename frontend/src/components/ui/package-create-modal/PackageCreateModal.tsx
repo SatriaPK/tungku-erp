@@ -115,7 +115,7 @@ export function PackageCreateModal({ basePrices, error = '', submitting = false,
           <div className="ts-package-create-modal__scroll">
             <section className="ts-package-create-modal__identity">
               <label className="ts-package-create-field"><span>Nama Paket<span className="is-required">*</span></span><Input autoFocus aria-label="Nama Paket" maxLength={100} onChange={(event) => setForm((current) => ({ ...current, name: event.target.value }))} placeholder="Contoh: Paket Produksi Lengkap" required value={form.name} /></label>
-              <label className="ts-package-create-field"><span>Deskripsi Paket <span className="is-optional">(Opsional)</span></span><textarea aria-label="Deskripsi Paket (Opsional)" maxLength={255} onChange={(event) => setForm((current) => ({ ...current, description: event.target.value }))} placeholder="Jelaskan cakupan paket" rows={6} value={form.description} /></label>
+              <label className="ts-package-create-field"><span>Deskripsi Paket <span className="is-optional">(Opsional)</span></span><textarea aria-label="Deskripsi Paket (Opsional)" maxLength={255} onChange={(event) => setForm((current) => ({ ...current, description: event.target.value }))} placeholder="Jelaskan fasilitas, batas revisi, format hasil, estimasi penyelesaian, serta biaya tambahan bila ada" rows={6} value={form.description} /></label>
             </section>
 
             <section className="ts-package-create-modal__production">

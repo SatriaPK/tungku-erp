@@ -35,7 +35,7 @@ function ComponentShowcase() {
         <div>
           <p className="showcase-eyebrow">Tungku Studio · UI KIT</p>
           <h1>Komponen UI</h1>
-          <p className="showcase-description">Pustaka komponen reusable berdasarkan desain Tungku ERP.</p>
+          <p className="showcase-description">Pustaka komponen reusable berdasarkan desain manajemen operasional Tungku Studio.</p>
         </div>
       </header>
 
