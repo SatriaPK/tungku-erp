@@ -105,6 +105,8 @@ function LoginForm({ entry }: { entry: 'client' | 'staff' }) {
 
       {location.state?.registered && <AuthFeedback message="Akun berhasil dibuat. Silakan masuk dengan email dan password-mu." success />}
 
+      <details className="auth-access-info"><summary>Hak akses pengguna</summary><p>Manajemen operasional Studio Rekaman Tungku.</p><ul><li>Manager: mengelola paket, jadwal, penawaran, penugasan operator, inventaris, dan transaksi studio.</li><li>Operator: melihat tugas yang ditugaskan, mengonfirmasi tenggat, dan mengirim hasil produksi.</li><li>Client: melihat paket, membuat penawaran dan booking, memantau proyek, serta membayar tagihan miliknya sendiri.</li></ul></details>
+
       <form className="login-form" id="login-form" onSubmit={handleSubmit}>
         <div className="login-form__fields">
           <Input autoComplete="username" className="login-form__input" error={fieldErrors.email} label="Email" name="email" placeholder="nama@email.com" required type="email" />

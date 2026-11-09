@@ -394,3 +394,6 @@
     padding-top: var(--ts-space-6);
   }
 }
+.auth-access-info { margin-block: 16px; font-size: 13px; line-height: 1.6; }
+.auth-access-info summary { cursor: pointer; font-weight: 600; }
+.auth-access-info ul { padding-left: 20px; }

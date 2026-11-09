@@ -210,3 +210,13 @@
   .client-footer { font-size: 12px; }
 }
 @media (prefers-reduced-motion: reduce) { .client-portal * { scroll-behavior: auto !important; transition: none !important; } }
+
+.client-recommendations { margin-block: 32px; padding: 24px; border: 1px solid #ded8d3; border-radius: 16px; background: #fff; }
+.client-recommendations > p { line-height: 1.6; margin-block: 12px; }
+.client-recommendations > button { margin-block: 16px; }
+.client-recommendation-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 240px), 1fr)); gap: 16px; }
+.client-recommendation-grid article { padding: 20px; background: #fbf8f6; border-radius: 12px; overflow-wrap: anywhere; }
+.client-recommendation-grid li { margin-block: 8px; }
+.client-package-details { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 2fr); gap: 12px; margin-block: 20px; }
+.client-package-details dt { font-weight: 600; }
+.client-package-details dd { margin: 0; }
