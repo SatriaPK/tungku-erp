@@ -11,7 +11,7 @@ class ApplyBookingCoupon
     public function discount(Coupon $coupon, int $subtotal): int
     {
         $today = now()->toDateString();
-        $message = ! $coupon->enabled ? 'Kupon sedang nonaktif.' : ($today < $coupon->start ? 'Kupon belum mulai berlaku.' : ($today > $coupon->end ? 'Kupon sudah kedaluwarsa.' : ($coupon->used >= $coupon->limit ? 'Kuota kupon sudah habis.' : ($subtotal < $coupon->minimum ? 'Minimum transaksi kupon belum terpenuhi.' : null))));
+        $message = ! $coupon->enabled ? 'Kupon sedang nonaktif.' : ($today < $coupon->start ? 'Kupon belum mulai berlaku.' : ($today > $coupon->end ? 'Kupon sudah kedaluwarsa.' : ($coupon->used >= 1 ? 'Kode kupon sudah digunakan.' : ($subtotal < $coupon->minimum ? 'Minimum transaksi kupon belum terpenuhi.' : null))));
         if ($message) {
             throw ValidationException::withMessages(['coupon_code' => $message]);
         }
