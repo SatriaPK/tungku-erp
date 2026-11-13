@@ -26,6 +26,7 @@ export const managerNavigation: ManagerNavSection[] = [
   ] },
   { label: 'PENJUALAN', defaultExpanded: true, items: [
     { label: 'Manajemen Paket', icon: 'package', href: '/manajemen-paket' },
+    { label: 'Kupon Diskon', icon: 'badge-check', href: '/kupon' },
     { label: 'CRM', icon: 'users', href: '/crm' },
   ] },
   { label: 'KEUANGAN', defaultExpanded: true, items: [

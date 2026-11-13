@@ -5,6 +5,7 @@ export const managerPages = {
   '/inventaris': 'Inventaris',
   '/manajemen-paket': 'Manajemen Paket',
   '/crm': 'CRM',
+  '/kupon': 'Kupon Diskon',
   '/invoice': 'Invoice',
   '/laporan': 'Laporan',
   '/pengeluaran': 'Pengeluaran',
