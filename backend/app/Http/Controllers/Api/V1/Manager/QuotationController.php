@@ -46,4 +46,21 @@ class QuotationController extends Controller
             abort(422, $e->getMessage());
         }
     }
+
+    public function sendMissingOffer(\Illuminate\Http\Request $request, Quotation $quotation): QuotationResource
+    {
+        $this->authorize('respond', $quotation);
+        $data = $request->validate(['price' => ['required', 'integer', 'min:1'], 'note' => ['nullable', 'string', 'max:1000']]);
+        $updated = \Illuminate\Support\Facades\DB::transaction(function () use ($request, $quotation, $data) {
+            $quotation = Quotation::whereKey($quotation->id)->lockForUpdate()->firstOrFail();
+            abort_unless($quotation->status->isOpen() && ! $quotation->offers()->exists(), 422, 'Riwayat penawaran sudah tersedia atau penawaran sudah ditutup. Muat ulang halaman.');
+            $quotation->offers()->create([
+                'offered_by' => $request->user()->id, 'side' => \App\Enum\OfferSide::Studio,
+                'price' => $data['price'], 'note' => $data['note'] ?? null,
+            ]);
+            $quotation->update(['status' => \App\Enum\QuotationStatus::AwaitingClient]);
+            return $quotation->fresh(['latestOffer']);
+        });
+        return new QuotationResource($updated);
+    }
 }

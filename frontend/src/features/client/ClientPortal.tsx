@@ -217,7 +217,8 @@ function ClientPackages({ user, onUserChange }: { user: AuthUser; onUserChange: 
     try {
       const current = await getQuotation(selectedQuote.id)
       const latest = [...(current.data.offers ?? []), ...(current.data.latest_offer ? [current.data.latest_offer] : [])].sort((a, b) => b.id - a.id)[0]
-      if (current.data.status !== 'awaiting_client' || !latest || latest.side !== 'studio') {
+      if (!latest) throw new Error('Riwayat harga penawaran belum tersedia. Manager perlu membuka Quotation lalu memilih Kirim Harga Studio. Setelah itu, Anda dapat menerima penawaran.')
+      if (current.data.status !== 'awaiting_client' || latest.side !== 'studio') {
         throw new Error('Penawaran studio belum tersedia atau sudah berubah. Muat ulang halaman untuk melihat status terbaru.')
       }
       const viewed = [...(selectedQuote.offers ?? []), ...(selectedQuote.latest_offer ? [selectedQuote.latest_offer] : [])].sort((a, b) => b.id - a.id)[0]

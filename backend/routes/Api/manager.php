@@ -78,6 +78,7 @@ Route::middleware(['auth:sanctum', 'active', 'role:manager'])
         Route::prefix('quotations')->group(function () {
             Route::get('/', [QuotationController::class, 'index']);
             Route::get('{quotation}', [QuotationController::class, 'show']);
+            Route::post('{quotation}/send-missing-offer', [QuotationController::class, 'sendMissingOffer']);
             Route::post('{quotation}/respond', [QuotationController::class, 'respond']);
         });
 
