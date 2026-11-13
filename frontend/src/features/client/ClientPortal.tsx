@@ -206,13 +206,29 @@ function ClientPackages({ user, onUserChange }: { user: AuthUser; onUserChange: 
   }
   async function sendResponse(event: FormEvent) {
     event.preventDefault()
-    const latest = [...(quote?.offers ?? [])].sort((a, b) => b.id - a.id)[0] ?? quote?.latest_offer
-    if (!quote || !latest || !responseAction || busy) return
+    if (busy) return
+    if (!quote || !responseAction) {
+      setActionError('Penawaran belum siap. Tutup dialog lalu pilih ulang penawaran.')
+      return
+    }
+    const selectedQuote = quote
+    const action = responseAction
     setBusy(true); setActionError('')
     try {
-      const result = await respondToQuotation(quote.id, responseAction, latest.id, responseAction === 'counter' ? Number(counterPrice) : undefined)
-      const updated = await getQuotation(result.data.id)
-      setQuote(updated.data); setQuotations((items) => items.map((item) => item.id === updated.data.id ? updated.data : item))
+      const current = await getQuotation(selectedQuote.id)
+      const latest = [...(current.data.offers ?? []), ...(current.data.latest_offer ? [current.data.latest_offer] : [])].sort((a, b) => b.id - a.id)[0]
+      if (current.data.status !== 'awaiting_client' || !latest || latest.side !== 'studio') {
+        throw new Error('Penawaran studio belum tersedia atau sudah berubah. Muat ulang halaman untuk melihat status terbaru.')
+      }
+      const viewed = [...(selectedQuote.offers ?? []), ...(selectedQuote.latest_offer ? [selectedQuote.latest_offer] : [])].sort((a, b) => b.id - a.id)[0]
+      if (viewed && viewed.id !== latest.id) {
+        setQuote(current.data)
+        throw new Error('Studio mengubah penawaran. Tutup dialog dan periksa harga terbaru sebelum mengonfirmasi kembali.')
+      }
+      const result = await respondToQuotation(selectedQuote.id, action, latest.id, action === 'counter' ? Number(counterPrice) : undefined)
+      historyRequest.current += 1
+      setHistoryLoading(false)
+      setQuote(result.data); setQuotations(items => items.map(item => item.id === result.data.id ? result.data : item))
       setResponseAction(null); setNotice('Tanggapan penawaran berhasil dikirim.')
     } catch (failure) { setActionError(getApiErrorMessage(failure)) }
     finally { setBusy(false) }
