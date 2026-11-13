@@ -5,13 +5,14 @@ namespace App\Http\Controllers\Api\V1\Client;
 use App\Http\Controllers\Controller;
 use App\Http\Resources\PackageCatalogResource;
 use App\Models\Package;
+use App\Services\PackageRecommendationModel;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Validation\ValidationException;
 
 class PackageRecommendationController extends Controller
 {
-    public function __invoke(Request $request): JsonResponse
+    public function __invoke(Request $request, PackageRecommendationModel $ml): JsonResponse
     {
         $input = $request->validate([
             'track_count' => ['required', 'integer', 'min:1', 'max:255'],
@@ -26,12 +27,15 @@ class PackageRecommendationController extends Controller
             ]);
         }
 
+        $catalog = $ml->catalog();
+        $model = $ml->load($catalog);
+
         // Content-based matching: rank only packages that cover every required service.
-        $results = Package::active()->get()->filter(function (Package $package) use ($input): bool {
+        $results = $catalog->filter(function (Package $package) use ($input): bool {
             return $package->track_count >= $input['track_count']
                 && (! in_array('recording', $input['stages'], true) || $package->recording_hours >= $input['recording_hours'])
                 && collect($input['stages'])->every(fn (string $stage): bool => (bool) $package->{'include_'.$stage});
-        })->map(function (Package $package) use ($input, $request): array {
+        })->map(function (Package $package) use ($input, $request, $model, $ml): array {
             $extraStages = count($package->includedStages()) - count($input['stages']);
             $trackFit = $input['track_count'] / $package->track_count;
             $hourFit = in_array('recording', $input['stages'], true)
@@ -39,6 +43,10 @@ class PackageRecommendationController extends Controller
             $budget = $input['budget'] ?? null;
             $withinBudget = $budget === null || $package->price <= $budget;
             $score = (int) round(100 * (0.5 / (1 + $extraStages) + 0.3 * $trackFit + 0.2 * $hourFit));
+
+            if ($model !== null) {
+                $score = $ml->score($package, $input, $model);
+            }
 
             return [
                 'package' => (new PackageCatalogResource($package))->resolve($request),
@@ -63,8 +71,12 @@ class PackageRecommendationController extends Controller
         return response()->json([
             'data' => $results,
             'meta' => [
-                'method' => 'content_based',
-                'message' => $results->isEmpty() ? 'Belum ada paket yang memenuhi kebutuhan. Buat penawaran kustom.' : 'Urutan berdasarkan anggaran, kecocokan layanan, jumlah lagu, dan durasi rekaman.',
+                'method' => $model === null ? 'content_based_fallback' : $model['method'],
+                'trained_at' => $model['trained_at'] ?? null,
+                'training_samples' => $model['report']['sample_count'] ?? 0,
+                'data_source' => 'database_catalog_non_demo',
+                'quality_evaluated' => false,
+                'message' => $results->isEmpty() ? 'Belum ada paket yang memenuhi kebutuhan. Buat penawaran kustom.' : ($model === null ? 'Urutan berdasarkan anggaran dan kecocokan kebutuhan dengan katalog terbaru.' : 'Urutan berdasarkan anggaran dan kemiripan layanan, jumlah lagu, serta durasi. Skor bukan jaminan hasil produksi.'),
             ],
         ]);
     }
