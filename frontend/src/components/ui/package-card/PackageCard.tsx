@@ -10,6 +10,7 @@ export interface PackageCardProps extends HTMLAttributes<HTMLElement> {
   phases: readonly PhaseChipProps['phase'][]
   recordingHours: number
   songCount: number
+  onSelect?: () => void
   onMenuClick?: () => void
   phaseIcons?: Partial<Record<PhaseChipProps['phase'], ReactNode>>
   menuIcon?: ReactNode
@@ -31,6 +32,7 @@ export function PackageCard({
   phases,
   recordingHours,
   songCount,
+  onSelect,
   onMenuClick,
   phaseIcons,
   menuIcon,
@@ -39,7 +41,8 @@ export function PackageCard({
   ...props
 }: PackageCardProps) {
   return (
-    <article className={['ts-package-card', className].filter(Boolean).join(' ')} {...props}>
+    <article className={['ts-package-card', onSelect ? 'ts-package-card--selectable' : '', className].filter(Boolean).join(' ')} {...props}>
+      {onSelect && <button type="button" className="ts-package-card__select" aria-label={`Lihat detail ${name}`} onClick={onSelect} />}
       <div className="ts-package-card__heading">
         <h3>{name}</h3>
         {onMenuClick && (

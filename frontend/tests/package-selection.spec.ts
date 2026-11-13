@@ -1,0 +1,20 @@
+import { expect, test } from '@playwright/test'
+
+test('package title, card area, keyboard and menu open package details', async ({ page }) => {
+  await page.route('**/api/v1/auth/me', route => route.fulfill({ json: { data: { id: 1, name: 'Client', role: 'client' } } }))
+  await page.route('**/api/v1/client/**', route => route.fulfill({ json: { data: route.request().url().endsWith('/packages') ? [{ id: 1, name: 'DEMO Paket Akustik', description: 'Paket produksi akustik', price: 3100000, track_count: 2, recording_hours: 4, include_recording: true, include_editing: true, include_mixing: true, include_mastering: true }] : [] } }))
+  await page.goto('/client/packages')
+  const card = page.locator('.client-package')
+  const dialog = page.getByRole('dialog', { name: 'DEMO Paket Akustik' })
+  await card.click({ position: { x: 60, y: 35 } })
+  await expect(dialog).toBeVisible()
+  await dialog.getByRole('button', { name: 'Tutup', exact: true }).click()
+  await card.getByRole('button', { name: 'Lihat detail DEMO Paket Akustik' }).focus()
+  await page.keyboard.press('Enter')
+  await expect(dialog).toBeVisible()
+  await page.keyboard.press('Escape')
+  await card.getByRole('button', { name: 'Aksi untuk DEMO Paket Akustik' }).click()
+  await expect(dialog).toBeVisible()
+  await dialog.getByRole('button', { name: 'Booking Paket' }).click()
+  await expect(page).toHaveURL(/\/client\/booking\?package=1$/)
+})

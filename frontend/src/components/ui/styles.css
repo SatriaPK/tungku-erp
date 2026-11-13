@@ -132,3 +132,7 @@
 @media (prefers-reduced-motion: reduce) {
   .ts-button, .ts-segmented__option, .ts-switch__thumb, .ts-switch__thumb::after, .ts-progress > span, .ts-card--interactive, .ts-package-card { transition: none; }
 }
+.ts-package-card--selectable { position: relative; }
+.ts-package-card__select { position: absolute; inset: 0; z-index: 1; border: 0; border-radius: inherit; padding: 0; background: transparent; cursor: pointer; }
+.ts-package-card__select:focus-visible { outline: 3px solid var(--ts-primary); outline-offset: 3px; }
+.ts-package-card--selectable .ts-icon-button { position: relative; z-index: 2; }

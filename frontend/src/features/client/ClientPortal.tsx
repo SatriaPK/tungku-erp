@@ -275,7 +275,7 @@ function ClientPackages({ user, onUserChange }: { user: AuthUser; onUserChange: 
             className="client-package" phases={stages.filter((stage) => item[`include_${stage.key}`]).map((stage) => stage.name)}
             phaseIcons={Object.fromEntries(stages.map((stage) => [stage.name, <img key={stage.key} src={stage.icon} alt="" />]))} menuIcon={<img src={assets.more} alt="" />}
             separator={<img src={assets.separator} alt="" />}
-            onMenuClick={() => setSelectedPackage(item)} />)}</div> : <p className="client-empty">{search ? 'Tidak ada paket yang cocok dengan pencarianmu.' : 'Belum ada paket yang tersedia. Kamu tetap bisa membuat penawaran kustom.'}</p>}
+            onSelect={() => setSelectedPackage(item)} onMenuClick={() => setSelectedPackage(item)} />)}</div> : <p className="client-empty">{search ? 'Tidak ada paket yang cocok dengan pencarianmu.' : 'Belum ada paket yang tersedia. Kamu tetap bisa membuat penawaran kustom.'}</p>}
           {!search && packages.length > 3 && <Button className="client-show-packages" variant="text" onClick={() => setShowAllPackages(!showAllPackages)}>{showAllPackages ? 'Tampilkan Lebih Sedikit' : `Lihat Semua ${packages.length} Paket`}</Button>}
         </section>
 
