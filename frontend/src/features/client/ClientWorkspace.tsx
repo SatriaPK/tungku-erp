@@ -3,7 +3,7 @@ import { Link, useSearchParams } from 'react-router-dom'
 import { Badge, Button } from '../../components/ui'
 import { getApiErrorMessage } from '../../lib/auth-api'
 import {
-  checkAvailability, getPackages, getBookings, getDelivery, getInvoice, getInvoices, getProjects, getQuotations, getRooms, holdBooking, initiateInvoicePayment, offerDate, rupiah,
+  previewCoupon, type CouponPreview, checkAvailability, getPackages, getBookings, getDelivery, getInvoice, getInvoices, getProjects, getQuotations, getRooms, holdBooking, initiateInvoicePayment, offerDate, rupiah,
   type BookingAvailability, type ClientBooking, type ClientInvoice, type ClientProject, type Collection, type Delivery, type Quotation,
 } from './client-api'
 import './client-workspace.css'
@@ -70,6 +70,17 @@ function BookingPage() {
   const [start, setStart] = useState('')
   const [end, setEnd] = useState('')
   const [target, setTarget] = useState(params.get('package') ? `package:${params.get('package')}` : '')
+  const [couponCode, setCouponCode] = useState('')
+  const [coupon, setCoupon] = useState<CouponPreview | null>(null)
+  const [couponError, setCouponError] = useState('')
+  async function applyCoupon() {
+    if (!target || !couponCode.trim() || busy) return
+    setBusy(true); setCouponError(''); setCoupon(null)
+    const [type, id] = target.split(':')
+    try { setCoupon((await previewCoupon(couponCode.trim().toUpperCase(), type === 'package' ? { package_id: Number(id) } : { quotation_id: Number(id) })).data) }
+    catch (failure) { setCouponError(getApiErrorMessage(failure)) }
+    finally { setBusy(false) }
+  }
   const [available, setAvailable] = useState<BookingAvailability | null>(null)
   const [message, setMessage] = useState('')
   const [error, setError] = useState('')
@@ -92,7 +103,7 @@ function BookingPage() {
     const [type, id] = target.split(':')
     setBusy(true); setError(''); setMessage('')
     try {
-      const result = await holdBooking(Number(roomId), timestamp(start), timestamp(end), type === 'package' ? { package_id: Number(id) } : { quotation_id: Number(id) })
+      const result = await holdBooking(Number(roomId), timestamp(start), timestamp(end), { ...(type === 'package' ? { package_id: Number(id) } : { quotation_id: Number(id) }), ...(coupon ? { coupon_code: coupon.code } : {}) })
       setCreated(true); bookings.reload()
       setMessage(`Jadwal berhasil ditahan${result.data.held_until ? ` sampai ${offerDate(result.data.held_until)}` : ''}. Selesaikan pembayaran melalui invoice agar booking dikonfirmasi.`)
     } catch (failure) { setError(getApiErrorMessage(failure)); setAvailable(null) }
@@ -100,10 +111,11 @@ function BookingPage() {
   }
   const invalidDates = !start || !end || new Date(timestamp(end)).getTime() - new Date(timestamp(start)).getTime() < 60 * 60 * 1000
   return <><PageHead title="Jadwal Booking" description="Pilih ruang dan waktu rekaman. Periksa ketersediaan sebelum menahan jadwal." />
-    <section className="client-workspace-panel client-booking-form"><h2>Buat Booking</h2><form onSubmit={check}><label>Paket atau penawaran<select value={target} required onChange={(event) => { setTarget(event.target.value); setAvailable(null) }}><option value="">Pilih paket atau penawaran</option>{packages.data.map((item) => <option key={item.id} value={`package:${item.id}`}>{item.name} · {rupiah(item.price)}</option>)}{accepted.map((item) => <option key={item.id} value={`quotation:${item.id}`}>{item.name} · Disetujui</option>)}</select></label>
+    <section className="client-workspace-panel client-booking-form"><h2>Buat Booking</h2><form onSubmit={check}><label>Paket atau penawaran<select disabled={busy || created} value={target} required onChange={(event) => { setTarget(event.target.value); setAvailable(null); setCoupon(null); setCouponError(''); setCreated(false) }}><option value="">Pilih paket atau penawaran</option>{packages.data.map((item) => <option key={item.id} value={`package:${item.id}`}>{item.name} · {rupiah(item.price)}</option>)}{accepted.map((item) => <option key={item.id} value={`quotation:${item.id}`}>{item.name} · Disetujui</option>)}</select></label>
       <label>Ruang rekaman<select value={roomId} required onChange={(event) => { setRoomId(event.target.value); setAvailable(null) }}><option value="">Pilih ruang</option>{rooms.data.map((room) => <option key={room.id} value={room.id}>{room.name}</option>)}</select></label>
       <label>Mulai<input type="datetime-local" value={start} required onChange={(event) => { setStart(event.target.value); setAvailable(null) }} /></label><label>Selesai<input type="datetime-local" value={end} required onChange={(event) => { setEnd(event.target.value); setAvailable(null) }} /></label>
-      <div className="client-booking-actions"><Button type="submit" disabled={busy || invalidDates || !target || !roomId}>Periksa Ketersediaan</Button><Button disabled={busy || !available?.available || created} onClick={() => void hold()}>Tahan Jadwal</Button></div></form>
+      <div className="client-coupon-field"><label>Kode kupon (opsional)<input value={couponCode} maxLength={24} placeholder="Masukkan kode kupon" disabled={busy || created} onChange={event => { setCouponCode(event.target.value.toUpperCase()); setCoupon(null); setCouponError('') }} /></label><Button variant="outlined" disabled={busy || created || !target || !couponCode.trim()} onClick={() => void applyCoupon()}>Terapkan Kupon</Button>{coupon && <Button variant="text" disabled={busy || created} onClick={() => { setCoupon(null); setCouponCode('') }}>Hapus Kupon</Button>}{couponError && <p role="alert" className="client-workspace-error">{couponError}</p>}{coupon && <div className="client-coupon-summary" role="status"><p>Kupon <strong>{coupon.code}</strong> berhasil diterapkan.</p><dl><dt>Harga awal</dt><dd>{rupiah(coupon.subtotal)}</dd><dt>Potongan kupon</dt><dd>-{rupiah(coupon.discount)}</dd><dt>Total setelah diskon</dt><dd><strong>{rupiah(coupon.total)}</strong></dd></dl><small>Kupon diperiksa ulang saat booking dibuat. Tagihan minimal Rp1.</small></div>}</div>
+      <div className="client-booking-actions"><Button type="submit" disabled={busy || invalidDates || !target || !roomId}>Periksa Ketersediaan</Button><Button disabled={busy || !available?.available || created || (!!couponCode.trim() && !coupon)} onClick={() => void hold()}>Tahan Jadwal</Button></div></form>
       {error && <p className="client-workspace-error" role="alert">{error}</p>}{message && <p className={available?.available || created ? 'client-workspace-success' : 'client-workspace-error'} role="status">{message}</p>}{created && <Link className="client-inline-link" to="/client/transaksi">Lihat Transaksi →</Link>}
       {(packages.error || rooms.error || quotes.error) && <p className="client-workspace-error" role="alert">{packages.error || rooms.error || quotes.error}</p>}
     </section>
@@ -166,7 +178,7 @@ function TransactionsPage() {
     <State loading={invoices.loading} error={invoices.error} reload={invoices.reload} empty="Belum ada invoice. Tagihan akan muncul setelah booking dibuat." count={invoices.data.length} />
     <div className="client-record-grid">{invoices.data.map((item: ClientInvoice) => <article key={item.id}><div><h3>{item.invoice_number}</h3><Badge tone={item.status === 'paid' ? 'success' : item.is_overdue ? 'error' : 'primary'}>{item.status_label}</Badge></div><p>{item.project?.name ?? 'Booking Rekaman'}</p><strong>{rupiah(item.total)}</strong><small>Terbit {item.issue_date ? offerDate(item.issue_date) : '—'} · Jatuh tempo {item.due_date ? offerDate(item.due_date) : '—'}</small><Button variant="text" onClick={() => void show(item.id)}>Lihat Rincian</Button></article>)}</div>
     <Pager current={page} last={invoices.meta?.last_page ?? 1} onChange={setPage} />
-    {(loading || error || detail) && <section className="client-workspace-panel"><header><h2>Rincian Invoice</h2><button className="client-inline-link" onClick={() => { setDetail(null); setError('') }}>Tutup</button></header>{loading && <p role="status">Memuat invoice…</p>}{error && <p role="alert" className="client-workspace-error">{error}</p>}{detail && <><div className="client-invoice-top"><h3>{detail.invoice_number}</h3><strong>{rupiah(detail.total)}</strong></div><p>{detail.status_label}</p><ul className="client-simple-list">{detail.items?.map((item) => <li key={item.id}><span>{item.description}</span><strong>{rupiah(item.total)}</strong></li>)}</ul>{(paymentUrl || detail.payment?.payment_url) && <a className="ts-button" href={paymentUrl || detail.payment?.payment_url || '#'} target="_blank" rel="noopener noreferrer">Buka Pembayaran</a>}{detail.status === 'issued' && !detail.payment && !paymentUrl && <div className="client-payment-actions"><label>Metode pembayaran<select value={gateway} onChange={(event) => setGateway(event.target.value as 'midtrans' | 'xendit')}><option value="midtrans">Midtrans</option><option value="xendit">Xendit</option></select></label><Button disabled={loading} onClick={() => void pay(detail.id)}>Buat Pembayaran</Button></div>}{detail.payment && <p>Status pembayaran: {detail.payment.status_label} · {detail.payment.provider_label}</p>}</>}</section>}
+    {(loading || error || detail) && <section className="client-workspace-panel"><header><h2>Rincian Invoice</h2><button className="client-inline-link" onClick={() => { setDetail(null); setError('') }}>Tutup</button></header>{loading && <p role="status">Memuat invoice…</p>}{error && <p role="alert" className="client-workspace-error">{error}</p>}{detail && <><div className="client-invoice-top"><h3>{detail.invoice_number}</h3><strong>{rupiah(detail.total)}</strong></div><p>{detail.status_label}</p>{detail.coupon && <p className="client-workspace-success">Kupon {detail.coupon.code} ? Hemat {rupiah(detail.coupon.discount)}</p>}<ul className="client-simple-list">{detail.items?.map((item) => <li key={item.id}><span>{item.description}</span><strong>{rupiah(item.total)}</strong></li>)}</ul>{(paymentUrl || detail.payment?.payment_url) && <a className="ts-button" href={paymentUrl || detail.payment?.payment_url || '#'} target="_blank" rel="noopener noreferrer">Buka Pembayaran</a>}{detail.status === 'issued' && !detail.payment && !paymentUrl && <div className="client-payment-actions"><label>Metode pembayaran<select value={gateway} onChange={(event) => setGateway(event.target.value as 'midtrans' | 'xendit')}><option value="midtrans">Midtrans</option><option value="xendit">Xendit</option></select></label><Button disabled={loading} onClick={() => void pay(detail.id)}>Buat Pembayaran</Button></div>}{detail.payment && <p>Status pembayaran: {detail.payment.status_label} · {detail.payment.provider_label}</p>}</>}</section>}
   </>
 }
 

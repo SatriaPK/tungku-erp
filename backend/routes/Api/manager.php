@@ -26,6 +26,9 @@ use Illuminate\Support\Facades\Route;
 Route::middleware(['auth:sanctum', 'active', 'role:manager'])
     ->prefix('manager')
     ->group(function () {
+        Route::get('coupons', [\App\Http\Controllers\Api\V1\Manager\CouponController::class, 'index']);
+        Route::post('coupons', [\App\Http\Controllers\Api\V1\Manager\CouponController::class, 'store']);
+        Route::put('coupons/{coupon}', [\App\Http\Controllers\Api\V1\Manager\CouponController::class, 'update']);
         Route::get('dashboard', [DashboardController::class, 'show']);
         Route::get('projects', [ManagerWorkspaceController::class, 'projects']);
         Route::get('operators', [ManagerWorkspaceController::class, 'operators']);

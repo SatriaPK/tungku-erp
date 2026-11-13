@@ -14,6 +14,7 @@ Route::prefix('client')
     ->middleware(['auth:sanctum', 'active', 'role:client'])
     ->group(function () {
         Route::get('package-recommendations', PackageRecommendationController::class);
+        Route::post('coupons/preview', [\App\Http\Controllers\Api\V1\Client\CouponController::class, 'preview']);
         Route::get('packages', [PackageCatalogController::class, 'index']);
         Route::get('base-prices', [PackageCatalogController::class, 'prices']);
         Route::get('rooms', [ClientWorkspaceController::class, 'rooms']);

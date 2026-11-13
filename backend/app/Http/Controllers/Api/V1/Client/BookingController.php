@@ -90,6 +90,7 @@ class BookingController extends Controller
                 projectId: $validated['project_id'] ?? null,
                 packageId: $validated['package_id'] ?? null,
                 quotationId: $validated['quotation_id'] ?? null,
+                couponCode: $validated['coupon_code'] ?? null,
             );
 
             $session->load(['room', 'client', 'project']);
