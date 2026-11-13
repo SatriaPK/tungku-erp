@@ -26,6 +26,7 @@ class InvoiceResource extends JsonResource
             'status_label' => $this->status->label(),
             'subtotal' => $this->subtotal,
             'tax_amount' => $this->tax_amount,
+            'coupon' => $this->metadata['coupon'] ?? null,
             'discount_amount' => $this->discount_amount,
             'total' => $this->total,
             'notes' => $this->notes,

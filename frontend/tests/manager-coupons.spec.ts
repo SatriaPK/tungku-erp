@@ -1,7 +1,15 @@
-﻿import { expect, test } from '@playwright/test'
+import { expect, test } from '@playwright/test'
 
 test('Manager creates, edits and persists coupons on desktop and mobile', async ({ page }) => {
   await page.route('**/api/v1/auth/me', route => route.fulfill({ contentType: 'application/json', body: JSON.stringify({ data: { id: 1, name: 'Manager', role: 'manager' } }) }))
+  let coupons: Record<string, unknown>[] = []
+  await page.route('**/sanctum/csrf-cookie', route => route.fulfill({ status: 204 }))
+  await page.route('**/api/v1/manager/coupons**', async route => {
+    if (route.request().method() === 'GET') return route.fulfill({ json: { data: coupons } })
+    const coupon = { ...route.request().postDataJSON(), id: 'saved-id' }
+    coupons = [coupon]
+    return route.fulfill({ json: { data: coupon } })
+  })
   await page.goto('/kupon')
   await page.getByRole('button', { name: 'Buat Kupon', exact: true }).click()
   const dialog = page.getByRole('dialog')

@@ -45,7 +45,11 @@ class HoldSlot
         ?int $projectStageId = null,
         ?int $packageId = null,
         ?int $quotationId = null,
+        ?string $couponCode = null,
     ): RecordingSession {
+        if ($couponCode && $projectId !== null) {
+            throw new InvalidArgumentException('Kupon hanya berlaku untuk booking paket atau penawaran baru.');
+        }
         if ($packageId !== null && $quotationId !== null) {
             throw new InvalidArgumentException('Specify either a package or a quotation, not both.');
         }
@@ -73,7 +77,7 @@ class HoldSlot
         $holdDurationMinutes = StudioSetting::getSetting('hold_duration_minutes');
         $heldUntil = now()->addMinutes($holdDurationMinutes);
 
-        return DB::transaction(function () use ($quotationId, $clientId, $roomId, $packageId, $startAt, $endAt, $projectId, $projectStageId, $heldUntil): RecordingSession {
+        return DB::transaction(function () use ($couponCode, $quotationId, $clientId, $roomId, $packageId, $startAt, $endAt, $projectId, $projectStageId, $heldUntil): RecordingSession {
             $room = Room::query()->whereKey($roomId)->lockForUpdate()->first();
 
             if ($room === null || ! $room->is_active) {
@@ -147,11 +151,13 @@ class HoldSlot
 
             // Generate Invoice
             if ($project !== null) {
-                $this->generateInvoice->fromProject($project);
+                $invoice = $this->generateInvoice->fromProject($project);
                 app(NotifyBusinessEvent::class)->project($project, 'project_created');
             } else {
-                $this->generateInvoice->fromRecordingSession($session);
+                $invoice = $this->generateInvoice->fromRecordingSession($session);
             }
+
+            if ($couponCode) app(ApplyBookingCoupon::class)->apply($invoice, $couponCode);
 
             return $session;
         });
