@@ -21,6 +21,7 @@ class TestStaffSeeder extends Seeder
             foreach ([
                 ['Manager Tes', 'manager@studio.test', '6281200000001', Role::Manager],
                 ['Operator Tes', 'operator1@studio.test', '6281200000002', Role::Operator],
+                ['Client Tes', 'client@studio.test', '6281200000009', Role::Client],
             ] as [$name, $email, $phone, $role]) {
                 // Repeated deploys must never reset or elevate an existing account.
                 if (User::where('email', $email)->exists()) {
