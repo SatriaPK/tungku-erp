@@ -2,9 +2,9 @@ name: Backend checks
 
 on:
   pull_request:
-    paths: ['backend/**', '.github/workflows/backend-ci.yml']
+    paths: ['backend/**', 'recommendation-service/**', '.github/workflows/backend-ci.yml']
   push:
-    paths: ['backend/**', '.github/workflows/backend-ci.yml']
+    paths: ['backend/**', 'recommendation-service/**', '.github/workflows/backend-ci.yml']
   workflow_dispatch:
 
 permissions:
@@ -34,6 +34,7 @@ jobs:
     timeout-minutes: 20
     env:
       DB_CONNECTION: sqlite
+      RECOMMENDATION_SERVICE_URL: http://127.0.0.1:8010
       DB_DATABASE: ${{ github.workspace }}/backend/database/ci.sqlite
     steps:
       - uses: actions/checkout@v7
@@ -50,6 +51,19 @@ jobs:
           path: ~/.cache/composer/files
           key: composer-${{ runner.os }}-php83-${{ hashFiles('backend/composer.lock') }}
       - run: composer install --prefer-dist --no-interaction --no-progress
+      - name: Test and start the separate Python recommendation service
+        working-directory: recommendation-service
+        run: |
+          python3 -m venv .venv
+          .venv/bin/pip install -r requirements.txt httpx
+          .venv/bin/python -m unittest -v
+          nohup .venv/bin/python -m uvicorn app:app --host 127.0.0.1 --port 8010 > "$RUNNER_TEMP/recommendation.log" 2>&1 &
+          for attempt in $(seq 1 30); do
+            if curl --fail --silent http://127.0.0.1:8010/health; then exit 0; fi
+            sleep 1
+          done
+          cat "$RUNNER_TEMP/recommendation.log"
+          exit 1
       - name: Prepare disposable environment
         run: |
           cp .env.example .env

@@ -23,10 +23,10 @@ php artisan migrate --force
 php artisan config:cache
 php artisan view:cache
 
-# Catalog vectors are disposable; rebuild from the durable catalog after a restart.
-# An empty/new catalog continues with the existing explicit matching fallback.
+# Training executes remotely in the Python microservice, never in PHP.
+# Empty catalogs can still use Python's explicitly labelled matching fallback.
 if ! php artisan ml:train-package-recommendations; then
-    echo 'Recommendation training unavailable; the API will use its catalog fallback.' >&2
+    echo 'Python training check unavailable; check the service and catalog.' >&2
 fi
 chown -R www-data:www-data storage bootstrap/cache
 exec /usr/bin/supervisord -c /etc/supervisor/supervisord.conf

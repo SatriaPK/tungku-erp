@@ -22,7 +22,7 @@ test('recommendations cover requirements and prefer affordable matching capacity
     $missing = Package::factory()->create(['include_mixing' => false]);
     $small = Package::factory()->create(['track_count' => 1]);
     $short = Package::factory()->create(['recording_hours' => 1]);
-    $response = $this->actingAs(User::factory()->create())->getJson(recommendationUrl())
+    $response = $this->actingAs(User::factory()->create())->getJson(recommendationUrl(['budget' => 1500000]))
         ->assertOk()->assertJsonCount(3, 'data')
         ->assertJsonPath('data.0.package.id', $exact->id)
         ->assertJsonPath('data.0.score', 100)
