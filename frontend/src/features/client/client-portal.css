@@ -220,3 +220,4 @@
 .client-package-details { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 2fr); gap: 12px; margin-block: 20px; }
 .client-package-details dt { font-weight: 600; }
 .client-package-details dd { margin: 0; }
+.client-package-description { white-space: pre-wrap; overflow-wrap: anywhere; }
