@@ -3,6 +3,10 @@
   "framework": "vite",
   "buildCommand": "node deploy/build-vercel.mjs",
   "outputDirectory": "dist",
+  "redirects": [
+    { "source": "/", "destination": "/staff/login", "permanent": false },
+    { "source": "/login", "destination": "/staff/login", "permanent": false }
+  ],
   "rewrites": [
     { "source": "/api/:path*", "destination": "https://tungku-api.ethiodeploy.app/api/:path*" },
     { "source": "/sanctum/:path*", "destination": "https://tungku-api.ethiodeploy.app/sanctum/:path*" },
