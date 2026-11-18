@@ -96,7 +96,7 @@
 .manager-package-detail__header p { margin: 0 0 4px; color: var(--ts-on-surface-variant); font: var(--ts-label-medium); }
 .manager-package-detail__header h2 { margin: 0; color: var(--ts-on-surface); font: var(--ts-title-large); }
 .manager-package-detail__header > button { display: grid; width: 36px; height: 36px; flex: 0 0 36px; place-items: center; border: 0; border-radius: 50%; background: transparent; color: var(--ts-on-surface-variant); cursor: pointer; }
-.manager-package-detail__description { margin: 16px 0; color: var(--ts-on-surface-variant); font: var(--ts-body-medium); }
+.manager-package-detail__description { margin: 16px 0; color: var(--ts-on-surface-variant); font: var(--ts-body-medium); white-space: pre-wrap; overflow-wrap: anywhere; }
 .manager-package-detail__stages { display: flex !important; width: 100%; flex-wrap: wrap; justify-content: flex-start !important; align-self: flex-start; gap: 8px; margin-bottom: 16px; }
 .manager-package-detail__stages .ts-badge { flex: 0 0 auto; }
 .manager-package-stats { display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 24px; }

@@ -407,7 +407,7 @@ function PackageDetailDialog({ item, onClose }: { item: ManagerPackage; onClose:
       <p className="manager-package-detail__description">{item.description || 'Deskripsi paket belum tersedia.'}</p>
       <div aria-label="Tahap paket" className="manager-package-detail__stages">{includedStages.length ? includedStages.map((stage) => <Badge icon={stage.icon} key={stage.key} tone={stage.tone}>{stage.label}</Badge>) : <span>Tidak ada tahap</span>}</div>
       <dl className="manager-package-detail__facts">
-        <div><dt>Jam rekaman</dt><dd>{number.format(item.recording_hours)} jam</dd></div>
+        <div><dt>Jam rekaman</dt><dd>{item.stages?.includes('recording') ? `${number.format(item.recording_hours)} jam total per paket` : 'Tidak termasuk rekaman studio'}</dd></div>
         <div><dt>Jumlah lagu</dt><dd>{number.format(item.track_count)} lagu</dd></div>
         <div><dt>Status</dt><dd>{item.is_active ? 'Aktif' : 'Nonaktif'}</dd></div>
         <div><dt>Tanggal dibuat</dt><dd>{item.created_at ? new Intl.DateTimeFormat('id-ID', { day: 'numeric', month: 'long', year: 'numeric' }).format(new Date(item.created_at)) : '—'}</dd></div>
