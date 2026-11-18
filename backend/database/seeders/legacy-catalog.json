@@ -1,0 +1,69 @@
+{
+  "source_file": "backend\\database\\database.sqlite",
+  "base_prices": [
+    {
+      "stage": "recording",
+      "unit": "hour",
+      "price": 150000
+    },
+    {
+      "stage": "editing",
+      "unit": "track",
+      "price": 200000
+    },
+    {
+      "stage": "mixing",
+      "unit": "track",
+      "price": 400000
+    },
+    {
+      "stage": "mastering",
+      "unit": "track",
+      "price": 250000
+    }
+  ],
+  "packages": [
+    {
+      "name": "Paket Tungku Single",
+      "description": "Rekaman, editing, mixing, dan mastering untuk satu track.",
+      "track_count": 1,
+      "recording_hours": 0,
+      "include_recording": 0,
+      "include_editing": 1,
+      "include_mixing": 1,
+      "include_mastering": 1,
+      "auto_price": 1500000,
+      "manual_price": null,
+      "is_price_manual": 0,
+      "is_active": 1
+    },
+    {
+      "name": "Paket Tungku EP",
+      "description": "Produksi lengkap untuk lima track.",
+      "track_count": 5,
+      "recording_hours": 0,
+      "include_recording": 0,
+      "include_editing": 1,
+      "include_mixing": 1,
+      "include_mastering": 1,
+      "auto_price": 6500000,
+      "manual_price": null,
+      "is_price_manual": 0,
+      "is_active": 1
+    },
+    {
+      "name": "Paket Mixing Mastering",
+      "description": "Mixing dan mastering untuk demo multitrack.",
+      "track_count": 3,
+      "recording_hours": 0,
+      "include_recording": 0,
+      "include_editing": 1,
+      "include_mixing": 1,
+      "include_mastering": 1,
+      "auto_price": 2250000,
+      "manual_price": null,
+      "is_price_manual": 0,
+      "is_active": 1
+    }
+  ]
+}
