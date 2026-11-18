@@ -8,7 +8,7 @@ Nama sistem difokuskan pada manajemen operasional studio rekaman. Sistem menghub
 
 | ID | Kebutuhan revisi | Implementasi atau bukti | Status |
 | --- | --- | --- | --- |
-| R1 | Sistem rekomendasi dan tambahan AI | `app/Services/PackageRecommendationModel.php`, `app/Http/Controllers/Api/V1/Client/PackageRecommendationController.php`, `docs/package-recommendation-ml.md`; UI `PackageRecommendations.tsx` pada branch client | Tersedia; model harus dilatih pada katalog deployment. Kualitas rekomendasi belum dievaluasi dengan pilihan pelanggan independen. |
+| R1 | Sistem rekomendasi dan tambahan AI | `app/Services/PackageRecommendationClient.php + recommendation-service/app.py`, `app/Http/Controllers/Api/V1/Client/PackageRecommendationController.php`, `docs/package-recommendation-ml.md`; UI `PackageRecommendations.tsx` pada branch client | Tersedia; model harus dilatih pada katalog deployment. Kualitas rekomendasi belum dievaluasi dengan pilihan pelanggan independen. |
 | R2 | Detail paket diperjelas untuk customer | API katalog memuat deskripsi, harga akhir, jumlah lagu, jam rekaman, dan empat layanan. Dialog client menampilkan layanan termasuk/tidak termasuk serta akses booking dan penawaran yang sudah ada. | Tersedia; fasilitas, revisi, format hasil, dan estimasi harus diisi studio sesuai paket sebenarnya. |
 | R3 | Fokus sistem lebih spesifik daripada ERP umum | Judul dan ruang lingkup dokumen ini; judul web dan meta description sudah menyebut manajemen studio | Tersedia pada aplikasi; perubahan judul laporan akademik dan persetujuan dosen masih perlu dilakukan pada dokumen laporan asli. |
 | R4 | Hak akses diperinci | Matriks di bawah, middleware peran dan akun aktif, serta policy kepemilikan/penugasan pada backend | Terdokumentasi; pembatasan dijalankan server. |
@@ -60,7 +60,7 @@ Perubahan tampilan dibatasi pada penjelasan jam rekaman dan keterbacaan rincian/
 
 ## Strategi verifikasi dan penerimaan
 
-Jalankan pengujian backend pada database testing terisolasi dan build pada kedua frontend. Perintah, hasil pemeriksaan aktual, dan batas verifikasi dicatat di `revision-verification.md`. Test API relevan berada di `tests/Feature/Client/PackageCatalogTest.php`, `tests/Feature/Client/PackageRecommendationTest.php`, `tests/Feature/PackageRecommendationModelTest.php`, serta test pricing, booking, penawaran, dan submission.
+Jalankan pengujian backend pada database testing terisolasi dan build pada kedua frontend. Perintah, hasil pemeriksaan aktual, dan batas verifikasi dicatat di `revision-verification.md`. Test API relevan berada di `tests/Feature/Client/PackageCatalogTest.php`, `tests/Feature/Client/PackageRecommendationTest.php`, `tests/Feature/PackageRecommendationClientTest.php`, serta test pricing, booking, penawaran, dan submission.
 
 UAT perlu dilakukan bersama perwakilan studio dan pelanggan menggunakan akun uji terpisah:
 
@@ -75,3 +75,8 @@ Catat tanggal, versi kedua branch, pelaksana, data uji, hasil aktual, dan temuan
 ## Pengoperasian dan pemeliharaan
 
 Ikuti `deployment.md` untuk konfigurasi produksi, build, migrasi, worker, scheduler, pelatihan katalog, uji publik, dan rollback. Latih ulang rekomendasi setelah katalog berubah dan pantau fallback. Tinjau log kesalahan, job gagal, callback pembayaran, serta backup dan pemulihannya. Simpan bukti publikasi dan persetujuan UAT bersama laporan proyek. Evaluasi kualitas rekomendasi secara terpisah setelah tersedia data pilihan pelanggan yang sah dan independen.
+
+
+## Pembaruan microservice rekomendasi
+
+Training dan inferensi rekomendasi dipindahkan ke Python FastAPI/scikit-learn di https://tungku-recommendation.vercel.app. Laravel hanya adapter HTTP. Endpoint dan tampilan pengguna tetap sama; kualitas terhadap pilihan pelanggan independen belum dievaluasi.

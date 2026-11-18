@@ -37,3 +37,8 @@ Data fasilitas, batas revisi, format hasil, estimasi penyelesaian, dan biaya tam
 Permintaan berikutnya adalah publikasi API terlebih dahulu, kemudian web, pada paket gratis. Ditambahkan Docker/Apache, worker queue dan scheduler, blueprint Render Free, serta proxy Cloudflare Pages untuk mempertahankan cookie sesi pada domain web. CORS backend manager mendukung daftar origin melalui environment. Trusted proxy dapat dikonfigurasi melalui environment pada kedua backend. Tiga endpoint GET milik portal client ditambahkan ke backend manager dengan middleware peran dan filter kepemilikan yang sama; tidak ada perubahan pada action transaksi atau status bisnis.
 
 Verifikasi lanjutan: build Pages pada kedua frontend berhasil, lima test proxy lulus (termasuk cookie, CSRF, POST, error, dan pembatasan upstream), 32 test katalog/rekomendasi/workspace pada backend manager lulus dengan 118 assertion, dan tiga test workspace client lulus dengan 18 assertion. Konfigurasi ini belum menjadi deployment publik dan Docker/TiDB belum diuji pada layanan cloud. Detail kebutuhan akun dan batas paket gratis ada di `free-hosting.md`.
+
+
+## Pembaruan microservice rekomendasi
+
+Training dan inferensi rekomendasi dipindahkan ke Python FastAPI/scikit-learn di https://tungku-recommendation.vercel.app. Laravel hanya adapter HTTP. Endpoint dan tampilan pengguna tetap sama; kualitas terhadap pilihan pelanggan independen belum dievaluasi.

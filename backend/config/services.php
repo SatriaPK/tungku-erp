@@ -1,6 +1,9 @@
 <?php
 
 return [
+    'recommendation' => [
+        'url' => env('RECOMMENDATION_SERVICE_URL', 'https://tungku-recommendation.vercel.app'),
+    ],
 
     /*
     |--------------------------------------------------------------------------
