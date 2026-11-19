@@ -1,4 +1,11 @@
 .coupons-page { display: grid; gap: 20px; min-width: 0; padding: 24px; }
+.coupon-form-grid label:has(> input[type="checkbox"]) { display: flex; flex-wrap: wrap; align-items: center; justify-content: flex-start; gap: 8px; }
+.coupon-form-grid label > input[type="checkbox"] { width: 18px; height: 18px; margin: 0; flex: 0 0 18px; accent-color: var(--ts-primary); }
+.coupon-form-grid fieldset { display: grid; gap: 12px; border: 1px solid var(--ts-outline-variant); border-radius: 12px; padding: 16px; }
+.coupon-form-grid input:disabled { opacity: .55; background: var(--ts-background); }
+.coupons-page > section { padding: 20px; border: 1px solid var(--ts-outline-variant); border-radius: 16px; background: var(--ts-surface); }
+.coupons-page > section > label { display: inline-flex; align-items: center; gap: 12px; margin-right: 16px; }
+.coupons-page > section > label > input { width: 80px; padding: 10px; border: 1px solid var(--ts-outline-variant); border-radius: 8px; }
 .coupons-intro, .coupons-toolbar, .coupon-dialog header { display: flex; align-items: center; justify-content: space-between; gap: 16px; }
 .coupons-intro h2, .coupon-dialog h2 { margin: 0; font-size: 24px; }
 .coupons-intro p, .coupon-dialog header p { margin: 8px 0 0; color: var(--ts-on-surface-variant); }
