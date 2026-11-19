@@ -16,7 +16,8 @@ test('client sees active rooms and only their own projects', function () {
     $outside = Project::factory()->create(['client_id' => $other->id, 'name' => 'Proyek Lain']);
 
     $this->actingAs($client)->getJson('/api/v1/client/rooms')
-        ->assertOk()->assertJsonCount(1, 'data')->assertJsonFragment(['name' => 'Studio A']);
+        ->assertOk()->assertJsonCount(2, 'data')->assertJsonFragment(['name' => 'Studio A'])
+        ->assertJsonFragment(['name' => 'Studio Utama'])->assertDontSee('Studio Tutup');
     $this->getJson('/api/v1/client/projects')->assertOk()
         ->assertJsonCount(1, 'data')->assertJsonPath('data.0.id', $owned->id)
         ->assertDontSee($outside->name);
