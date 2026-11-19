@@ -2,11 +2,13 @@
 
 namespace App\Actions\Payment;
 
+use App\Actions\Booking\CouponPaymentLifecycle;
 use App\Actions\Notification\NotifyBusinessEvent;
 use App\Enum\InvoiceStatus;
 use App\Enum\PaymentProvider;
 use App\Enum\PaymentStatus;
 use App\Enum\PaymentType;
+use App\Models\CouponRedemption;
 use App\Models\Invoice;
 use App\Models\Payment;
 use App\Services\Payment\PaymentGatewayFactory;
@@ -55,6 +57,10 @@ class InitiatePayment
         }
 
         return DB::transaction(function () use ($invoice, $gateway) {
+            $invoice = Invoice::whereKey($invoice->id)->lockForUpdate()->firstOrFail();
+            if ($invoice->status !== InvoiceStatus::Issued || $invoice->payments()->whereIn('status', [PaymentStatus::Pending->value, PaymentStatus::PendingManualConfirmation->value, PaymentStatus::Paid->value])->exists()) {
+                throw new InvalidArgumentException('Invoice already has an active or successful payment.');
+            }
             // Generate unique order ID
             $orderId = sprintf('INV-%s-%05d-%s', now()->format('Ymd'), $invoice->id, Str::upper(Str::random(8)));
 
@@ -70,6 +76,8 @@ class InitiatePayment
                 'expires_at' => now()->addHours(config('payment.expiration_hours', 24)),
             ]);
 
+            app(CouponPaymentLifecycle::class)->reserve($payment);
+
             // Load relationships needed by gateway
             $payment->load('project.client');
 
@@ -84,6 +92,9 @@ class InitiatePayment
                 'snap_token' => $chargeResult['snap_token'],
                 'expires_at' => $chargeResult['expires_at'],
             ]);
+
+            CouponRedemption::where('payment_id', $payment->id)->where('status', 'reserved')
+                ->update(['reserved_until' => $payment->expires_at]);
 
             // Link payment to recording session if applicable
             if ($invoice->recordingSession) {

@@ -3,6 +3,7 @@
 use App\Http\Controllers\Api\V1\Manager\BasePriceController;
 use App\Http\Controllers\Api\V1\Manager\BookingController;
 use App\Http\Controllers\Api\V1\Manager\ClientRecommendationController;
+use App\Http\Controllers\Api\V1\Manager\CouponController;
 use App\Http\Controllers\Api\V1\Manager\CRMCampaignController;
 use App\Http\Controllers\Api\V1\Manager\DashboardController;
 use App\Http\Controllers\Api\V1\Manager\ExpenseCategoryController;
@@ -27,9 +28,11 @@ use Illuminate\Support\Facades\Route;
 Route::middleware(['auth:sanctum', 'active', 'role:manager'])
     ->prefix('manager')
     ->group(function () {
-        Route::get('coupons', [\App\Http\Controllers\Api\V1\Manager\CouponController::class, 'index']);
-        Route::post('coupons', [\App\Http\Controllers\Api\V1\Manager\CouponController::class, 'store']);
-        Route::put('coupons/{coupon}', [\App\Http\Controllers\Api\V1\Manager\CouponController::class, 'update']);
+        Route::get('coupons', [CouponController::class, 'index']);
+        Route::get('coupon-history', [CouponController::class, 'history']);
+        Route::post('coupons/{coupon}/generate', [CouponController::class, 'generate'])->middleware('throttle:bulk-write');
+        Route::post('coupons', [CouponController::class, 'store']);
+        Route::put('coupons/{coupon}', [CouponController::class, 'update']);
         Route::get('dashboard', [DashboardController::class, 'show']);
         Route::get('clients', [WorkspaceLookupController::class, 'clients']);
         Route::get('invoices', [WorkspaceLookupController::class, 'invoices']);

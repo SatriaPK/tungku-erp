@@ -4,6 +4,7 @@ namespace App\Actions\Payment;
 
 use App\Actions\Audit\AuditActor;
 use App\Actions\Audit\RecordBusinessChange;
+use App\Actions\Booking\CouponPaymentLifecycle;
 use App\Actions\Notification\NotifyBusinessEvent;
 use App\Enum\PaymentStatus;
 use App\Enum\PaymentType;
@@ -22,6 +23,7 @@ class ApplyPaidPaymentEffects
             if ($payment->status !== PaymentStatus::Paid) {
                 throw new InvalidArgumentException('Payment must be paid before applying settlement effects.');
             }
+            app(CouponPaymentLifecycle::class)->redeem($payment);
             $audit = app(RecordBusinessChange::class);
             $actor ??= AuditActor::system(self::class);
             $project = $payment->project()->lockForUpdate()->first();

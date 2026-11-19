@@ -8,20 +8,11 @@ use Illuminate\Validation\ValidationException;
 
 class ApplyBookingCoupon
 {
-    public function discount(Coupon $coupon, int $subtotal): int
+    public function discount(Coupon $coupon, int $subtotal, ?int $clientId = null, ?int $packageId = null): int
     {
-        $today = now()->toDateString();
-        $message = ! $coupon->enabled ? 'Kupon sedang nonaktif.' : ($today < $coupon->start ? 'Kupon belum mulai berlaku.' : ($today > $coupon->end ? 'Kupon sudah kedaluwarsa.' : ($coupon->used >= 1 ? 'Kode kupon sudah digunakan.' : ($subtotal < $coupon->minimum ? 'Minimum transaksi kupon belum terpenuhi.' : null))));
-        if ($message) {
-            throw ValidationException::withMessages(['coupon_code' => $message]);
-        }
-        $discount = $coupon->type === 'percent' ? (int) floor($subtotal * $coupon->value / 100) : $coupon->value;
-        if ($coupon->type === 'percent' && $coupon->maximum > 0) {
-            $discount = min($discount, $coupon->maximum);
-        }
+        $rule = $coupon->parent_id ? Coupon::findOrFail($coupon->parent_id) : $coupon;
 
-        // Payment gateway requires a positive payable amount.
-        return max(0, min($discount, $subtotal - 1));
+        return app(CouponEligibility::class)->discount($coupon, $rule, $subtotal, $clientId ?? 0, $packageId);
     }
 
     public function find(string $code, bool $lock = false): Coupon
@@ -36,10 +27,11 @@ class ApplyBookingCoupon
     }
 
     // Called inside HoldSlot's transaction before any payment can be created.
-    public function apply(Invoice $invoice, string $code): void
+    public function apply(Invoice $invoice, string $code, ?int $packageId = null): void
     {
         $coupon = $this->find($code, true);
-        $discount = $this->discount($coupon, $invoice->total);
+        $subtotal = $invoice->total;
+        $discount = $this->discount($coupon, $subtotal, $invoice->client_id, $packageId);
         if ($discount < 1) {
             throw ValidationException::withMessages(['coupon_code' => 'Kupon tidak memberikan potongan untuk tagihan ini.']);
         }
@@ -50,10 +42,10 @@ class ApplyBookingCoupon
             $remaining -= $part;
         }
         $invoice->update(['discount_amount' => $invoice->discount_amount + $discount, 'total' => $invoice->total - $discount,
-            'metadata' => array_merge($invoice->metadata ?? [], ['coupon' => ['code' => $coupon->code, 'discount' => $discount]])]);
+            'metadata' => array_merge($invoice->metadata ?? [], ['coupon' => ['code' => $coupon->code, 'discount' => $discount, 'subtotal' => $subtotal, 'package_id' => $packageId, 'coupon_id' => $coupon->id]])]);
         if ($invoice->project) {
             $invoice->project->update(['price' => $invoice->total, 'po_amount' => $invoice->total]);
         }
-        $coupon->increment('used');
+
     }
 }

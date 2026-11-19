@@ -2,6 +2,7 @@
 
 namespace App\Jobs;
 
+use App\Actions\Booking\CouponPaymentLifecycle;
 use App\Actions\Payment\ConfirmPayment;
 use App\Actions\Payment\ExpirePayment;
 use App\Enum\PaymentStatus;
@@ -195,6 +196,7 @@ class HandlePaymentWebhook implements ShouldQueue
 
         if ($this->parsedData['status'] === PaymentStatus::Failed->value) {
             $payment->update(['status' => PaymentStatus::Failed->value]);
+            app(CouponPaymentLifecycle::class)->release($payment);
 
             // Notify client
             $project = $payment->project;

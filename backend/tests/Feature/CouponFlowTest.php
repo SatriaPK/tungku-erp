@@ -16,7 +16,7 @@ function couponData(array $overrides = []): array
 test('manager creates shared coupon and clients cannot administer coupons', function () {
     $client = User::factory()->client()->create();
     $this->actingAs($client)->postJson('/api/v1/manager/coupons', couponData())->assertForbidden();
-    $this->actingAs(User::factory()->manager()->create())->postJson('/api/v1/manager/coupons', couponData())->assertCreated();
+    $this->actingAs(User::factory()->manager()->create())->postJson('/api/v1/manager/coupons', couponData(['maximum_enabled' => true]))->assertCreated();
     $package = Package::factory()->manualPrice(1000000)->create();
     $this->actingAs($client)->postJson('/api/v1/client/coupons/preview', ['coupon_code' => 'studio10', 'package_id' => $package->id])->assertOk()->assertJsonPath('data.discount', 50000)->assertJsonPath('data.total', 950000);
     $this->assertDatabaseHas('coupons', ['code' => 'STUDIO10', 'used' => 0]);
@@ -31,7 +31,7 @@ test('coupon rules reject expired disabled future minimum and exhausted coupons'
         $this->actingAs($client)->postJson('/api/v1/client/coupons/preview', ['coupon_code' => 'STUDIO10', 'package_id' => $package->id])->assertUnprocessable()->assertJsonValidationErrors('coupon_code');
     }
 });
-test('booking writes discounted invoice and quota is enforced atomically', function () {
+test('booking writes discounted invoice without consuming quota', function () {
     $this->seed(StudioSettingSeeder::class);
     $client = User::factory()->client()->create();
     $room = Room::factory()->create();
@@ -42,8 +42,8 @@ test('booking writes discounted invoice and quota is enforced atomically', funct
     $invoice = Invoice::firstOrFail();
     expect($invoice->total)->toBe(950000)->and($invoice->discount_amount)->toBe(50000)->and((int) $invoice->items()->sum('total'))->toBe(950000);
     $payload['room_id'] = Room::factory()->create()->id;
-    $this->postJson('/api/v1/client/bookings/hold', $payload)->assertUnprocessable();
-    expect(Invoice::count())->toBe(1)->and(RecordingSession::count())->toBe(1)->and(Coupon::first()->used)->toBe(1);
+    $this->postJson('/api/v1/client/bookings/hold', $payload)->assertCreated();
+    expect(Invoice::count())->toBe(2)->and(RecordingSession::count())->toBe(2)->and(Coupon::first()->used)->toBe(0);
 });
 test('fixed discount keeps invoice positive and validates duplicate code', function () {
     $this->actingAs(User::factory()->manager()->create());
@@ -53,23 +53,10 @@ test('fixed discount keeps invoice positive and validates duplicate code', funct
     expect(app(ApplyBookingCoupon::class)->discount($coupon, 100000))->toBe(99999);
 });
 
-test('a code cannot be reused by another client or package even with a legacy high limit', function () {
-    $this->seed(StudioSettingSeeder::class);
-    $client = User::factory()->client()->create();
+test('historically used legacy coupon remains unavailable', function () {
     $coupon = Coupon::create(couponData(['limit' => 100]));
+    $coupon->forceFill(['used' => 1])->save();
+    $client = User::factory()->client()->create();
     $package = Package::factory()->manualPrice(1000000)->create();
-    $payload = ['room_id' => Room::factory()->create()->id, 'package_id' => $package->id, 'coupon_code' => 'STUDIO10',
-        'start_at' => now()->addDays(2)->setTime(10, 0)->toIso8601String(), 'end_at' => now()->addDays(2)->setTime(12, 0)->toIso8601String()];
-    $this->actingAs($client)->postJson('/api/v1/client/bookings/hold', $payload)->assertCreated();
-    $payload['room_id'] = Room::factory()->create()->id;
-    $payload['package_id'] = Package::factory()->manualPrice(2000000)->create()->id;
-    $this->postJson('/api/v1/client/bookings/hold', $payload)->assertUnprocessable()->assertJsonValidationErrors('coupon_code');
-    $this->actingAs(User::factory()->client()->create());
-    $this->postJson('/api/v1/client/coupons/preview', ['coupon_code' => 'studio10', 'package_id' => $payload['package_id']])->assertUnprocessable();
-    $this->postJson('/api/v1/client/bookings/hold', $payload)->assertUnprocessable();
-    expect(Invoice::count())->toBe(1)->and(RecordingSession::count())->toBe(1)->and($coupon->fresh()->used)->toBe(1);
-    $this->actingAs(User::factory()->manager()->create());
-    $this->putJson('/api/v1/manager/coupons/'.$coupon->id, couponData(['code' => 'RENAMED']))->assertUnprocessable();
-    $this->putJson('/api/v1/manager/coupons/'.$coupon->id, couponData(['limit' => 100]))->assertOk()->assertJsonPath('data.limit', 1);
-    $this->postJson('/api/v1/manager/coupons', couponData(['code' => 'ANOTHER', 'limit' => 100]))->assertCreated()->assertJsonPath('data.limit', 1);
+    $this->actingAs($client)->postJson('/api/v1/client/coupons/preview', ['coupon_code' => 'STUDIO10', 'package_id' => $package->id])->assertUnprocessable();
 });

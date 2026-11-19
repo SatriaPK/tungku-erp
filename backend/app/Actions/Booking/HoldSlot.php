@@ -157,7 +157,9 @@ class HoldSlot
                 $invoice = $this->generateInvoice->fromRecordingSession($session);
             }
 
-            if ($couponCode) app(ApplyBookingCoupon::class)->apply($invoice, $couponCode);
+            if ($couponCode) {
+                app(ApplyBookingCoupon::class)->apply($invoice, $couponCode, $packageId);
+            }
 
             return $session;
         });
