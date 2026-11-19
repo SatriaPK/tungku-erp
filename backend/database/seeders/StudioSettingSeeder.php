@@ -48,7 +48,8 @@ class StudioSettingSeeder extends Seeder
         ];
 
         foreach ($settings as $setting) {
-            StudioSetting::updateOrCreate(
+            // firstOrCreate: jangan menimpa nilai yang sudah diubah Manager.
+            StudioSetting::firstOrCreate(
                 ['key' => $setting['key']],
                 $setting
             );
