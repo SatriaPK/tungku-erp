@@ -3,48 +3,52 @@
 use App\Http\Controllers\Api\V1\Manager\BasePriceController;
 use App\Http\Controllers\Api\V1\Manager\BookingController;
 use App\Http\Controllers\Api\V1\Manager\ClientRecommendationController;
+use App\Http\Controllers\Api\V1\Manager\CouponController;
 use App\Http\Controllers\Api\V1\Manager\CRMCampaignController;
 use App\Http\Controllers\Api\V1\Manager\DashboardController;
 use App\Http\Controllers\Api\V1\Manager\ExpenseCategoryController;
 use App\Http\Controllers\Api\V1\Manager\ExpenseController;
 use App\Http\Controllers\Api\V1\Manager\InventoryCategoryController;
 use App\Http\Controllers\Api\V1\Manager\InventoryController;
-use App\Http\Controllers\Api\V1\Manager\ManagerWorkspaceController;
 use App\Http\Controllers\Api\V1\Manager\MonthlyFinanceSummaryController;
 use App\Http\Controllers\Api\V1\Manager\MonthlyPayrollFinalizationController;
-use App\Http\Controllers\Api\V1\Manager\OperatorAccountController;
+use App\Http\Controllers\Api\V1\Manager\OperatorController;
 use App\Http\Controllers\Api\V1\Manager\PackageController;
 use App\Http\Controllers\Api\V1\Manager\PaymentController;
 use App\Http\Controllers\Api\V1\Manager\PayrollAllocationController;
 use App\Http\Controllers\Api\V1\Manager\ProjectAssignmentController;
+use App\Http\Controllers\Api\V1\Manager\ProjectController;
 use App\Http\Controllers\Api\V1\Manager\QuotationController;
 use App\Http\Controllers\Api\V1\Manager\StudioSettingController;
 use App\Http\Controllers\Api\V1\Manager\TrackStageReviewController;
 use App\Http\Controllers\Api\V1\Manager\TrackStageSubmissionHistoryController;
+use App\Http\Controllers\Api\V1\Manager\WorkspaceLookupController;
 use Illuminate\Support\Facades\Route;
 
 Route::middleware(['auth:sanctum', 'active', 'role:manager'])
     ->prefix('manager')
     ->group(function () {
-        Route::get('coupons', [\App\Http\Controllers\Api\V1\Manager\CouponController::class, 'index']);
-        Route::post('coupons', [\App\Http\Controllers\Api\V1\Manager\CouponController::class, 'store']);
-        Route::put('coupons/{coupon}', [\App\Http\Controllers\Api\V1\Manager\CouponController::class, 'update']);
+        Route::get('coupons', [CouponController::class, 'index']);
+        Route::get('coupon-history', [CouponController::class, 'history']);
+        Route::post('coupons/{coupon}/generate', [CouponController::class, 'generate'])->middleware('throttle:bulk-write');
+        Route::post('coupons', [CouponController::class, 'store']);
+        Route::put('coupons/{coupon}', [CouponController::class, 'update']);
         Route::get('dashboard', [DashboardController::class, 'show']);
-        Route::get('projects', [ManagerWorkspaceController::class, 'projects']);
-        Route::get('operators', [ManagerWorkspaceController::class, 'operators']);
-        Route::get('operator-accounts', [OperatorAccountController::class, 'index']);
-        Route::post('operator-accounts', [OperatorAccountController::class, 'store']);
-        Route::put('operator-accounts/{operator}', [OperatorAccountController::class, 'update'])->whereNumber('operator');
-        Route::get('clients', [ManagerWorkspaceController::class, 'clients']);
-        Route::get('invoices', [ManagerWorkspaceController::class, 'invoices']);
+        Route::get('clients', [WorkspaceLookupController::class, 'clients']);
+        Route::get('invoices', [WorkspaceLookupController::class, 'invoices']);
         Route::get('dashboard/operator-activities', [DashboardController::class, 'activities']);
+        Route::get('operators', [OperatorController::class, 'index']);
+        Route::post('operators', [OperatorController::class, 'store']);
+        Route::put('operators/{operator}', [OperatorController::class, 'update'])->whereNumber('operator');
+        Route::delete('operators/{operator}', [OperatorController::class, 'destroy'])->whereNumber('operator');
+        Route::patch('operators/{operator}/status', [OperatorController::class, 'updateStatus'])->whereNumber('operator');
         Route::get('base-prices', [BasePriceController::class, 'index']);
         Route::put('base-prices', [BasePriceController::class, 'update']);
         Route::get('crm/recommendations', [ClientRecommendationController::class, 'index']);
         Route::get('crm/campaigns', [CRMCampaignController::class, 'index']);
         Route::post('crm/campaigns', [CRMCampaignController::class, 'store']);
         Route::get('crm/campaigns/{campaign}', [CRMCampaignController::class, 'show'])->whereNumber('campaign');
-        Route::post('crm/campaigns/{campaign}/dispatch', [CRMCampaignController::class, 'dispatch'])->whereNumber('campaign');
+        Route::post('crm/campaigns/{campaign}/dispatch', [CRMCampaignController::class, 'dispatch'])->whereNumber('campaign')->middleware('throttle:bulk-write');
 
         Route::apiResource('expense-categories', ExpenseCategoryController::class);
         Route::apiResource('expenses', ExpenseController::class);
@@ -53,13 +57,14 @@ Route::middleware(['auth:sanctum', 'active', 'role:manager'])
             ->whereNumber('inventory_category');
         Route::apiResource('inventories', InventoryController::class)->whereNumber('inventory');
         Route::post('inventories/{inventory}/dispose', [InventoryController::class, 'dispose'])->whereNumber('inventory');
-        Route::get('finance/monthly-summary', [MonthlyFinanceSummaryController::class, 'show']);
+        Route::get('finance/monthly-summary', [MonthlyFinanceSummaryController::class, 'show'])->middleware('throttle:expensive-read');
         Route::post('finance/payroll-finalization', [MonthlyPayrollFinalizationController::class, 'store']);
         Route::get('finance/payroll-allocations', [PayrollAllocationController::class, 'show']);
         Route::put('finance/payroll-allocations', [PayrollAllocationController::class, 'update']);
 
         // Harus didaftarkan sebelum apiResource supaya tidak dibaca sebagai {package}
         Route::post('packages/calculate-price', [PackageController::class, 'calculatePrice']);
+        Route::get('packages/summary', [PackageController::class, 'summary']);
         Route::apiResource('packages', PackageController::class);
 
         Route::get('settings', [StudioSettingController::class, 'index']);
@@ -84,6 +89,7 @@ Route::middleware(['auth:sanctum', 'active', 'role:manager'])
 
         Route::post('projects/{project}/assignments', [ProjectAssignmentController::class, 'store'])
             ->whereNumber('project');
+        Route::get('projects', [ProjectController::class, 'index']);
 
         Route::post('track-progress/{progress}/submissions/{submission}/review', [TrackStageReviewController::class, 'store'])
             ->whereNumber(['progress', 'submission']);
@@ -93,7 +99,7 @@ Route::middleware(['auth:sanctum', 'active', 'role:manager'])
         Route::prefix('payments')->group(function () {
             Route::get('/', [PaymentController::class, 'index']);
             Route::get('{payment}', [PaymentController::class, 'show']);
-            Route::post('{payment}/confirm', [PaymentController::class, 'confirm']);
+            Route::post('{payment}/confirm', [PaymentController::class, 'confirm'])->middleware('throttle:finance-write');
             Route::post('{payment}/refund', [PaymentController::class, 'refund']);
             Route::post('{payment}/cancel', [PaymentController::class, 'cancel']);
         });

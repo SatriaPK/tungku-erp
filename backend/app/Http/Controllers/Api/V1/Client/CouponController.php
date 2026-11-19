@@ -23,7 +23,7 @@ class CouponController extends Controller
             $subtotal = $quote->agreed_price;
         }
         $coupon = $action->find($data['coupon_code']);
-        $discount = $action->discount($coupon, (int) $subtotal);
+        $discount = $action->discount($coupon, (int) $subtotal, $request->user()->id, $data['package_id'] ?? null);
 
         return response()->json(['data' => ['code' => $coupon->code, 'subtotal' => (int) $subtotal, 'discount' => $discount, 'total' => $subtotal - $discount]]);
     }
