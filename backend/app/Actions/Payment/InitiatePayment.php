@@ -3,7 +3,6 @@
 namespace App\Actions\Payment;
 
 use App\Actions\Booking\CouponPaymentLifecycle;
-use App\Actions\Notification\NotifyBusinessEvent;
 use App\Enum\InvoiceStatus;
 use App\Enum\PaymentProvider;
 use App\Enum\PaymentStatus;
@@ -109,7 +108,6 @@ class InitiatePayment
             ]);
 
             $payment = $payment->refresh();
-            app(NotifyBusinessEvent::class)->paymentCreated($payment);
 
             return $payment;
         });
