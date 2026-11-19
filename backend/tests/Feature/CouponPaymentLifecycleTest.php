@@ -108,6 +108,21 @@ test('unique child is consumed only by successful payment and cannot be reused',
     $service->reserve(paymentForCoupon($child));
 })->throws(ValidationException::class);
 
+test('payment actions release cancelled coupon and redeem successful retry', function () {
+    $coupon = generalCoupon();
+    $first = paymentForCoupon($coupon);
+    $service = app(CouponPaymentLifecycle::class);
+    $service->reserve($first);
+    app(\App\Actions\Payment\CancelPayment::class)->execute($first, 'Client cancelled');
+    expect($coupon->fresh()->used)->toBe(0);
+    $retry = Payment::factory()->cash()->create(['invoice_id' => $first->invoice_id, 'amount' => 90000]);
+    $service->reserve($retry);
+    app(\App\Actions\Payment\ConfirmManualPayment::class)->execute($retry, 'Test payment confirmation');
+    expect($coupon->fresh()->used)->toBe(1);
+    $this->assertDatabaseHas('coupon_redemptions', ['payment_id' => $first->id, 'status' => 'released']);
+    $this->assertDatabaseHas('coupon_redemptions', ['payment_id' => $retry->id, 'status' => 'redeemed']);
+});
+
 test('late cancellation cannot overwrite a concurrently paid payment', function () {
     $payment = Payment::factory()->create();
     Payment::whereKey($payment->id)->update(['status' => 'paid']);
