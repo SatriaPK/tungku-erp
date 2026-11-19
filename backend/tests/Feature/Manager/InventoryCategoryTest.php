@@ -7,6 +7,8 @@ use App\Models\User;
 use Laravel\Sanctum\Sanctum;
 
 beforeEach(function () {
+    // Isolate CRUD fixtures from the production reference categories.
+    InventoryCategory::query()->delete();
     Sanctum::actingAs(User::factory()->manager()->create());
 });
 

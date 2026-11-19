@@ -20,6 +20,8 @@ sed -i "s/^Listen 80$/Listen $port/" /etc/apache2/ports.conf
 sed -i "s/\*:10000>/*:$port>/" /etc/apache2/sites-available/000-default.conf
 php artisan config:clear
 php artisan migrate --force
+# Reference rows only (rooms, prices, categories, settings); never users or demo data.
+php artisan db:seed --class=ReferenceDataSeeder --force
 php artisan config:cache
 php artisan view:cache
 

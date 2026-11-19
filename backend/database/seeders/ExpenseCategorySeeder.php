@@ -14,10 +14,12 @@ class ExpenseCategorySeeder extends Seeder
     public function run(): void
     {
         $categories = [
-            'Sewa tempat',
-            'Listrik dan internet',
-            'Peralatan',
-            'Perawatan dan servis',
+            'Sewa Studio',
+            'Listrik dan Air',
+            'Internet dan Telepon',
+            'Perlengkapan Studio',
+            'Perawatan Peralatan',
+            'Kebersihan',
             'Konsumsi',
             'Pemasaran',
             'Lain-lain',

@@ -10,6 +10,8 @@ use Illuminate\Validation\ValidationException;
 use Laravel\Sanctum\Sanctum;
 
 beforeEach(function () {
+    // Isolate CRUD fixtures from the production reference categories.
+    ExpenseCategory::query()->delete();
     Sanctum::actingAs(User::factory()->manager()->create());
 });
 
