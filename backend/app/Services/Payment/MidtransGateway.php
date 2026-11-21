@@ -31,6 +31,9 @@ class MidtransGateway implements PaymentGatewayInterface
 
     public function createCharge(Payment $payment): array
     {
+        if (! is_string(config('payment.midtrans.server_key')) || trim((string) config('payment.midtrans.server_key')) === '') {
+            throw PaymentGatewayException::createChargeFailed('Midtrans', 'MIDTRANS_SERVER_KEY belum dikonfigurasi.');
+        }
         try {
             $params = [
                 'transaction_details' => [
@@ -77,6 +80,9 @@ class MidtransGateway implements PaymentGatewayInterface
 
     public function getChargeStatus(string $chargeId): string
     {
+        if (! is_string(config('payment.midtrans.server_key')) || trim((string) config('payment.midtrans.server_key')) === '') {
+            throw PaymentGatewayException::statusCheckFailed('Midtrans', $chargeId);
+        }
         try {
             $status = (object) Transaction::status($chargeId);
 
@@ -93,6 +99,9 @@ class MidtransGateway implements PaymentGatewayInterface
 
     public function processRefund(Payment $payment, int $amount, string $reason): array
     {
+        if (! is_string(config('payment.midtrans.server_key')) || trim((string) config('payment.midtrans.server_key')) === '') {
+            throw PaymentGatewayException::refundFailed('Midtrans', 'MIDTRANS_SERVER_KEY belum dikonfigurasi.');
+        }
         try {
             $params = [
                 'refund_key' => 'refund-'.$payment->order_id.'-'.time(),
