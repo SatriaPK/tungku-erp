@@ -9,8 +9,10 @@ use App\Http\Controllers\Api\V1\Manager\ExpenseCategoryController;
 use App\Http\Controllers\Api\V1\Manager\ExpenseController;
 use App\Http\Controllers\Api\V1\Manager\InventoryCategoryController;
 use App\Http\Controllers\Api\V1\Manager\InventoryController;
+use App\Http\Controllers\Api\V1\Manager\ManagerWorkspaceController;
 use App\Http\Controllers\Api\V1\Manager\MonthlyFinanceSummaryController;
 use App\Http\Controllers\Api\V1\Manager\MonthlyPayrollFinalizationController;
+use App\Http\Controllers\Api\V1\Manager\OperatorAccountController;
 use App\Http\Controllers\Api\V1\Manager\PackageController;
 use App\Http\Controllers\Api\V1\Manager\PaymentController;
 use App\Http\Controllers\Api\V1\Manager\PayrollAllocationController;
@@ -24,7 +26,19 @@ use Illuminate\Support\Facades\Route;
 Route::middleware(['auth:sanctum', 'active', 'role:manager'])
     ->prefix('manager')
     ->group(function () {
+        Route::get('coupons', [\App\Http\Controllers\Api\V1\Manager\CouponController::class, 'index']);
+        Route::post('coupons', [\App\Http\Controllers\Api\V1\Manager\CouponController::class, 'store']);
+        Route::put('coupons/{coupon}', [\App\Http\Controllers\Api\V1\Manager\CouponController::class, 'update']);
+        Route::get('coupon-history', [\App\Http\Controllers\Api\V1\Manager\CouponController::class, 'history']);
+        Route::post('coupons/{coupon}/generate', [\App\Http\Controllers\Api\V1\Manager\CouponController::class, 'generate'])->middleware('throttle:30,1');
         Route::get('dashboard', [DashboardController::class, 'show']);
+        Route::get('projects', [ManagerWorkspaceController::class, 'projects']);
+        Route::get('operators', [ManagerWorkspaceController::class, 'operators']);
+        Route::get('operator-accounts', [OperatorAccountController::class, 'index']);
+        Route::post('operator-accounts', [OperatorAccountController::class, 'store']);
+        Route::put('operator-accounts/{operator}', [OperatorAccountController::class, 'update'])->whereNumber('operator');
+        Route::get('clients', [ManagerWorkspaceController::class, 'clients']);
+        Route::get('invoices', [ManagerWorkspaceController::class, 'invoices']);
         Route::get('dashboard/operator-activities', [DashboardController::class, 'activities']);
         Route::get('base-prices', [BasePriceController::class, 'index']);
         Route::put('base-prices', [BasePriceController::class, 'update']);
@@ -66,6 +80,7 @@ Route::middleware(['auth:sanctum', 'active', 'role:manager'])
         Route::prefix('quotations')->group(function () {
             Route::get('/', [QuotationController::class, 'index']);
             Route::get('{quotation}', [QuotationController::class, 'show']);
+            Route::post('{quotation}/send-missing-offer', [QuotationController::class, 'sendMissingOffer']);
             Route::post('{quotation}/respond', [QuotationController::class, 'respond']);
         });
 

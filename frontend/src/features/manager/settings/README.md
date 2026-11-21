@@ -1,0 +1,1 @@
+Manager studio settings, base prices, and package administration live here.

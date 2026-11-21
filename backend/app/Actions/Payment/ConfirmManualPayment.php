@@ -63,6 +63,8 @@ class ConfirmManualPayment
                 'notes' => $note,
             ]);
 
+            app(\App\Actions\Booking\CouponPaymentLifecycle::class)->redeem($payment);
+
             if ($payment->type === PaymentType::Final) {
                 app(SettleFinalPayment::class)->execute($payment);
             }

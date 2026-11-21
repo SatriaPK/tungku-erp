@@ -1,17 +1,24 @@
 <?php
 
 use App\Http\Controllers\Api\V1\Client\BookingController;
+use App\Http\Controllers\Api\V1\Client\ClientWorkspaceController;
 use App\Http\Controllers\Api\V1\Client\FinalDeliveryController;
 use App\Http\Controllers\Api\V1\Client\InvoiceController;
 use App\Http\Controllers\Api\V1\Client\PackageCatalogController;
+use App\Http\Controllers\Api\V1\Client\PackageRecommendationController;
 use App\Http\Controllers\Api\V1\Client\PaymentController;
 use App\Http\Controllers\Api\V1\Client\QuotationController;
 use Illuminate\Support\Facades\Route;
 
 Route::prefix('client')
-    ->middleware(['auth:sanctum', 'active'])
+    ->middleware(['auth:sanctum', 'active', 'role:client'])
     ->group(function () {
+        Route::get('package-recommendations', PackageRecommendationController::class);
+        Route::post('coupons/preview', [\App\Http\Controllers\Api\V1\Client\CouponController::class, 'preview']);
         Route::get('packages', [PackageCatalogController::class, 'index']);
+        Route::get('base-prices', [PackageCatalogController::class, 'prices']);
+        Route::get('rooms', [ClientWorkspaceController::class, 'rooms']);
+        Route::get('projects', [ClientWorkspaceController::class, 'projects']);
         Route::get('projects/{project}/final-delivery', [FinalDeliveryController::class, 'show'])
             ->whereNumber('project');
 

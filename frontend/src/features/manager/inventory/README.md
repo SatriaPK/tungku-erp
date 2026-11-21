@@ -1,0 +1,1 @@
+Manager inventory and inventory-category workflows live here.

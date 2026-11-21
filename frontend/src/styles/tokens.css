@@ -1,0 +1,179 @@
+:root {
+  /* Tungku Studio colors from docs/variables/color_style.txt */
+  --ts-primary: #ce4337;
+  --ts-on-primary: #ffffff;
+  --ts-primary-container: #ffdad5;
+  --ts-on-primary-container: #410002;
+
+  --ts-secondary: #2b2626;
+  --ts-on-secondary: #ffffff;
+  --ts-secondary-container: #e8e1df;
+  --ts-on-secondary-container: #1f1a19;
+
+  --ts-tertiary: #7a5900;
+  --ts-on-tertiary: #ffffff;
+  --ts-tertiary-container: #ffdea0;
+  --ts-on-tertiary-container: #261900;
+
+  --ts-success: #006d3b;
+  --ts-on-success: #ffffff;
+  --ts-success-container: #bce8c3;
+  --ts-on-success-container: #00210e;
+
+  --ts-warning: #b25e00;
+  --ts-on-warning: #ffffff;
+  --ts-warning-container: #ffdbb5;
+  --ts-on-warning-container: #341a00;
+
+  --ts-error: #b0002a;
+  --ts-on-error: #ffffff;
+  --ts-error-container: #ffd9dc;
+  --ts-on-error-container: #410009;
+
+  --ts-background: #fbf8f6;
+  --ts-on-background: #1d1b1a;
+  --ts-inverse-background: #322f2e;
+  --ts-on-inverse-background: #f5efed;
+
+  --ts-surface: #ffffff;
+  --ts-on-surface: #1d1b1a;
+  --ts-surface-variant: #efe6e3;
+  --ts-on-surface-variant: #4f4543;
+
+  --ts-outline: #857370;
+  --ts-outline-variant: #d6cbc8;
+
+  /* Spacing scale: 4px base grid from docs/ui_design/Spacing_and_Sizing.png */
+  --ts-space-0: 0px;
+  --ts-space-1: 4px;
+  --ts-space-2: 8px;
+  --ts-space-3: 12px;
+  --ts-space-4: 16px;
+  --ts-space-6: 24px;
+  --ts-space-8: 32px;
+  --ts-space-10: 40px;
+  --ts-space-12: 48px;
+
+  /* Corner radius scale from docs/ui_design/Spacing_and_Sizing.png */
+  --ts-radius-none: 0px;
+  --ts-radius-xs: 4px;
+  --ts-radius-sm: 8px;
+  --ts-radius-md: 12px;
+  --ts-radius-lg: 16px;
+  --ts-radius-xl: 24px;
+  --ts-radius-full: 36px;
+
+  /* Elevation scale: 0-5 from docs/ui_design/Spacing_and_Sizing.png */
+  --ts-elevation-0: none;
+  --ts-elevation-1: 0 1px 3px rgb(29 27 26 / 12%);
+  --ts-elevation-2: 0 3px 6px rgb(29 27 26 / 14%);
+  --ts-elevation-3: 0 6px 8px rgb(29 27 26 / 16%);
+  --ts-elevation-4: 0 8px 12px rgb(29 27 26 / 18%);
+  --ts-elevation-5: 0 12px 16px rgb(29 27 26 / 20%);
+
+  /* Icon sizes and recommended touch targets from Component_Guidelines.png */
+  --ts-icon-sm: 16px;
+  --ts-icon-md: 20px;
+  --ts-icon-lg: 32px;
+  --ts-icon-xl: 40px;
+  --ts-icon-2xl: 48px;
+  --ts-target-sm: 32px;
+  --ts-target-md: 40px;
+  --ts-target-lg: 48px;
+
+  /* Typography scale from docs/variables/text_style.json and Typhography.png */
+  --ts-font-family: 'DM Sans', sans-serif;
+  --ts-display-large-size: 57px;
+  --ts-display-large-weight: 700;
+  --ts-display-large-line-height: 64px;
+  --ts-display-large-letter-spacing: -0.1425px;
+  --ts-display-medium-size: 45px;
+  --ts-display-medium-weight: 700;
+  --ts-display-medium-line-height: 52px;
+  --ts-display-small-size: 36px;
+  --ts-display-small-weight: 700;
+  --ts-display-small-line-height: 44px;
+  --ts-headline-large-size: 32px;
+  --ts-headline-large-weight: 700;
+  --ts-headline-large-line-height: 40px;
+  --ts-headline-medium-size: 28px;
+  --ts-headline-medium-weight: 700;
+  --ts-headline-medium-line-height: 36px;
+  --ts-headline-small-size: 24px;
+  --ts-headline-small-weight: 400;
+  --ts-headline-small-line-height: 28px;
+  --ts-title-large-size: 22px;
+  --ts-title-large-weight: 400;
+  --ts-title-large-line-height: 28px;
+  --ts-title-medium-size: 16px;
+  --ts-title-medium-weight: 500;
+  --ts-title-medium-line-height: 24px;
+  --ts-title-medium-letter-spacing: 0.024px;
+  --ts-title-small-size: 14px;
+  --ts-title-small-weight: 500;
+  --ts-title-small-line-height: 20px;
+  --ts-title-small-letter-spacing: 0.014px;
+  --ts-body-large-size: 16px;
+  --ts-body-large-weight: 400;
+  --ts-body-large-line-height: 24px;
+  --ts-body-large-letter-spacing: 0.08px;
+  --ts-body-medium-size: 14px;
+  --ts-body-medium-weight: 400;
+  --ts-body-medium-line-height: 20px;
+  --ts-body-medium-letter-spacing: 0.035px;
+  --ts-body-small-size: 13px;
+  --ts-body-small-weight: 400;
+  --ts-body-small-line-height: 16px;
+  --ts-body-small-letter-spacing: 0.052px;
+  --ts-label-large-size: 14px;
+  --ts-label-large-weight: 500;
+  --ts-label-large-line-height: 20px;
+  --ts-label-large-letter-spacing: 0.014px;
+  --ts-label-medium-size: 12px;
+  --ts-label-medium-weight: 500;
+  --ts-label-medium-line-height: 16px;
+  --ts-label-medium-letter-spacing: 0.06px;
+  --ts-label-small-size: 11px;
+  --ts-label-small-weight: 500;
+  --ts-label-small-line-height: 16px;
+  --ts-label-small-letter-spacing: 0.055px;
+
+  /* Complete typography presets for concise, consistent usage */
+  --ts-display-large: var(--ts-display-large-weight) var(--ts-display-large-size)/var(--ts-display-large-line-height) var(--ts-font-family);
+  --ts-display-medium: var(--ts-display-medium-weight) var(--ts-display-medium-size)/var(--ts-display-medium-line-height) var(--ts-font-family);
+  --ts-display-small: var(--ts-display-small-weight) var(--ts-display-small-size)/var(--ts-display-small-line-height) var(--ts-font-family);
+  --ts-headline-large: var(--ts-headline-large-weight) var(--ts-headline-large-size)/var(--ts-headline-large-line-height) var(--ts-font-family);
+  --ts-headline-medium: var(--ts-headline-medium-weight) var(--ts-headline-medium-size)/var(--ts-headline-medium-line-height) var(--ts-font-family);
+  --ts-headline-small: var(--ts-headline-small-weight) var(--ts-headline-small-size)/var(--ts-headline-small-line-height) var(--ts-font-family);
+  --ts-title-large: var(--ts-title-large-weight) var(--ts-title-large-size)/var(--ts-title-large-line-height) var(--ts-font-family);
+  --ts-title-medium: var(--ts-title-medium-weight) var(--ts-title-medium-size)/var(--ts-title-medium-line-height) var(--ts-font-family);
+  --ts-title-small: var(--ts-title-small-weight) var(--ts-title-small-size)/var(--ts-title-small-line-height) var(--ts-font-family);
+  --ts-body-large: var(--ts-body-large-weight) var(--ts-body-large-size)/var(--ts-body-large-line-height) var(--ts-font-family);
+  --ts-body-medium: var(--ts-body-medium-weight) var(--ts-body-medium-size)/var(--ts-body-medium-line-height) var(--ts-font-family);
+  --ts-body-small: var(--ts-body-small-weight) var(--ts-body-small-size)/var(--ts-body-small-line-height) var(--ts-font-family);
+  --ts-label-large: var(--ts-label-large-weight) var(--ts-label-large-size)/var(--ts-label-large-line-height) var(--ts-font-family);
+  --ts-label-medium: var(--ts-label-medium-weight) var(--ts-label-medium-size)/var(--ts-label-medium-line-height) var(--ts-font-family);
+  --ts-label-small: var(--ts-label-small-weight) var(--ts-label-small-size)/var(--ts-label-small-line-height) var(--ts-font-family);
+
+  --ts-tracking-display-large: var(--ts-display-large-letter-spacing, normal);
+  --ts-tracking-title-medium: var(--ts-title-medium-letter-spacing, normal);
+  --ts-tracking-title-small: var(--ts-title-small-letter-spacing, normal);
+  --ts-tracking-body-large: var(--ts-body-large-letter-spacing, normal);
+  --ts-tracking-body-medium: var(--ts-body-medium-letter-spacing, normal);
+  --ts-tracking-body-small: var(--ts-body-small-letter-spacing, normal);
+  --ts-tracking-label-large: var(--ts-label-large-letter-spacing, normal);
+  --ts-tracking-label-medium: var(--ts-label-medium-letter-spacing, normal);
+  --ts-tracking-label-small: var(--ts-label-small-letter-spacing, normal);
+
+  /* Semantic aliases used by application modules */
+  --color-primary: var(--ts-primary);
+  --color-on-primary: var(--ts-on-primary);
+  --color-background: var(--ts-background);
+  --color-on-background: var(--ts-on-background);
+  --color-surface: var(--ts-surface);
+  --color-on-surface: var(--ts-on-surface);
+  --color-outline: var(--ts-outline);
+  --color-outline-variant: var(--ts-outline-variant);
+
+  --font-family-sans: var(--ts-font-family);
+}

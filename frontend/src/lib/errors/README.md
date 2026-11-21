@@ -1,0 +1,1 @@
+Place shared API error normalization and user-facing error helpers here.

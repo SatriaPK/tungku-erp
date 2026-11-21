@@ -2,6 +2,7 @@
 
 namespace App\Actions\Payment;
 
+use App\Actions\Booking\CouponPaymentLifecycle;
 use App\Enum\PaymentStatus;
 use App\Enum\SessionStatus;
 use App\Models\Payment;
@@ -44,10 +45,17 @@ class ExpirePayment
         }
 
         return DB::transaction(function () use ($payment) {
+            $payment = Payment::whereKey($payment->id)->lockForUpdate()->firstOrFail();
+            if (! in_array($payment->status, [PaymentStatus::Pending, PaymentStatus::PendingManualConfirmation])
+                || ($payment->expires_at && $payment->expires_at->isFuture())) {
+                return $payment;
+            }
             // Update payment status
             $payment->update([
                 'status' => PaymentStatus::Expired,
             ]);
+
+            app(CouponPaymentLifecycle::class)->release($payment);
 
             // Release held recording sessions
             foreach ($payment->recordingSessions()->get() as $session) {

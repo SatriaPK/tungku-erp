@@ -1,0 +1,15 @@
+{
+  "$schema": "https://openapi.vercel.sh/vercel.json",
+  "framework": "vite",
+  "buildCommand": "node deploy/build-vercel.mjs",
+  "outputDirectory": "dist",
+  "rewrites": [
+    { "source": "/api/:path*", "destination": "https://tungku-api.ethiodeploy.app/api/:path*" },
+    { "source": "/sanctum/:path*", "destination": "https://tungku-api.ethiodeploy.app/sanctum/:path*" },
+    { "source": "/((?!api(?:/|$)|sanctum(?:/|$)).*)", "destination": "/index.html" }
+  ],
+  "headers": [
+    { "source": "/api/:path*", "headers": [{ "key": "Cache-Control", "value": "private, no-store" }] },
+    { "source": "/sanctum/:path*", "headers": [{ "key": "Cache-Control", "value": "private, no-store" }] }
+  ]
+}

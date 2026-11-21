@@ -80,6 +80,7 @@ class ConfirmPayment
             ]);
 
             // Update invoice if exists
+            app(\App\Actions\Booking\CouponPaymentLifecycle::class)->redeem($payment);
             if ($payment->invoice) {
                 $payment->invoice->markAsPaid();
             }
