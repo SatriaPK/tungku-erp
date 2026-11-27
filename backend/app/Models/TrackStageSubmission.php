@@ -31,6 +31,7 @@ class TrackStageSubmission extends Model
         ];
     }
 
+    /** @return BelongsTo<TrackStageProgress, $this> */
     public function progress(): BelongsTo
     {
         return $this->belongsTo(TrackStageProgress::class, 'track_stage_progress_id');

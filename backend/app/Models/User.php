@@ -115,6 +115,7 @@ class User extends Authenticatable
     /**
      * Tahap produksi yang ditugaskan ke operator ini.
      */
+    /** @return HasMany<ProjectStage, $this> */
     public function stageAssignments(): HasMany
     {
         return $this->hasMany(ProjectStage::class, 'operator_id');

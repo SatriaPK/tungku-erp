@@ -127,26 +127,24 @@ test('inactive packages are not returned', function () {
         ->assertJsonCount(1, 'data');
 });
 
-test('manager can access package catalog', function () {
+test('manager cannot access package catalog', function () {
     Package::factory()->create(['is_active' => true]);
 
     actingAs($this->manager);
 
     $response = getJson('/api/v1/client/packages');
 
-    $response->assertOk()
-        ->assertJsonCount(1, 'data');
+    $response->assertForbidden();
 });
 
-test('operator can access package catalog', function () {
+test('operator cannot access package catalog', function () {
     Package::factory()->create(['is_active' => true]);
 
     actingAs($this->operator);
 
     $response = getJson('/api/v1/client/packages');
 
-    $response->assertOk()
-        ->assertJsonCount(1, 'data');
+    $response->assertForbidden();
 });
 
 test('unauthenticated user cannot access package catalog', function () {

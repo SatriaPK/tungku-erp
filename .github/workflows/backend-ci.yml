@@ -1,0 +1,132 @@
+name: Backend checks
+
+on:
+  pull_request:
+    paths: ['backend/**', 'recommendation-service/**', '.github/workflows/backend-ci.yml']
+  push:
+    paths: ['backend/**', 'recommendation-service/**', '.github/workflows/backend-ci.yml']
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: backend-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+defaults:
+  run:
+    working-directory: backend
+
+env:
+  APP_ENV: testing
+  APP_TIMEZONE: Asia/Jakarta
+  APP_DEBUG: 'false'
+  CACHE_STORE: array
+  SESSION_DRIVER: array
+  QUEUE_CONNECTION: sync
+  MAIL_MAILER: array
+  SENTRY_LARAVEL_DSN: ''
+
+jobs:
+  quality:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 20
+    env:
+      DB_CONNECTION: sqlite
+      RECOMMENDATION_SERVICE_URL: http://127.0.0.1:8010
+      DB_DATABASE: ${{ github.workspace }}/backend/database/ci.sqlite
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          persist-credentials: false
+      - uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.3'
+          extensions: dom, fileinfo, mbstring, pdo_sqlite, pdo_mysql, bcmath, curl, zip
+          coverage: none
+          tools: composer:v2
+      - uses: actions/cache@v6
+        with:
+          path: ~/.cache/composer/files
+          key: composer-${{ runner.os }}-php83-${{ hashFiles('backend/composer.lock') }}
+      - run: composer install --prefer-dist --no-interaction --no-progress
+      - name: Test and start the separate Python recommendation service
+        working-directory: recommendation-service
+        run: |
+          python3 -m venv .venv
+          .venv/bin/pip install -r requirements.txt httpx
+          .venv/bin/python -m unittest -v
+          nohup .venv/bin/python -m uvicorn app:app --host 127.0.0.1 --port 8010 > "$RUNNER_TEMP/recommendation.log" 2>&1 &
+          for attempt in $(seq 1 30); do
+            if curl --fail --silent http://127.0.0.1:8010/health; then exit 0; fi
+            sleep 1
+          done
+          cat "$RUNNER_TEMP/recommendation.log"
+          exit 1
+      - name: Prepare disposable environment
+        run: |
+          cp .env.example .env
+          php artisan key:generate --no-interaction
+          touch "$DB_DATABASE"
+          php artisan migrate --force --no-interaction
+      - run: composer lint:check
+      - run: php vendor/bin/phpstan analyse --memory-limit=1G --no-progress --error-format=github
+      - name: Test SQLite contracts and report provider skips
+        run: php vendor/bin/pest --compact --log-junit storage/logs/tests-sqlite.xml
+      - name: Export frontend API reference
+        run: php artisan api:docs --output=storage/app/private --no-interaction
+      - uses: actions/upload-artifact@v7
+        if: always()
+        with:
+          name: backend-contracts-and-tests
+          retention-days: 7
+          path: |
+            backend/storage/logs/tests-sqlite.xml
+            backend/storage/app/private/openapi.json
+            backend/storage/app/private/API_REFERENCE.md
+
+  mysql-concurrency:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 20
+    services:
+      mysql:
+        image: mysql:8.4
+        env:
+          MYSQL_ALLOW_EMPTY_PASSWORD: 'yes'
+          MYSQL_ROOT_HOST: '%'
+        ports: ['33317:3306']
+        options: >-
+          --health-cmd="mysqladmin ping --silent"
+          --health-interval=10s --health-timeout=5s --health-retries=12
+    env:
+      PHASE17_MYSQL_TESTS: '1'
+      PHASE18_MYSQL_TESTS: '1'
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          persist-credentials: false
+      - uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.3'
+          extensions: dom, fileinfo, mbstring, pdo_sqlite, pdo_mysql, bcmath, curl, zip
+          coverage: none
+          tools: composer:v2
+      - uses: actions/cache@v6
+        with:
+          path: ~/.cache/composer/files
+          key: composer-${{ runner.os }}-php83-${{ hashFiles('backend/composer.lock') }}
+      - run: composer install --prefer-dist --no-interaction --no-progress
+      - run: |
+          cp .env.example .env
+          php artisan key:generate --no-interaction
+      - name: Test real InnoDB lock contention
+        run: php vendor/bin/pest tests/Feature/Integration/OperatorActivityMySqlConcurrencyTest.php tests/Feature/NotificationMySqlConcurrencyTest.php --compact --log-junit storage/logs/tests-mysql.xml
+      - uses: actions/upload-artifact@v7
+        if: always()
+        with:
+          name: backend-mysql-tests
+          retention-days: 7
+          path: |
+            backend/storage/logs/tests-mysql.xml
+            backend/storage/logs/phase17-mysql-query-plan.json

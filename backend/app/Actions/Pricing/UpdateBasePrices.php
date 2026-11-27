@@ -2,6 +2,8 @@
 
 namespace App\Actions\Pricing;
 
+use App\Actions\Audit\AuditActor;
+use App\Actions\Audit\RecordBusinessChange;
 use App\Models\BasePrice;
 use App\Models\Package;
 use App\Models\User;
@@ -28,13 +30,16 @@ class UpdateBasePrices
                 ]);
             }
 
-            Package::query()->each(function (Package $package) {
+            Package::query()->each(function (Package $package) use ($manager) {
+                $audit = app(RecordBusinessChange::class);
+                $before = $audit->snapshot($package);
                 $package->auto_price = $this->calculator->handle(
                     $package->track_count,
                     $package->recording_hours,
                     $package->includedStages(),
                 );
                 $package->save();
+                $audit->handle($package, 'package.price_recalculated', $before, AuditActor::user($manager));
             });
         });
     }

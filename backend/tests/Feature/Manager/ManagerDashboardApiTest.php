@@ -39,7 +39,7 @@ it('returns 403 to other roles and inactive managers', function (string $path, s
 it('returns the complete empty dashboard contract using server time', function () {
     Sanctum::actingAs(User::factory()->manager()->create());
 
-    $response = $this->getJson('/api/v1/manager/dashboard?year=2000&month=1&as_of=2000-01-01')->assertOk();
+    $response = $this->getJson('/api/v1/manager/dashboard?month=1&as_of=2000-01-01')->assertOk();
     $response->assertJsonPath('data.as_of', '2026-10-15T12:00:00+07:00')
         ->assertJsonPath('data.period', ['year' => 2026, 'month' => 10, 'timezone' => 'Asia/Jakarta',
             'today' => '2026-10-15', 'month_start' => '2026-10-01T00:00:00+07:00', 'next_month_start' => '2026-11-01T00:00:00+07:00'])
@@ -55,8 +55,21 @@ it('returns the complete empty dashboard contract using server time', function (
         ->assertJsonPath('data.unclassified_track_count', 0)
         ->assertJsonPath('data.recording_schedule', [])->assertJsonPath('data.project_progress', [])
         ->assertJsonPath('data.quotation_progress', [])->assertJsonPath('data.operator_activities', []);
-    expect(array_keys($response->json('data')))->toHaveCount(17);
+    expect(array_keys($response->json('data')))->toHaveCount(18);
     expect($response->json('data.expense'))->toBe($response->json('data.revenue'));
+});
+
+it('returns dashboard monthly financial data for the requested year', function () {
+    Sanctum::actingAs(User::factory()->manager()->create());
+    Payment::factory()->paid()->create(['project_id' => null, 'paid_at' => '2025-03-10', 'amount' => 750]);
+    Expense::create(['expense_category_id' => ExpenseCategory::create(['name' => 'Operasional', 'is_active' => true])->id,
+        'recorded_by' => User::factory()->manager()->create()->id, 'amount' => 250,
+        'spent_on' => '2025-03-10', 'description' => 'Biaya studio']);
+
+    $this->getJson('/api/v1/manager/dashboard?year=2025')->assertOk()
+        ->assertJsonPath('data.period.year', 2025)
+        ->assertJsonPath('data.annual_totals', ['revenue' => 750, 'expense' => 250])
+        ->assertJsonPath('data.monthly.2', ['month' => 3, 'revenue' => 750, 'expense' => 250]);
 });
 
 it('returns an empty standalone feed', function () {

@@ -1,0 +1,1 @@
+Client invoice payments and final-payment workflows live here; payment completion must be confirmed by the API.

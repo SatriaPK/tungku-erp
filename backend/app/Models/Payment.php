@@ -74,11 +74,13 @@ class Payment extends Model
         $query->where('status', PaymentStatus::Paid->value);
     }
 
+    /** @return BelongsTo<Project, $this> */
     public function project(): BelongsTo
     {
         return $this->belongsTo(Project::class);
     }
 
+    /** @return BelongsTo<Invoice, $this> */
     public function invoice(): BelongsTo
     {
         return $this->belongsTo(Invoice::class);
@@ -92,6 +94,7 @@ class Payment extends Model
     /**
      * Recording sessions yang dibayar dengan payment ini.
      */
+    /** @return HasMany<RecordingSession, $this> */
     public function recordingSessions(): HasMany
     {
         return $this->hasMany(RecordingSession::class);

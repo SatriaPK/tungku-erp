@@ -6,6 +6,7 @@ use App\Actions\Booking\CancelSlot;
 use App\Actions\Booking\CheckAvailability;
 use App\Actions\Booking\ConfirmSlot;
 use App\Actions\Booking\HoldSlot;
+use App\Enum\PaymentStatus;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Booking\CancelBookingRequest;
 use App\Http\Requests\Booking\CheckAvailabilityRequest;
@@ -79,6 +80,7 @@ class BookingController extends Controller
      */
     public function holdSlot(HoldSlotRequest $request): JsonResponse
     {
+        abort_unless($request->user()->isClient(), 403);
         $validated = $request->validated();
 
         try {
@@ -90,6 +92,7 @@ class BookingController extends Controller
                 projectId: $validated['project_id'] ?? null,
                 packageId: $validated['package_id'] ?? null,
                 quotationId: $validated['quotation_id'] ?? null,
+                couponCode: $validated['coupon_code'] ?? null,
             );
 
             $session->load(['room', 'client', 'project']);
@@ -115,6 +118,12 @@ class BookingController extends Controller
         $session = RecordingSession::findOrFail($request->validated('recording_session_id'));
 
         $this->authorize('cancel', $session); // same ownership rule: only own session
+
+        if ($session->status->value === 'held' && $session->held_until !== null && $session->held_until->isFuture()
+            && $session->payment?->status !== PaymentStatus::Paid) {
+            return response()->json(['message' => 'The booking requires a paid payment.',
+                'errors' => ['recording_session_id' => ['The booking requires a paid payment.']]], 422);
+        }
 
         try {
             $session = app(ConfirmSlot::class)->handle($session->id);

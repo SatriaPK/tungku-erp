@@ -2,6 +2,8 @@
 
 namespace App\Actions\Inventory;
 
+use App\Actions\Audit\AuditActor;
+use App\Actions\Audit\RecordBusinessChange;
 use App\Enum\InventoryStatus;
 use App\Models\Inventory;
 use Illuminate\Support\Carbon;
@@ -11,9 +13,9 @@ use Illuminate\Validation\ValidationException;
 class DisposeInventory
 {
     /** @param array{type: string, disposed_on: string, disposal_value?: int|null} $data */
-    public function handle(Inventory $inventory, array $data): Inventory
+    public function handle(Inventory $inventory, array $data, ?AuditActor $actor = null): Inventory
     {
-        return DB::transaction(function () use ($inventory, $data): Inventory {
+        return DB::transaction(function () use ($inventory, $data, $actor): Inventory {
             $inventory = Inventory::query()->lockForUpdate()->findOrFail($inventory->id);
             $targetStatus = match ($data['type']) {
                 'sold' => InventoryStatus::Sold,
@@ -42,12 +44,15 @@ class DisposeInventory
                 ]);
             }
 
+            $audit = app(RecordBusinessChange::class);
+            $before = $audit->snapshot($inventory);
             $inventory->status = $targetStatus;
             $inventory->disposed_on = Carbon::createFromFormat('Y-m-d', $disposedOn)->startOfDay();
             $inventory->disposal_value = $targetStatus === InventoryStatus::Sold
                 ? $data['disposal_value']
                 : null;
             $inventory->save();
+            $audit->handle($inventory, 'inventory.disposed', $before, $actor ?? AuditActor::system(self::class));
 
             return $inventory->load(['category', 'room', 'expense']);
         });

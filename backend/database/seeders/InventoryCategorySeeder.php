@@ -16,6 +16,12 @@ class InventoryCategorySeeder extends Seeder
             'Komputer dan perangkat',
             'Kabel dan aksesori',
             'Furnitur dan akustik ruangan',
+            'Instrumen musik',
+            'Pencahayaan studio',
+            'Kamera dan video',
+            'Perangkat lunak dan lisensi',
+            'Penyimpanan dan media',
+            'Daya dan kelistrikan',
         ];
 
         foreach ($categories as $name) {

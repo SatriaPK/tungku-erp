@@ -2,6 +2,9 @@
 
 namespace App\Actions\Project;
 
+use App\Actions\Audit\AuditActor;
+use App\Actions\Audit\RecordBusinessChange;
+use App\Actions\Notification\NotifyBusinessEvent;
 use App\Enum\ProjectStatus;
 use App\Enum\StageStatus;
 use App\Enum\TrackProgressStatus;
@@ -20,6 +23,10 @@ class SubmitTrackResult
 
     public function handle(TrackStageProgress $progress, ProjectTrack $track, User $operator, string $resultUrl): TrackStageSubmission
     {
+        if (! $operator->is_active) {
+            throw ValidationException::withMessages(['operator' => 'Operator account is inactive.']);
+        }
+
         return DB::transaction(function () use ($progress, $track, $operator, $resultUrl): TrackStageSubmission {
             $progress = TrackStageProgress::query()
                 ->lockForUpdate()
@@ -55,6 +62,7 @@ class SubmitTrackResult
             ]);
             /** @var TrackStageSubmission $submission */
             $progress->submissions()->save($submission);
+            app(RecordBusinessChange::class)->handle($submission, 'submission.created', [], AuditActor::user($operator));
 
             $progress->update([
                 'current_version' => $version,
@@ -64,6 +72,7 @@ class SubmitTrackResult
             ]);
 
             $this->activities->resultSubmitted($submission, $project, $stage, $track);
+            app(NotifyBusinessEvent::class)->stage($stage, 'result_submitted', $submission);
 
             return $submission;
         });

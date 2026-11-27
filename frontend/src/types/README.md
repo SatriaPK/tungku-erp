@@ -1,0 +1,1 @@
+Place application-wide TypeScript types here. Keep feature-specific types alongside the feature that owns them.

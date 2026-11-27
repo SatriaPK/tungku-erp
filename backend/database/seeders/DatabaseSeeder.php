@@ -12,12 +12,13 @@ class DatabaseSeeder extends Seeder
     public function run(): void
     {
         $this->call([
-            RoomSeeder::class,
-            BasePriceSeeder::class,
-            ExpenseCategorySeeder::class,
-            InventoryCategorySeeder::class,
-            StudioSettingSeeder::class,
+            ReferenceDataSeeder::class,
             UserSeeder::class,
+            OperatorSeeder::class,
         ]);
+
+        if (app()->environment('local', 'testing')) {
+            $this->call(ManagerDashboardDemoSeeder::class);
+        }
     }
 }

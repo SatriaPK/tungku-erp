@@ -92,6 +92,7 @@ class Quotation extends Model
         return $this->hasMany(QuotationOffer::class)->orderBy('id');
     }
 
+    /** @return HasOne<QuotationOffer, $this> */
     public function latestOffer(): HasOne
     {
         return $this->hasOne(QuotationOffer::class)->latestOfMany();

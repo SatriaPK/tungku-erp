@@ -2,6 +2,8 @@
 
 namespace App\Actions\Finance;
 
+use App\Actions\Audit\AuditActor;
+use App\Actions\Audit\RecordBusinessChange;
 use App\Enum\PayrollStatus;
 use App\Models\Payroll;
 use App\Models\StudioSetting;
@@ -20,6 +22,8 @@ class FinalizeMonthlyPayroll
                 ['total_revenue' => 0, 'total_expense' => 0, 'net_profit' => 0, 'studio_profit_percentage' => StudioSetting::query()->where('key', 'studio_profit_percentage')->value('value') ?? StudioSetting::query()->where('key', 'po_percentage')->value('value') ?? '50.00', 'status' => PayrollStatus::Draft],
             );
             $payroll = Payroll::query()->whereKey($payroll->id)->lockForUpdate()->firstOrFail();
+            $audit = app(RecordBusinessChange::class);
+            $before = $audit->snapshot($payroll);
 
             if ($payroll->getRawOriginal('status') === PayrollStatus::Finalized->value) {
                 return $payroll->load('items.operator');
@@ -64,6 +68,7 @@ class FinalizeMonthlyPayroll
                 'finalized_by' => $finalizer->id,
                 'finalized_at' => now(),
             ]);
+            $audit->handle($payroll, 'payroll.finalized', $before, AuditActor::user($finalizer), 'payroll:'.$payroll->id.':finalized');
 
             return $payroll->fresh()->load('items.operator');
         });

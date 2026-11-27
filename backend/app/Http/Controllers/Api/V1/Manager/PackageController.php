@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Api\V1\Manager;
 
 use App\Actions\Package\SavePackage;
 use App\Actions\Pricing\CalculatePackagePrice;
+use App\Enum\StageType;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Manager\CalculatePackagePriceRequest;
 use App\Http\Requests\Manager\PackageRequest;
@@ -30,6 +31,21 @@ class PackageController extends Controller
             ->paginate(15);
 
         return PackageResource::collection($packages);
+    }
+
+    public function summary(): JsonResponse
+    {
+        $packages = Package::query();
+        $activePackages = (clone $packages)->where('is_active', true);
+
+        return response()->json([
+            'data' => [
+                'total' => (clone $activePackages)->count(),
+                'by_stage' => collect(StageType::cases())->mapWithKeys(fn (StageType $stage): array => [
+                    $stage->value => (clone $activePackages)->where($stage->includeColumn(), true)->count(),
+                ]),
+            ],
+        ]);
     }
 
     public function store(PackageRequest $request, SavePackage $action): JsonResponse

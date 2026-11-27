@@ -2,6 +2,9 @@
 
 namespace App\Actions\Quotation;
 
+use App\Actions\Audit\AuditActor;
+use App\Actions\Audit\RecordBusinessChange;
+use App\Actions\Notification\NotifyBusinessEvent;
 use App\Actions\Pricing\CalculatePackagePrice;
 use App\Enum\OfferSide;
 use App\Enum\QuotationStatus;
@@ -10,6 +13,7 @@ use App\Models\User;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Support\Str;
+use Illuminate\Validation\ValidationException;
 
 class SubmitQuotation
 {
@@ -22,6 +26,9 @@ class SubmitQuotation
      */
     public function handle(User $client, array $data): Quotation
     {
+        if (! $client->isClient() || ! $client->is_active) {
+            throw ValidationException::withMessages(['client' => 'Quotations require active clients.']);
+        }
         $name = $data['name'] ?? null;
         $data['name'] = is_string($name) ? Str::trim($name) : $name;
         Validator::make(['name' => $data['name']], ['name' => ['required', 'string', 'max:100']])->validate();
@@ -44,12 +51,17 @@ class SubmitQuotation
                 'auto_price' => $autoPrice,
             ]);
 
-            $quotation->offers()->create([
+            $offer = $quotation->offers()->create([
                 'offered_by' => $client->id,
                 'side' => OfferSide::Client,
                 'price' => $data['offer_price'],
                 'note' => $data['notes'] ?? null,
             ]);
+            $audit = app(RecordBusinessChange::class);
+            $audit->handle($quotation, 'quotation.created', [], AuditActor::user($client));
+            $audit->handle($offer, 'quotation.offer_created', [], AuditActor::user($client));
+
+            app(NotifyBusinessEvent::class)->quotation($quotation, 'quotation_submitted');
 
             return $quotation->load('latestOffer');
         });

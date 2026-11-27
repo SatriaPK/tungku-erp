@@ -2,6 +2,9 @@
 
 namespace App\Actions\Quotation;
 
+use App\Actions\Audit\AuditActor;
+use App\Actions\Audit\RecordBusinessChange;
+use App\Actions\Notification\NotifyBusinessEvent;
 use App\Enum\OfferSide;
 use App\Enum\QuotationResponseType;
 use App\Enum\QuotationStatus;
@@ -19,6 +22,10 @@ class RespondToQuotation
      */
     public function handle(Quotation $quotation, User $user, array $data): Quotation
     {
+        if (! $user->is_active) {
+            throw new RuntimeException('Akun tidak berwenang merespons penawaran ini.');
+        }
+
         return DB::transaction(function () use ($quotation, $user, $data) {
             // Lock for validation to prevent race conditions
             $quotation = Quotation::where('id', $quotation->id)->lockForUpdate()->firstOrFail();
@@ -46,6 +53,8 @@ class RespondToQuotation
             }
 
             $responseType = QuotationResponseType::from($data['response_type']);
+            $audit = app(RecordBusinessChange::class);
+            $before = $audit->snapshot($quotation);
 
             if ($responseType === QuotationResponseType::Decline) {
                 $quotation->update([
@@ -66,19 +75,29 @@ class RespondToQuotation
                     throw new InvalidArgumentException('Harga tawar balik diperlukan.');
                 }
 
-                $quotation->offers()->create([
+                $offer = $quotation->offers()->create([
                     'offered_by' => $user->id,
                     'side' => $userSide,
                     'price' => $data['price'],
                     'note' => $data['note'] ?? null,
                 ]);
+                $audit->handle($offer, 'quotation.offer_created', [], AuditActor::user($user));
 
                 $quotation->update([
                     'status' => $userSide->statusAfterOffer(),
                 ]);
             }
 
-            return $quotation->fresh(['latestOffer']);
+            $quotation = $quotation->fresh(['latestOffer']);
+            $audit->handle($quotation, 'quotation.'.$responseType->value, $before, AuditActor::user($user));
+            $event = match ($responseType) {
+                QuotationResponseType::Accept => 'quotation_accepted',
+                QuotationResponseType::Decline => 'quotation_declined',
+                QuotationResponseType::Counter => 'quotation_countered',
+            };
+            app(NotifyBusinessEvent::class)->quotation($quotation, $event);
+
+            return $quotation;
         });
     }
 }

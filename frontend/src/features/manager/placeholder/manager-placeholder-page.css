@@ -1,0 +1,9 @@
+.manager-placeholder__content {
+  min-height: calc(100vh - 80px);
+}
+
+@media (max-width: 740px) {
+  .manager-placeholder__content {
+    min-height: calc(100vh - 70px - 62px);
+  }
+}

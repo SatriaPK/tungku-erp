@@ -1,0 +1,1 @@
+Client project progress and final delivery views live here; render deliveries only when authorized by the API.

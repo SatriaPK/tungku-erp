@@ -2,6 +2,8 @@
 
 namespace App\Actions\CRM;
 
+use App\Actions\Audit\AuditActor;
+use App\Actions\Audit\RecordBusinessChange;
 use App\Enum\CampaignStatus;
 use App\Enum\CRMChannel;
 use App\Enum\Role;
@@ -62,18 +64,13 @@ class CreateCampaign
             $clients = User::query()
                 ->whereIn('id', $clientIds)
                 ->where('role', Role::Client->value)
-                ->where('is_active', true)
-                ->whereNotNull('crm_consent_at')
-                ->whereNotNull('email')
-                ->where('email', 'like', '%@%')
-                ->whereRaw("instr(substr(email, instr(email, '@') + 1), '.') > 1")
                 ->orderBy('id')
                 ->lockForUpdate()
                 ->get();
 
             if ($clients->count() !== $clientIds->count()) {
                 throw ValidationException::withMessages([
-                    'client_ids' => 'Semua klien harus aktif, memiliki consent CRM, dan alamat email valid.',
+                    'client_ids' => 'Sebagian penerima bukan akun klien yang valid.',
                 ]);
             }
 
@@ -98,6 +95,7 @@ class CreateCampaign
             ));
 
             CRMCampaignRecipient::query()->insert($recipients->all());
+            app(RecordBusinessChange::class)->handle($campaign, 'campaign.created', [], AuditActor::user($manager));
 
             return $campaign->load('recipients');
         });

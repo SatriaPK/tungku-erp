@@ -17,6 +17,7 @@ class GetManagerDashboardProgress
     /**
      * @return array{
      * recording_schedule: list<array{id: int, project_id: ?int, project_name: ?string, client_id: ?int, client_name: ?string, start_at: string, end_at: string, status: string, status_label: string}>,
+     * pending_project_assignments: int,
      * project_progress: list<array{id: int, name: string, client_id: ?int, client_name: ?string, status: string, status_label: string, current_stage: ?string, current_stage_label: ?string, stage_status: ?string, stage_status_label: ?string}>,
      * quotation_progress: list<array{id: int, name: ?string, package_display_name: string, client_id: ?int, client_name: ?string, status: string, status_label: string}>
      * }
@@ -35,11 +36,15 @@ class GetManagerDashboardProgress
                     ->whereIn('status', [StageStatus::Ready->value, StageStatus::InProgress->value])
                     ->orderBy('sequence')->orderBy('id');
             }])->orderByDesc('updated_at')->orderByDesc('id')->get();
+        $pendingProjectAssignments = Project::query()
+            ->where('status', ProjectStatus::AwaitingAssignment->value)
+            ->count();
         $quotations = Quotation::query()->select('id', 'name', 'client_id', 'status')
             ->whereIn('status', [QuotationStatus::AwaitingStudio->value, QuotationStatus::AwaitingClient->value])
             ->with('client:id,name')->orderByDesc('updated_at')->orderByDesc('id')->get();
 
         return [
+            'pending_project_assignments' => $pendingProjectAssignments,
             'recording_schedule' => $sessions->map(fn (RecordingSession $session): array => [
                 'id' => $session->id, 'project_id' => $session->project_id, 'project_name' => $session->project?->name,
                 'client_id' => $session->client_id, 'client_name' => $session->client?->name,

@@ -2,12 +2,16 @@
 
 namespace App\Actions\Payment;
 
+use App\Actions\Audit\AuditActor;
+use App\Actions\Audit\RecordBusinessChange;
+use App\Actions\Notification\RecordNotification;
 use App\Actions\Project\SettleFinalPayment;
 use App\Enum\PaymentProvider;
 use App\Enum\PaymentStatus;
 use App\Enum\PaymentType;
 use App\Enum\ProjectStatus;
 use App\Models\Payment;
+use App\Notifications\PaymentConfirmedNotification;
 use DateTime;
 use DateTimeZone;
 use Illuminate\Support\Facades\DB;
@@ -55,6 +59,8 @@ class ConfirmManualPayment
                 }
             }
 
+            $audit = app(RecordBusinessChange::class);
+            $before = $audit->snapshot($payment);
             $payment->update([
                 'status' => PaymentStatus::Paid,
                 'paid_at' => $paidAt === null
@@ -62,9 +68,20 @@ class ConfirmManualPayment
                     : (clone $paidAt)->setTimezone(new DateTimeZone(config('app.timezone'))),
                 'notes' => $note,
             ]);
+            $actor = AuditActor::system(self::class);
+            $audit->handle($payment, 'payment.paid', $before, $actor, 'payment:'.$payment->id.':paid');
+            app(ApplyPaidPaymentEffects::class)->handle($payment, $actor);
 
             if ($payment->type === PaymentType::Final) {
                 app(SettleFinalPayment::class)->execute($payment);
+            }
+
+            $client = $payment->invoice?->client;
+            if ($client === null && $payment->project_id !== null) {
+                $client = $payment->project->client;
+            }
+            if ($client !== null) {
+                app(RecordNotification::class)->handle($client, new PaymentConfirmedNotification($payment->fresh()));
             }
 
             return $payment->fresh();

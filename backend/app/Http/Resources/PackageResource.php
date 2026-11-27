@@ -23,6 +23,7 @@ class PackageResource extends JsonResource
             'id' => $this->id,
             'name' => $this->name,
             'description' => $this->description,
+            'related_info' => $this->related_info,
             'track_count' => $this->track_count,
             'recording_hours' => $this->recording_hours,
             'stages' => array_map(fn ($stage) => $stage->value, $this->includedStages()),

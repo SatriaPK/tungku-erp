@@ -1,0 +1,299 @@
+.manager-side-nav {
+  position: sticky;
+  top: 0;
+  display: flex;
+  width: 280px;
+  height: 100vh;
+  min-height: 0;
+  flex: 0 0 auto;
+  flex-direction: column;
+  justify-content: space-between;
+  overflow: hidden;
+  border-right: 1px solid var(--ts-outline-variant);
+  padding: 16px;
+  background: var(--ts-surface);
+  color: var(--ts-on-surface);
+}
+
+.manager-side-nav__top {
+  display: flex;
+  min-height: 0;
+  flex: 1;
+  flex-direction: column;
+}
+
+.manager-side-nav__brand {
+  display: flex;
+  min-height: 57px;
+  flex: 0 0 auto;
+  align-items: center;
+  gap: 12px;
+  border-bottom: 1px solid var(--ts-outline-variant);
+  padding-bottom: 16px;
+  color: inherit;
+  text-decoration: none;
+}
+
+.manager-side-nav__logo {
+  width: 40px;
+  height: 40px;
+  flex: 0 0 auto;
+  object-fit: contain;
+  border-radius: var(--ts-radius-sm);
+}
+
+.manager-side-nav__brand-copy,
+.manager-side-nav__profile-copy {
+  display: flex;
+  min-width: 0;
+  flex-direction: column;
+}
+
+.manager-side-nav__brand-copy strong {
+  overflow: hidden;
+  font-size: 16px;
+  font-weight: 500;
+  line-height: 24px;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.manager-side-nav__brand-copy small {
+  color: var(--ts-on-surface-variant);
+  font-size: 11px;
+  line-height: 16px;
+}
+
+.manager-side-nav__sections {
+  min-height: 0;
+  flex: 1;
+  overflow-x: hidden;
+  overflow-y: auto;
+  padding-top: 16px;
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+}
+
+.manager-side-nav__sections::-webkit-scrollbar {
+  display: none;
+  width: 0;
+  height: 0;
+}
+
+.manager-side-nav__sections > .nav-accordion {
+  margin-bottom: 16px;
+}
+
+.manager-side-nav__sections > .nav-accordion:last-child {
+  margin-bottom: 0;
+}
+
+.manager-side-nav__sections .nav-accordion__trigger {
+  min-height: 24px;
+  margin-bottom: 8px;
+  color: var(--ts-on-surface-variant);
+  font-size: 12px;
+  font-weight: 500;
+  letter-spacing: 0.04em;
+  line-height: 16px;
+}
+
+.manager-side-nav__sections .nav-accordion__content {
+  gap: 4px;
+}
+
+.manager-side-nav__sections .nav-item {
+  min-height: 48px;
+  gap: 12px;
+  padding-inline: 12px;
+  font-size: 14px;
+}
+
+.manager-side-nav__sections .nav-item__icon {
+  width: 24px;
+  height: 24px;
+}
+
+.manager-side-nav__profile {
+  display: flex;
+  min-height: 56px;
+  flex: 0 0 auto;
+  align-items: center;
+  gap: 12px;
+  border-top: 1px solid var(--ts-outline-variant);
+  padding-top: 16px;
+}
+
+.manager-side-nav__avatar {
+  width: 40px;
+  height: 40px;
+  flex: 0 0 auto;
+  border-radius: 50%;
+  object-fit: cover;
+}
+
+.manager-side-nav__avatar--placeholder {
+  display: grid;
+  place-items: center;
+  background: var(--ts-surface-variant);
+  color: var(--ts-primary);
+}
+
+.manager-side-nav__profile-copy {
+  flex: 1;
+}
+
+.manager-side-nav__profile-copy strong {
+  overflow: hidden;
+  font-size: 14px;
+  font-weight: 500;
+  line-height: 20px;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.manager-side-nav__profile-copy small {
+  color: var(--ts-on-surface-variant);
+  font-size: 12px;
+  line-height: 16px;
+}
+
+.manager-side-nav__logout {
+  display: grid;
+  width: 40px;
+  height: 40px;
+  flex: 0 0 auto;
+  place-items: center;
+  border: 0;
+  border-radius: 50%;
+  background: transparent;
+  color: var(--ts-on-surface-variant);
+  cursor: pointer;
+}
+
+.manager-side-nav__logout:hover {
+  background: var(--ts-surface-variant);
+}
+
+.manager-side-nav__logout:focus-visible {
+  outline: 2px solid var(--ts-primary);
+  outline-offset: 2px;
+}
+
+.manager-menu-toggle,
+.manager-side-nav__backdrop,
+.manager-side-nav__close {
+  display: none;
+}
+
+@media (max-width: 1120px) {
+  .manager-side-nav {
+    width: 240px;
+  }
+}
+
+@media (max-width: 900px) {
+  .manager-menu-toggle {
+    position: fixed;
+    z-index: 7;
+    top: 10px;
+    left: 12px;
+    display: grid;
+    width: 40px;
+    height: 40px;
+    place-items: center;
+    border: 0;
+    border-radius: 50%;
+    padding: 0;
+    background: transparent;
+    color: var(--ts-on-surface);
+    cursor: pointer;
+  }
+
+  .manager-menu-toggle:hover { background: var(--ts-surface-variant); }
+  .manager-menu-toggle[aria-expanded='true'] { visibility: hidden; pointer-events: none; }
+
+  .manager-menu-toggle:focus-visible,
+  .manager-side-nav__close:focus-visible {
+    outline: 2px solid var(--ts-primary);
+    outline-offset: 2px;
+  }
+
+  .manager-side-nav__backdrop {
+    position: fixed;
+    z-index: 5;
+    inset: 0;
+    display: block;
+    border: 0;
+    padding: 0;
+    background: rgb(29 27 26 / 48%);
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 180ms ease;
+  }
+
+  .manager-side-nav__backdrop.is-open {
+    opacity: 1;
+    pointer-events: auto;
+  }
+
+  .manager-side-nav {
+    position: fixed;
+    z-index: 6;
+    inset: 0 auto 0 0;
+    width: min(320px, calc(100vw - 56px));
+    height: 100dvh;
+    min-height: 0;
+    transform: translateX(-102%);
+    border-top: 0;
+    border-right: 1px solid var(--ts-outline-variant);
+    padding: 0 16px 16px;
+    box-shadow: var(--ts-elevation-3);
+    transition: transform 180ms ease;
+  }
+
+  .manager-side-nav.is-open {
+    transform: translateX(0);
+  }
+
+  .manager-side-nav__close {
+    display: grid;
+    width: 40px;
+    height: 40px;
+    place-items: center;
+    border: 0;
+    border-radius: 50%;
+    background: transparent;
+    color: var(--ts-on-surface-variant);
+  }
+
+  .manager-side-nav__brand-row {
+    display: flex;
+    min-height: 73px;
+    flex: 0 0 auto;
+    align-items: center;
+    gap: 8px;
+    border-bottom: 1px solid var(--ts-outline-variant);
+  }
+
+  .manager-side-nav__brand-row .manager-side-nav__brand {
+    min-width: 0;
+    flex: 1;
+    border: 0;
+    padding: 0;
+  }
+
+  .manager-side-nav__brand-row .manager-side-nav__close { flex: 0 0 40px; }
+}
+
+@media (min-width: 901px) {
+  .manager-side-nav__brand-row .manager-side-nav__brand {
+    display: flex;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .manager-side-nav,
+  .manager-side-nav__backdrop { transition-duration: 0.01ms; }
+}
+.manager-side-nav__profile-copy:is(button){border:0;background:transparent;text-align:left;cursor:pointer;font:inherit;color:inherit;padding:0}

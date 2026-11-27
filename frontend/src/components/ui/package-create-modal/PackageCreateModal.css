@@ -1,0 +1,62 @@
+.ts-package-create-backdrop { position: fixed; z-index: 1200; inset: 0; display: grid; place-items: center; padding: 24px; background: rgb(29 27 26 / 48%); }
+.ts-package-create-modal { display: flex; width: min(1360px, 100%); max-height: min(94dvh, 980px); flex-direction: column; overflow: hidden; border: 1px solid var(--ts-outline-variant); border-radius: var(--ts-radius-sm); background: var(--ts-surface); box-shadow: var(--ts-elevation-4); }
+.ts-package-create-modal__form { display: flex; min-height: 0; flex-direction: column; }
+.ts-package-create-modal__header { display: flex; min-height: 72px; flex: 0 0 auto; align-items: center; justify-content: space-between; gap: 16px; padding: 8px 24px; }
+.ts-package-create-modal__header h2 { margin: 0; color: var(--ts-on-surface); font: var(--ts-headline-small); }
+.ts-package-create-modal__dismiss { display: grid; width: 40px; height: 40px; flex: 0 0 40px; place-items: center; border: 0; border-radius: 50%; background: transparent; color: var(--ts-on-surface-variant); cursor: pointer; }
+.ts-package-create-modal__dismiss:hover { background: var(--ts-surface-variant); }
+.ts-package-create-modal__dismiss:focus-visible { outline: 2px solid var(--ts-primary); outline-offset: 2px; }
+.ts-package-create-modal__scroll { display: grid; min-height: 0; grid-template-columns: minmax(0, 1fr) minmax(360px, 1fr); grid-template-rows: auto 1fr; align-items: start; gap: 0 24px; overflow-y: auto; padding: 0 24px 24px; }
+.ts-package-create-modal__identity, .ts-package-create-modal__production, .ts-package-create-modal__pricing { display: flex; min-width: 0; flex-direction: column; gap: 16px; }
+.ts-package-create-modal__identity { grid-column: 1; grid-row: 1; padding-bottom: 24px; }
+.ts-package-create-modal__production { grid-column: 1; grid-row: 2; border-top: 1px solid var(--ts-outline-variant); padding-top: 24px; }
+.ts-package-create-modal__pricing { grid-column: 2; grid-row: 1 / span 2; min-height: 100%; }
+.ts-package-create-field { display: flex; min-width: 0; flex-direction: column; gap: 8px; color: var(--ts-on-surface); font: var(--ts-label-large); }
+.ts-package-create-field .ts-input-field { gap: 0; }
+.ts-package-create-field .ts-input-field__label { display: none; }
+.ts-package-create-field textarea { width: 100%; min-height: 88px; resize: vertical; border: 1px solid var(--ts-outline); border-radius: var(--ts-radius-xs); padding: 12px; background: var(--ts-surface); color: var(--ts-on-surface); font: var(--ts-body-medium); }
+.ts-package-create-field textarea:focus { border-color: var(--ts-primary); outline: none; box-shadow: 0 0 0 1px var(--ts-primary); }
+.ts-package-create-field textarea::placeholder { color: var(--ts-on-surface-variant); opacity: .72; }
+.ts-package-create-field .ts-input { min-height: 48px; }
+.ts-package-create-field .ts-input input { font: var(--ts-body-medium); }
+.ts-package-create-field .is-required { margin-left: 3px; color: var(--ts-error); }
+.ts-package-create-field .is-optional { color: var(--ts-on-surface-variant); font: var(--ts-label-large); }
+.ts-package-create-section-heading { color: var(--ts-on-surface); font: var(--ts-label-large); }
+.ts-package-create-section-heading .is-required { margin-left: 3px; color: var(--ts-error); }
+.ts-package-create-phase-grid { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 12px; }
+.ts-package-create-phase-grid .ts-toggleable-phase { width: 100%; }
+.ts-package-create-counts { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); align-items: end; gap: 24px; border-top: 1px solid var(--ts-outline-variant); padding-top: 24px; }
+.ts-package-create-counts:has(.ts-package-create-field:only-child) { grid-template-columns: minmax(0, 1fr); }
+.ts-package-create-counts .ts-package-create-field { position: relative; }
+.ts-package-create-counts .ts-package-create-field > small { margin-top: -4px; color: var(--ts-on-surface-variant); font: var(--ts-body-small); }
+.ts-package-create-counts .ts-number-stepper { width: 100%; }
+.ts-package-create-price-container { display: flex; flex-direction: column; gap: 8px; border: 1px solid var(--ts-outline-variant); border-radius: var(--ts-radius-xs); padding: 16px; background: var(--ts-background-variant); }
+.ts-package-create-price-list { display: flex; flex-direction: column; gap: 12px; }
+.ts-package-create-price-line { display: flex; align-items: center; justify-content: space-between; gap: 12px; }
+.ts-package-create-price-line > div { display: flex; min-width: 0; flex-direction: column; gap: 2px; }
+.ts-package-create-price-line strong { color: var(--ts-on-surface); font: var(--ts-body-large); }
+.ts-package-create-price-line small { color: var(--ts-on-surface-variant); font: var(--ts-body-small); }
+.ts-package-create-price-line > span { color: var(--ts-on-surface); font: var(--ts-body-large); white-space: nowrap; }
+.ts-package-create-price-line.is-excluded > div, .ts-package-create-price-line.is-excluded > span { opacity: .55; }
+.ts-package-create-auto-total { display: flex; align-items: center; justify-content: space-between; gap: 12px; border-top: 1px solid var(--ts-outline-variant); padding-top: 16px; color: var(--ts-on-surface); font: var(--ts-label-large); }
+.ts-package-create-auto-total strong { color: var(--ts-primary); font: var(--ts-title-large); }
+.ts-package-create-manual-toggle { display: flex; align-items: center; justify-content: space-between; gap: 16px; margin-top: 16px; color: var(--ts-on-surface); font: var(--ts-body-large); }
+.ts-package-create-manual-toggle .ts-switch__thumb { border-color: var(--ts-outline-variant); background: var(--ts-background-variant); }
+.ts-package-create-price-container .ts-package-create-auto-total { border-top-color: var(--ts-outline-variant); }
+.ts-package-create-error { margin: 0; color: var(--ts-error); font: var(--ts-body-small); }
+.ts-package-create-error--submit { flex: 0 0 auto; margin: 0 24px 12px; }
+.ts-package-create-modal__footer { display: flex; min-height: 72px; flex: 0 0 auto; align-items: center; justify-content: flex-end; gap: 16px; border-top: 1px solid var(--ts-outline-variant); padding: 12px 24px; }
+@media (max-width: 760px) {
+  .ts-package-create-backdrop { align-items: end; padding: 0; }
+  .ts-package-create-modal { width: 100%; max-height: 94dvh; border-radius: var(--ts-radius-md) var(--ts-radius-md) 0 0; }
+  .ts-package-create-modal__header { padding-inline: 16px; }
+  .ts-package-create-modal__scroll { grid-template-columns: minmax(0, 1fr); gap: 16px; padding: 0 16px 16px; }
+  .ts-package-create-modal__identity, .ts-package-create-modal__production, .ts-package-create-modal__pricing { grid-column: 1; grid-row: auto; padding-block: 0; border: 0; }
+  .ts-package-create-modal__footer { padding-inline: 16px; }
+  .ts-package-create-error--submit { margin-inline: 16px; }
+}
+@media (max-width: 420px) {
+  .ts-package-create-phase-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px; }
+  .ts-toggleable-phase { padding: 10px; }
+  .ts-package-create-counts { grid-template-columns: minmax(0, 1fr); }
+}

@@ -28,6 +28,7 @@ class HoldSlotRequest extends FormRequest
     public function rules(): array
     {
         return [
+            'coupon_code' => ['nullable', 'string', 'max:24'],
             'room_id' => ['required', 'integer', 'exists:rooms,id'],
             'start_at' => ['required', 'date', 'after:now'],
             'end_at' => ['required', 'date', 'after:start_at'],

@@ -9,15 +9,17 @@ use App\Http\Controllers\Controller;
 use App\Http\Resources\Manager\DashboardResource;
 use App\Http\Resources\Manager\OperatorActivityFeedResource;
 use Carbon\CarbonImmutable;
+use Illuminate\Http\Request;
 
 class DashboardController extends Controller
 {
-    public function show(GetManagerDashboardMetrics $metrics, GetManagerDashboardProgress $progress, GetOperatorActivities $activities): DashboardResource
+    public function show(Request $request, GetManagerDashboardMetrics $metrics, GetManagerDashboardProgress $progress, GetOperatorActivities $activities): DashboardResource
     {
+        $validated = $request->validate(['year' => ['sometimes', 'integer', 'between:2000,2100']]);
         $asOf = CarbonImmutable::now(config('app.timezone'));
 
         return new DashboardResource([
-            ...$metrics->handle($asOf),
+            ...$metrics->handle($asOf, $validated['year'] ?? null),
             ...$progress->handle($asOf),
             'operator_activities' => $activities->handle($asOf),
         ]);

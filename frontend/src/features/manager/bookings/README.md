@@ -1,0 +1,1 @@
+Manager booking views live here; use only the booking operations available to the Manager role.

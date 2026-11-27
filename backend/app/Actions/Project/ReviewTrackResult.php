@@ -2,6 +2,9 @@
 
 namespace App\Actions\Project;
 
+use App\Actions\Audit\AuditActor;
+use App\Actions\Audit\RecordBusinessChange;
+use App\Actions\Notification\NotifyBusinessEvent;
 use App\Enum\PaymentProvider;
 use App\Enum\PaymentStatus;
 use App\Enum\PaymentType;
@@ -24,6 +27,10 @@ class ReviewTrackResult
 {
     public function handle(TrackStageProgress $progress, TrackStageSubmission $submission, User $manager, TrackResultReviewDecision $decision, ?string $reviewNotes): TrackStageProgress
     {
+        if (! $manager->is_active) {
+            throw ValidationException::withMessages(['manager' => 'Manager account is inactive.']);
+        }
+
         return DB::transaction(function () use ($progress, $submission, $manager, $decision, $reviewNotes): TrackStageProgress {
             $progress = TrackStageProgress::query()->lockForUpdate()->findOrFail($progress->id);
             /** @var ProjectStage $stage */
@@ -47,6 +54,8 @@ class ReviewTrackResult
                 throw ValidationException::withMessages(['progress' => 'Progress, tahap, atau Project tidak menerima review.']);
             }
 
+            $audit = app(RecordBusinessChange::class);
+            $submissionBefore = $audit->snapshot($submission);
             $reviewedAt = now();
             $submission->update([
                 'review_notes' => $decision === TrackResultReviewDecision::RequestRevision ? $reviewNotes : null,
@@ -54,6 +63,7 @@ class ReviewTrackResult
                 'reviewed_at' => $reviewedAt,
                 'review_decision' => $decision->value,
             ]);
+            $audit->handle($submission, 'submission.reviewed', $submissionBefore, AuditActor::user($manager));
 
             $progress->update([
                 'status' => $decision === TrackResultReviewDecision::Approve
@@ -66,7 +76,9 @@ class ReviewTrackResult
             ]);
 
             if ($decision === TrackResultReviewDecision::Approve) {
-                $this->completeStageAndUnlockNext($project, $stage);
+                $this->completeStageAndUnlockNext($project, $stage, $manager);
+            } else {
+                app(NotifyBusinessEvent::class)->stage($stage, 'revision_requested', $submission);
             }
 
             $progress->setRelation('submissions', collect([$submission]));
@@ -75,7 +87,7 @@ class ReviewTrackResult
         }, 3);
     }
 
-    private function completeStageAndUnlockNext(Project $project, ProjectStage $stage): void
+    private function completeStageAndUnlockNext(Project $project, ProjectStage $stage, User $manager): void
     {
         $progressRows = TrackStageProgress::query()
             ->where('project_stage_id', $stage->id)
@@ -94,10 +106,13 @@ class ReviewTrackResult
             return;
         }
 
+        $audit = app(RecordBusinessChange::class);
+        $stageBefore = $audit->snapshot($stage);
         $stage->update([
             'status' => StageStatus::Completed,
             'completed_at' => now(),
         ]);
+        $audit->handle($stage, 'stage.completed', $stageBefore, AuditActor::user($manager));
 
         $includedStages = array_flip($project->includedStageValues());
         $nextStage = ProjectStage::query()
@@ -109,7 +124,7 @@ class ReviewTrackResult
             ->first(fn (ProjectStage $candidate): bool => isset($includedStages[$candidate->stage->value]));
 
         if ($nextStage === null) {
-            $this->createFinalPaymentWhenAllIncludedStagesComplete($project, $stage);
+            $this->createFinalPaymentWhenAllIncludedStagesComplete($project, $stage, $manager);
 
             return;
         }
@@ -123,10 +138,11 @@ class ReviewTrackResult
 
         if (! $hasIncompleteEarlierStage && $nextStage->status === StageStatus::Locked) {
             $nextStage->update(['status' => StageStatus::Ready]);
+            app(NotifyBusinessEvent::class)->stage($nextStage, 'stage_ready');
         }
     }
 
-    private function createFinalPaymentWhenAllIncludedStagesComplete(Project $project, ProjectStage $completedStage): void
+    private function createFinalPaymentWhenAllIncludedStagesComplete(Project $project, ProjectStage $completedStage, User $manager): void
     {
         $includedStages = $project->includedStageValues();
         if ($includedStages === [] || ! in_array($completedStage->stage->value, $includedStages, true)) {
@@ -166,10 +182,13 @@ class ReviewTrackResult
             ->sum('amount');
         $amount = max(0, (int) $lockedProject->price + $eligibleExtensionFees - $paidAmount);
 
+        $audit = app(RecordBusinessChange::class);
+        $projectBefore = $audit->snapshot($lockedProject);
         $lockedProject->update([
             'status' => ProjectStatus::AwaitingFinalPayment,
             'final_payment_amount' => $amount,
         ]);
+        $audit->handle($lockedProject, 'project.awaiting_final_payment', $projectBefore, AuditActor::user($manager));
 
         $finalPaymentExists = $lockedProject->payments()
             ->where('type', PaymentType::Final->value)
@@ -181,7 +200,7 @@ class ReviewTrackResult
                 'cash', 'manual' => PaymentProvider::Cash,
                 default => PaymentProvider::from($configuredProvider),
             };
-            Payment::query()->create([
+            $payment = Payment::query()->create([
                 'project_id' => $lockedProject->id,
                 'type' => PaymentType::Final,
                 'amount' => $amount,
@@ -190,6 +209,7 @@ class ReviewTrackResult
                 'order_id' => sprintf('FINAL-%s-%s', $lockedProject->id, now()->format('YmdHis')),
                 'expires_at' => $provider === PaymentProvider::Cash ? null : now()->addHours(config('payment.expiration_hours', 24)),
             ]);
+            app(NotifyBusinessEvent::class)->paymentCreated($payment);
         }
     }
 }

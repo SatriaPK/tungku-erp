@@ -1,0 +1,1 @@
+Authentication screens and session state live here; use Sanctum cookie-based SPA auth, never bearer tokens.
