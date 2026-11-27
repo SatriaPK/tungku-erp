@@ -32,6 +32,7 @@ class SavePackage
         $attributes = [
             'name' => $data['name'],
             'description' => $data['description'] ?? null,
+            'related_info' => $data['related_info'] ?? null,
             'track_count' => (int) $data['track_count'],
             'recording_hours' => $recordingHours,
             'auto_price' => $this->calculator->handleFromInput($data),

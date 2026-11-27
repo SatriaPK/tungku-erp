@@ -17,25 +17,26 @@ const phases = [
 ] as const
 
 type PhaseKey = (typeof phases)[number]['key']
-type PackageForm = Omit<CreateManagerPackageInput, 'description' | 'recording_hours' | 'manual_price'> & { description: string; recording_hours: number; manual_price: string }
+type PackageForm = Omit<CreateManagerPackageInput, 'description' | 'related_info' | 'recording_hours' | 'manual_price'> & { description: string; related_info: string; recording_hours: number; manual_price: string }
 
 const emptyForm: PackageForm = {
-  name: '', description: '', track_count: 1, recording_hours: 1,
+  name: '', description: '', related_info: '', track_count: 1, recording_hours: 1,
   include_recording: false, include_editing: false, include_mixing: false, include_mastering: false,
   manual_price: '',
 }
 
 export interface PackageCreateModalProps {
   basePrices: ManagerBasePrice[]
+  initialPackage?: ManagerPackage
   error?: string
   submitting?: boolean
   onClose: () => void
   onSubmit: (input: CreateManagerPackageInput) => Promise<ManagerPackage>
-  onCalculatePrice: (input: Omit<CreateManagerPackageInput, 'name' | 'description' | 'manual_price'>) => Promise<number>
+  onCalculatePrice: (input: Omit<CreateManagerPackageInput, 'name' | 'description' | 'related_info' | 'manual_price'>) => Promise<number>
 }
 
-export function PackageCreateModal({ basePrices, error = '', submitting = false, onClose, onSubmit, onCalculatePrice }: PackageCreateModalProps) {
-  const [form, setForm] = useState<PackageForm>(emptyForm)
+export function PackageCreateModal({ basePrices, initialPackage, error = '', submitting = false, onClose, onSubmit, onCalculatePrice }: PackageCreateModalProps) {
+  const [form, setForm] = useState<PackageForm>(() => initialPackage ? { name: initialPackage.name, description: initialPackage.description ?? '', related_info: initialPackage.related_info ?? '', track_count: initialPackage.track_count, recording_hours: Math.max(1, initialPackage.recording_hours || 1), include_recording: initialPackage.include_recording, include_editing: initialPackage.include_editing, include_mixing: initialPackage.include_mixing, include_mastering: initialPackage.include_mastering, manual_price: initialPackage.manual_price === null ? '' : String(initialPackage.manual_price) } : emptyForm)
   const [autoPrice, setAutoPrice] = useState<number | null>(null)
   const [priceError, setPriceError] = useState('')
   const [validationError, setValidationError] = useState('')
@@ -101,7 +102,7 @@ export function PackageCreateModal({ basePrices, error = '', submitting = false,
     if (form.include_recording && form.recording_hours < 1) { setValidationError('Durasi Recording minimal 1 jam.'); return }
     setValidationError('')
     await onSubmit({
-      name: form.name.trim(), description: form.description.trim() || null,
+      name: form.name.trim(), description: form.description.trim() || null, related_info: form.related_info.trim() || null,
       track_count: form.track_count, recording_hours: form.include_recording ? form.recording_hours : null,
       ...selectedStages, manual_price: form.manual_price.trim() ? Number(form.manual_price) : null,
     })
@@ -115,7 +116,8 @@ export function PackageCreateModal({ basePrices, error = '', submitting = false,
           <div className="ts-package-create-modal__scroll">
             <section className="ts-package-create-modal__identity">
               <label className="ts-package-create-field"><span>Nama Paket<span className="is-required">*</span></span><Input autoFocus aria-label="Nama Paket" maxLength={100} onChange={(event) => setForm((current) => ({ ...current, name: event.target.value }))} placeholder="Contoh: Paket Produksi Lengkap" required value={form.name} /></label>
-              <label className="ts-package-create-field"><span>Deskripsi Paket <span className="is-optional">(Opsional)</span></span><textarea aria-label="Deskripsi Paket (Opsional)" maxLength={255} onChange={(event) => setForm((current) => ({ ...current, description: event.target.value }))} placeholder="Jelaskan fasilitas, batas revisi, format hasil, estimasi penyelesaian, serta biaya tambahan bila ada" rows={6} value={form.description} /></label>
+              <label className="ts-package-create-field"><span>Deskripsi Paket <span className="is-optional">(Opsional)</span></span><textarea aria-label="Deskripsi Paket (Opsional)" maxLength={355} onChange={(event) => setForm((current) => ({ ...current, description: event.target.value }))} placeholder="Jelaskan fasilitas, batas revisi, format hasil, estimasi penyelesaian, serta biaya tambahan bila ada" rows={6} value={form.description} /></label>
+              <label className="ts-package-create-field"><span>Informasi terkait <span className="is-optional">(Opsional)</span></span><textarea aria-label="Informasi terkait (Opsional)" maxLength={1000} onChange={(event) => setForm((current) => ({ ...current, related_info: event.target.value }))} placeholder="Contoh: Peralatan yang disediakan studio sudah termasuk dalam harga booking." rows={4} value={form.related_info} /></label>
             </section>
 
             <section className="ts-package-create-modal__production">

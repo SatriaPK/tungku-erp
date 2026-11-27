@@ -23,6 +23,7 @@ class PackageCatalogResource extends JsonResource
             'id' => $this->id,
             'name' => $this->name,
             'description' => $this->description,
+            'related_info' => $this->related_info,
             'track_count' => $this->track_count,
             'recording_hours' => $this->recording_hours,
             'include_recording' => $this->include_recording,

@@ -13,7 +13,7 @@ class WorkspaceLookupController extends Controller
 {
     public function clients(): AnonymousResourceCollection
     {
-        return UserResource::collection(User::query()->where('role', 'client')->active()->orderBy('name')->get());
+        return UserResource::collection(User::query()->where('role', 'client')->orderBy('name')->get());
     }
 
     public function invoices(): AnonymousResourceCollection

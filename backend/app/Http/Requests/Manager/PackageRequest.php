@@ -21,7 +21,8 @@ class PackageRequest extends FormRequest
     {
         return [
             'name' => ['required', 'string', 'max:100'],
-            'description' => ['nullable', 'string', 'max:255'],
+            'description' => ['nullable', 'string'],
+            'related_info' => ['nullable', 'string', 'max:1000'],
             'track_count' => ['required', 'integer', 'min:1', 'max:50'],
             'recording_hours' => ['required_if_accepted:include_recording', 'nullable', 'integer', 'min:1', 'max:100'],
             'include_recording' => ['required', 'boolean'],

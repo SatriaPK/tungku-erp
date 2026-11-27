@@ -25,5 +25,8 @@ export function display(entry: unknown): string {
   if (typeof entry === 'string' && /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}/.test(entry)) {
     return new Intl.DateTimeFormat('id-ID', { dateStyle: 'medium', timeStyle: 'short', timeZone: 'Asia/Jakarta' }).format(new Date(entry))
   }
+  if (typeof entry === 'string' && /^\d{4}-\d{2}-\d{2}$/.test(entry)) {
+    return new Intl.DateTimeFormat('id-ID', { dateStyle: 'medium', timeZone: 'UTC' }).format(new Date(`${entry}T00:00:00Z`))
+  }
   return String(entry)
 }

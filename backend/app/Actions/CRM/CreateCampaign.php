@@ -64,18 +64,13 @@ class CreateCampaign
             $clients = User::query()
                 ->whereIn('id', $clientIds)
                 ->where('role', Role::Client->value)
-                ->where('is_active', true)
-                ->whereNotNull('crm_consent_at')
-                ->whereNotNull('email')
-                ->where('email', 'like', '%@%')
-                ->whereRaw("instr(substr(email, instr(email, '@') + 1), '.') > 1")
                 ->orderBy('id')
                 ->lockForUpdate()
                 ->get();
 
             if ($clients->count() !== $clientIds->count()) {
                 throw ValidationException::withMessages([
-                    'client_ids' => 'Semua klien harus aktif, memiliki consent CRM, dan alamat email valid.',
+                    'client_ids' => 'Sebagian penerima bukan akun klien yang valid.',
                 ]);
             }
 

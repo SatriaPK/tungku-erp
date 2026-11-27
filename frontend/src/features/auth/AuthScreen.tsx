@@ -4,6 +4,7 @@ import { Link, Navigate, Route, Routes, useLocation, useNavigate } from 'react-r
 import { Button, Icon, Input } from '../../components/ui'
 import { getApiErrorMessage, getCurrentUser, login, register, type UserRole } from '../../lib/auth-api'
 import tungkuLogo from '../../assets/tungku-primary.svg'
+import LandingPage from '../landing/LandingPage'
 import './LoginScreen.css'
 
 function AuthLayout({ children, variant = 'client' }: { children: ReactNode; variant?: 'client' | 'staff' }) {
@@ -25,7 +26,7 @@ function AuthLayout({ children, variant = 'client' }: { children: ReactNode; var
     <main className="login-screen">
       <section aria-label="Tungku Studio" className="login-layout">
         <aside aria-label="Tungku Studio" className="login-story">
-          <Link aria-label="Tungku Studio, halaman masuk" className="login-story__brand" to="/login">
+          <Link aria-label="Tungku Studio, beranda" className="login-story__brand" to="/">
             <img alt="Tungku Studio" className="login-story__logo" src={tungkuLogo} />
           </Link>
         </aside>
@@ -214,6 +215,7 @@ function ForgotPassword() {
 export default function AuthScreen() {
   return (
     <Routes>
+      <Route element={<LandingPage />} path="/" />
       <Route element={<AuthLayout><LoginForm entry="client" /></AuthLayout>} path="/login" />
       <Route element={<AuthLayout variant="staff"><LoginForm entry="staff" /></AuthLayout>} path="/staff/login" />
       <Route element={<AuthLayout><RegisterForm /></AuthLayout>} path="/register" />

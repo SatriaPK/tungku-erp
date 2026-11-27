@@ -39,6 +39,7 @@ class Package extends Model
     protected $fillable = [
         'name',
         'description',
+        'related_info',
         'track_count',
         'recording_hours',
         'include_recording',

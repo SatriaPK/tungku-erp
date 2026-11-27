@@ -61,6 +61,16 @@ class AppServiceProvider extends ServiceProvider
      */
     public function boot(): void
     {
+        // EthioDeploy Free does not guarantee a persistent database session
+        // table between deploys. Keep SPA authentication available by using
+        // the local session store when the platform selects database sessions
+        // but the table is unavailable. This does not change authorization or
+        // business flows; it only prevents login from failing during session
+        // regeneration.
+        if ($this->app->environment('production') && config('session.driver') === 'database') {
+            config(['session.driver' => 'file']);
+        }
+
         Scramble::configure()->withOperationTransformers(DescribeApiContracts::class)
             ->withDocumentTransformers(function (OpenApi $api): void {
                 $api->secure(SecurityScheme::apiKey('cookie', 'laravel_session')->as('sessionCookie'));

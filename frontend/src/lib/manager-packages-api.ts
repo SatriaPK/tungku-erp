@@ -6,6 +6,7 @@ export interface ManagerPackage {
   id: number
   name: string
   description: string | null
+  related_info: string | null
   track_count: number
   recording_hours: number
   stages: string[]
@@ -44,6 +45,7 @@ export interface ManagerBasePrice {
 export interface CreateManagerPackageInput {
   name: string
   description: string | null
+  related_info: string | null
   track_count: number
   recording_hours: number | null
   include_recording: boolean
@@ -57,7 +59,7 @@ export async function getManagerBasePrices(): Promise<ManagerBasePrice[]> {
   return getManagerPackageData<ManagerBasePrice[]>('/api/v1/manager/base-prices')
 }
 
-export async function calculateManagerPackagePrice(input: Omit<CreateManagerPackageInput, 'name' | 'description' | 'manual_price'>): Promise<number> {
+export async function calculateManagerPackagePrice(input: Omit<CreateManagerPackageInput, 'name' | 'description' | 'related_info' | 'manual_price'>): Promise<number> {
   const payload = await managerPackageRequest<{ data: { auto_price: number } }>('/api/v1/manager/packages/calculate-price', {
     method: 'POST',
     body: input,
@@ -72,6 +74,13 @@ export async function createManagerPackage(input: CreateManagerPackageInput): Pr
       ...input,
       recording_hours: input.include_recording ? input.recording_hours : null,
     },
+  })
+  return payload.data
+}
+
+export async function updateManagerPackage(id: number, input: CreateManagerPackageInput): Promise<ManagerPackage> {
+  const payload = await managerPackageRequest<{ data: ManagerPackage }>(`/api/v1/manager/packages/${encodeURIComponent(id)}`, {
+    method: 'PUT', body: { ...input, recording_hours: input.include_recording ? input.recording_hours : null },
   })
   return payload.data
 }
@@ -186,6 +195,7 @@ export async function updateManagerPackageActive(item: ManagerPackage, isActive:
       body: JSON.stringify({
         name: item.name,
         description: item.description,
+        related_info: item.related_info,
         track_count: item.track_count,
         recording_hours: item.include_recording ? Math.max(1, item.recording_hours) : null,
         include_recording: item.include_recording,

@@ -6,7 +6,7 @@ import { Badge, Button, Icon, Input, LoadingScreen, ManagerPackageCard, ManagerP
 import { getCurrentUser } from '../../../lib/auth-api'
 import type { ManagerUser } from '../../../lib/manager-dashboard-api'
 import type { ApiError } from '../../../lib/auth-api'
-import { calculateManagerPackagePrice, createManagerPackage, deleteManagerPackage, getManagerBasePrices, getManagerPackages, getManagerPackageSummary, updateManagerPackageActive } from '../../../lib/manager-packages-api'
+import { calculateManagerPackagePrice, createManagerPackage, deleteManagerPackage, getManagerBasePrices, getManagerPackages, getManagerPackageSummary, updateManagerPackage, updateManagerPackageActive } from '../../../lib/manager-packages-api'
 import type { ManagerPackage, ManagerPackageSummary } from '../../../lib/manager-packages-api'
 import '../dashboard/ManagerDashboard.css'
 import './ManagerPackagesPage.css'
@@ -42,6 +42,7 @@ export default function ManagerPackagesPage() {
   const [deleteTarget, setDeleteTarget] = useState<ManagerPackage | null>(null)
   const [deleting, setDeleting] = useState(false)
   const [createOpen, setCreateOpen] = useState(false)
+  const [editPackage, setEditPackage] = useState<ManagerPackage | null>(null)
   const [creating, setCreating] = useState(false)
   const [basePrices, setBasePrices] = useState<Awaited<ReturnType<typeof getManagerBasePrices>>>([])
   const [tablePage, setTablePage] = useState(1)
@@ -186,6 +187,17 @@ export default function ManagerPackagesPage() {
     }
   }
 
+  const submitEditPackage = async (input: Parameters<typeof updateManagerPackage>[1]): Promise<ManagerPackage> => {
+    if (!editPackage) throw new Error('Paket tidak ditemukan.')
+    setCreating(true)
+    try {
+      const updated = await updateManagerPackage(editPackage.id, input)
+      setPackages((current) => current.map((item) => item.id === updated.id ? updated : item))
+      setEditPackage(null)
+      return updated
+    } finally { setCreating(false) }
+  }
+
   const togglePackageActive = async (item: ManagerPackage) => {
     try {
       const updated = await updateManagerPackageActive(item, !item.is_active)
@@ -318,7 +330,7 @@ export default function ManagerPackagesPage() {
           anchor={activePackageMenu.anchor}
           onClose={() => setActivePackageMenu(null)}
           onDelete={() => { setActivePackageMenu(null); setDeleteTarget(activePackageMenu.item) }}
-          onEdit={() => { setActivePackageMenu(null); goTo(`/manajemen-paket/${activePackageMenu.item.id}/edit`) }}
+          onEdit={() => { setEditPackage(activePackageMenu.item); setActivePackageMenu(null) }}
           onToggleActive={() => { void togglePackageActive(activePackageMenu.item) }}
         />}
         {createOpen && <PackageCreateModal
@@ -327,6 +339,15 @@ export default function ManagerPackagesPage() {
           onCalculatePrice={calculateManagerPackagePrice}
           onClose={() => { setCreateOpen(false); setError('') }}
           onSubmit={submitNewPackage}
+          submitting={creating}
+        />}
+        {editPackage && <PackageCreateModal
+          basePrices={basePrices}
+          initialPackage={editPackage}
+          error={error}
+          onCalculatePrice={calculateManagerPackagePrice}
+          onClose={() => { setEditPackage(null); setError('') }}
+          onSubmit={submitEditPackage}
           submitting={creating}
         />}
         {detailPackage && <PackageDetailDialog item={detailPackage} onClose={() => setDetailPackage(null)} />}

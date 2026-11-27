@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\Api\V1\Client\PackageCatalogController;
 use App\Http\Controllers\Api\V1\NotificationController;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
@@ -13,6 +14,9 @@ Route::prefix('v1')->group(function () {
     require __DIR__.'/Api/manager.php';
     require __DIR__.'/Api/client.php';
     require __DIR__.'/Api/operator.php';
+
+    // Katalog paket untuk halaman pengenalan studio sebelum login (hanya baca).
+    Route::get('public/packages', [PackageCatalogController::class, 'index'])->middleware('throttle:60,1');
 
     Route::middleware(['auth:sanctum', 'active'])->prefix('notifications')->group(function () {
         Route::get('/', [NotificationController::class, 'index'])->middleware('throttle:inbox-read');
