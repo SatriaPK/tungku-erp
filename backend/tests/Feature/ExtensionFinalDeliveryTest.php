@@ -14,7 +14,7 @@ use Database\Seeders\StudioSettingSeeder;
 test('recording extension is included in final settlement before the owner can access delivery', function () {
     $this->travelTo(now()->setDate(2026, 10, 24)->setTime(9, 0));
     $this->seed(StudioSettingSeeder::class);
-    config(['payment.default_gateway' => 'midtrans']);
+    config(['payment.default_gateway' => 'xendit']);
     $client = User::factory()->client()->create();
     $operator = User::factory()->operator()->create();
     $manager = User::factory()->manager()->create();

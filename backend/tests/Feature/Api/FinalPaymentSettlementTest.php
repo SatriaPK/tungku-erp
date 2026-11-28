@@ -40,7 +40,7 @@ function finalSettlementPayment(int $amount = 1000): array
         'type' => PaymentType::Final,
         'amount' => $amount,
         'status' => PaymentStatus::Pending,
-        'provider' => PaymentProvider::Midtrans,
+        'provider' => PaymentProvider::Xendit,
         'expires_at' => now()->addDay(),
     ]);
 
@@ -138,7 +138,7 @@ test('manager confirmation returns the normalized manual final payment instant',
 test('webhook with a mismatched amount fails and does not complete final project', function () {
     [$project, $payment, $invoice] = finalSettlementPayment();
     $log = WebhookLog::create([
-        'gateway' => 'midtrans',
+        'gateway' => 'xendit',
         'event_type' => 'settlement',
         'transaction_id' => 'mismatch-webhook-txn',
         'order_id' => $payment->order_id,

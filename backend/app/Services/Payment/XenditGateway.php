@@ -7,13 +7,26 @@ use App\Enum\PaymentStatus;
 use App\Exceptions\InvalidWebhookSignatureException;
 use App\Exceptions\PaymentGatewayException;
 use App\Models\Payment;
+use App\Models\User;
 use Carbon\Carbon;
+use Illuminate\Http\Client\PendingRequest;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Log;
 
+/**
+ * Xendit Invoice API (https://docs.xendit.co/apidocs/create-invoice).
+ *
+ * The client is redirected to Xendit's hosted invoice page, which offers every
+ * payment method enabled on the Xendit account (VA, QRIS, e-wallet, card, retail).
+ * Test mode is selected by using a "xnd_development_" secret key: the same API
+ * then creates simulated invoices that can be paid from the Xendit test dashboard.
+ */
 class XenditGateway implements PaymentGatewayInterface
 {
+    /** Xendit only accepts these refund reasons; free text goes into metadata. */
+    private const REFUND_REASONS = ['DUPLICATE', 'FRAUDULENT', 'REQUESTED_BY_CUSTOMER', 'CANCELLATION', 'OTHERS'];
+
     protected string $apiKey;
 
     protected string $baseUrl;
@@ -22,36 +35,41 @@ class XenditGateway implements PaymentGatewayInterface
 
     public function __construct()
     {
-        $this->apiKey = config('payment.xendit.secret_key') ?? '';
-        $this->webhookToken = config('payment.xendit.webhook_token') ?? '';
-        $this->baseUrl = 'https://api.xendit.co';
+        $this->apiKey = (string) config('payment.xendit.secret_key');
+        $this->webhookToken = (string) config('payment.xendit.webhook_token');
+        $this->baseUrl = rtrim((string) config('payment.xendit.base_url', 'https://api.xendit.co'), '/');
     }
 
     public function createCharge(Payment $payment): array
     {
         try {
-            $expiresAt = now()->addHours(config('payment.expiration_hours'));
+            $this->ensureConfigured();
+            $expirationHours = (int) config('payment.expiration_hours', 24);
+            $client = $this->clientOf($payment);
 
-            $response = Http::withBasicAuth($this->apiKey, '')
-                ->post("{$this->baseUrl}/v2/invoices", [
+            $customer = array_filter([
+                'given_names' => $client?->name,
+                'email' => $client?->email,
+                'mobile_number' => $this->toE164($client?->phone),
+            ]);
+
+            $response = $this->http()
+                ->withHeaders(['X-IDEMPOTENCY-KEY' => 'invoice-'.$payment->order_id])
+                ->post("{$this->baseUrl}/v2/invoices", array_filter([
                     'external_id' => $payment->order_id,
                     'amount' => $payment->amount,
-                    'payer_email' => $payment->project->client->email,
+                    'payer_email' => $client?->email,
                     'description' => $this->buildDescription($payment),
-                    'invoice_duration' => config('payment.expiration_hours') * 3600,
-                    'success_redirect_url' => config('app.url').'/payment/success',
-                    'failure_redirect_url' => config('app.url').'/payment/failed',
+                    'invoice_duration' => $expirationHours * 3600,
+                    'success_redirect_url' => config('payment.xendit.success_redirect_url'),
+                    'failure_redirect_url' => config('payment.xendit.failure_redirect_url'),
                     'currency' => 'IDR',
                     'items' => $this->buildItems($payment),
-                    'customer' => [
-                        'given_names' => $payment->project->client->name,
-                        'email' => $payment->project->client->email,
-                        'mobile_number' => $payment->project->client->phone,
-                    ],
-                ]);
+                    'customer' => $customer ?: null,
+                ], static fn ($value) => $value !== null && $value !== ''));
 
             if ($response->failed()) {
-                throw new \Exception($response->json('message', 'Unknown error'));
+                throw new \RuntimeException($this->errorMessage($response->json(), $response->status()));
             }
 
             $data = $response->json();
@@ -65,9 +83,9 @@ class XenditGateway implements PaymentGatewayInterface
                 'charge_id' => $data['id'],
                 'payment_url' => $data['invoice_url'],
                 'snap_token' => null,
-                'expires_at' => $expiresAt,
+                'expires_at' => isset($data['expiry_date']) ? Carbon::parse($data['expiry_date']) : now()->addHours($expirationHours),
             ];
-        } catch (\Exception $e) {
+        } catch (\Throwable $e) {
             Log::error('Xendit invoice creation failed', [
                 'order_id' => $payment->order_id,
                 'error' => $e->getMessage(),
@@ -80,17 +98,15 @@ class XenditGateway implements PaymentGatewayInterface
     public function getChargeStatus(string $chargeId): string
     {
         try {
-            $response = Http::withBasicAuth($this->apiKey, '')
-                ->get("{$this->baseUrl}/v2/invoices/{$chargeId}");
+            $this->ensureConfigured();
+            $response = $this->http()->get("{$this->baseUrl}/v2/invoices/{$chargeId}");
 
             if ($response->failed()) {
-                throw new \Exception($response->json('message', 'Unknown error'));
+                throw new \RuntimeException($this->errorMessage($response->json(), $response->status()));
             }
 
-            $data = $response->json();
-
-            return $this->normalizeStatus($data['status']);
-        } catch (\Exception $e) {
+            return $this->normalizeStatus((string) $response->json('status'));
+        } catch (\Throwable $e) {
             Log::error('Xendit status check failed', [
                 'charge_id' => $chargeId,
                 'error' => $e->getMessage(),
@@ -103,15 +119,21 @@ class XenditGateway implements PaymentGatewayInterface
     public function processRefund(Payment $payment, int $amount, string $reason): array
     {
         try {
-            $response = Http::withBasicAuth($this->apiKey, '')
+            $this->ensureConfigured();
+            $code = strtoupper(trim($reason));
+
+            $response = $this->http()
+                ->withHeaders(['Idempotency-key' => 'refund-'.$payment->order_id.'-'.$amount])
                 ->post("{$this->baseUrl}/refunds", [
                     'invoice_id' => $payment->gateway_charge_id,
                     'amount' => $amount,
-                    'reason' => $reason,
+                    'currency' => 'IDR',
+                    'reason' => in_array($code, self::REFUND_REASONS, true) ? $code : 'REQUESTED_BY_CUSTOMER',
+                    'metadata' => ['order_id' => $payment->order_id, 'note' => mb_substr($reason, 0, 200)],
                 ]);
 
             if ($response->failed()) {
-                throw new \Exception($response->json('message', 'Unknown error'));
+                throw new \RuntimeException($this->errorMessage($response->json(), $response->status()));
             }
 
             $data = $response->json();
@@ -124,9 +146,9 @@ class XenditGateway implements PaymentGatewayInterface
             return [
                 'refund_id' => $data['id'],
                 'status' => $data['status'],
-                'refunded_at' => Carbon::parse($data['created']),
+                'refunded_at' => isset($data['created']) ? Carbon::parse($data['created']) : now(),
             ];
-        } catch (\Exception $e) {
+        } catch (\Throwable $e) {
             Log::error('Xendit refund failed', [
                 'order_id' => $payment->order_id,
                 'error' => $e->getMessage(),
@@ -140,7 +162,7 @@ class XenditGateway implements PaymentGatewayInterface
     {
         $callbackToken = $request->header('x-callback-token');
 
-        if (! $callbackToken || ! hash_equals($this->webhookToken, (string) $callbackToken)) {
+        if ($this->webhookToken === '' || ! $callbackToken || ! hash_equals($this->webhookToken, (string) $callbackToken)) {
             Log::warning('Invalid Xendit webhook signature');
             throw new InvalidWebhookSignatureException('Xendit');
         }
@@ -150,17 +172,16 @@ class XenditGateway implements PaymentGatewayInterface
 
     public function parseWebhookPayload(Request $request): array
     {
-        $status = $request->input('status');
+        $status = (string) $request->input('status');
+        $paid = in_array(strtoupper($status), ['PAID', 'SETTLED'], true);
 
         return [
             'order_id' => $request->input('external_id'),
             'transaction_id' => $request->input('id'),
             'status' => $this->normalizeStatus($status),
-            'amount' => (int) $request->input('amount'),
-            'payment_method' => $request->input('payment_method'),
-            'paid_at' => $status === 'PAID'
-                ? Carbon::parse($request->input('paid_at'))
-                : null,
+            'amount' => (int) ($request->input('paid_amount') ?? $request->input('amount')),
+            'payment_method' => $request->input('payment_channel') ?? $request->input('payment_method'),
+            'paid_at' => $paid ? Carbon::parse($request->input('paid_at') ?? now()) : null,
         ];
     }
 
@@ -169,11 +190,57 @@ class XenditGateway implements PaymentGatewayInterface
         return 'xendit';
     }
 
+    protected function http(): PendingRequest
+    {
+        return Http::withBasicAuth($this->apiKey, '')->acceptJson()->asJson()->timeout(20)->connectTimeout(10);
+    }
+
+    protected function ensureConfigured(): void
+    {
+        if ($this->apiKey === '') {
+            throw new \RuntimeException('XENDIT_SECRET_KEY belum diatur.');
+        }
+    }
+
+    protected function clientOf(Payment $payment): ?User
+    {
+        $payment->loadMissing(['invoice.client', 'project.client']);
+
+        return $payment->invoice?->client ?? $payment->project?->client;
+    }
+
+    /**
+     * Xendit rejects local numbers such as 0812…; it requires E.164 (+62812…).
+     * Unusable numbers are omitted instead of failing the whole invoice.
+     */
+    protected function toE164(?string $phone): ?string
+    {
+        $digits = preg_replace('/\D+/', '', (string) $phone) ?? '';
+        if ($digits === '') {
+            return null;
+        }
+        if (str_starts_with($digits, '0')) {
+            $digits = '62'.substr($digits, 1);
+        } elseif (str_starts_with($digits, '8')) {
+            $digits = '62'.$digits;
+        }
+
+        return preg_match('/^[1-9]\d{7,14}$/', $digits) ? '+'.$digits : null;
+    }
+
+    protected function errorMessage(mixed $body, int $status): string
+    {
+        $message = is_array($body) ? ($body['message'] ?? $body['error_code'] ?? null) : null;
+
+        return $message ? (string) $message : "HTTP {$status}";
+    }
+
     protected function buildDescription(Payment $payment): string
     {
         $type = $payment->type->label();
+        $reference = $payment->project?->code ?? $payment->invoice?->invoice_number ?? $payment->order_id;
 
-        return "Pembayaran {$type} - Project {$payment->project->code}";
+        return "Pembayaran {$type} - {$reference}";
     }
 
     protected function buildItems(Payment $payment): array

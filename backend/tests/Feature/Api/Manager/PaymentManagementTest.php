@@ -149,7 +149,7 @@ describe('Confirm Manual Payment', function () {
     });
 
     it('cannot confirm online payment', function () {
-        $payment = Payment::factory()->pending()->midtrans()->create([
+        $payment = Payment::factory()->pending()->xendit()->create([
             'project_id' => $this->project->id,
         ]);
 

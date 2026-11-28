@@ -24,7 +24,6 @@ class PaymentGatewayFactory
         $gateway = $gateway ?? config('payment.default_gateway');
 
         return match ($gateway) {
-            'midtrans' => new MidtransGateway,
             'xendit' => new XenditGateway,
             'manual', 'cash' => new ManualGateway,
             default => throw new InvalidArgumentException("Unsupported payment gateway: {$gateway}"),
@@ -38,7 +37,7 @@ class PaymentGatewayFactory
      */
     public static function available(): array
     {
-        return ['midtrans', 'xendit', 'manual', 'cash'];
+        return ['xendit', 'manual', 'cash'];
     }
 
     /**

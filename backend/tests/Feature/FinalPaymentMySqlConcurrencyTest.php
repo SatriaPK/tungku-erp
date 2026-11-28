@@ -31,7 +31,7 @@ test('final payment protects settlement from competing cash requests on MySQL', 
         $project = Project::factory()->create(['status' => 'awaiting_final_payment', 'price' => 125000, 'po_amount' => 0, 'final_payment_amount' => 125000]);
         $payment = Payment::factory()->cash()->create(['project_id' => $project->id, 'type' => 'final', 'amount' => 125000, 'status' => 'pending', 'expires_at' => null]);
         if ($scenario === 'duplicate callback') {
-            $payment->update(['provider' => PaymentProvider::Midtrans]);
+            $payment->update(['provider' => PaymentProvider::Xendit]);
         }
         app(EnsureFinalPaymentInvoice::class)->execute($payment);
         DB::beginTransaction();

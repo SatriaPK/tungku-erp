@@ -104,7 +104,7 @@ test('user throttling does not replace authentication or throttle provider callb
     PaymentGatewayFactory::clearFake();
     $this->getJson('/api/v1/notifications')->assertUnauthorized();
     for ($attempt = 0; $attempt < 6; $attempt++) {
-        $this->postJson('/api/v1/webhooks/payment/midtrans', [])->assertUnauthorized();
+        $this->postJson('/api/v1/webhooks/payment/xendit', [])->assertUnauthorized();
     }
     $this->assertDatabaseCount('payments', 0);
 });

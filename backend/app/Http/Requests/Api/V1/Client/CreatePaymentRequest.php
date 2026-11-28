@@ -22,7 +22,7 @@ class CreatePaymentRequest extends FormRequest
             'project_id' => ['required', 'integer', 'exists:projects,id'],
             'type' => ['required', Rule::enum(PaymentType::class)],
             'amount' => ['required', 'integer', 'min:1'],
-            'provider' => ['nullable', 'string', 'in:midtrans,xendit,manual,cash'],
+            'provider' => ['nullable', 'string', 'in:xendit,manual,cash'],
         ];
     }
 

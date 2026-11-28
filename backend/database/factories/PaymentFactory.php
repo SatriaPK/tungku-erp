@@ -30,7 +30,7 @@ class PaymentFactory extends Factory
             'type' => PaymentType::Po,
             'amount' => $amount,
             'status' => PaymentStatus::Pending,
-            'provider' => PaymentProvider::Midtrans,
+            'provider' => PaymentProvider::Xendit,
             'order_id' => 'ORD-'.now()->format('Ymd').'-'.fake()->unique()->numberBetween(10000, 99999),
             'provider_transaction_id' => null,
             'payment_method' => null,
@@ -69,14 +69,6 @@ class PaymentFactory extends Factory
         ]);
     }
 
-    public function midtrans(): static
-    {
-        return $this->state(fn () => [
-            'provider' => PaymentProvider::Midtrans,
-            'snap_token' => 'fake-snap-token-'.fake()->uuid(),
-            'payment_url' => 'https://app.sandbox.midtrans.com/snap/v2/vtweb/'.fake()->uuid(),
-        ]);
-    }
 
     public function xendit(): static
     {

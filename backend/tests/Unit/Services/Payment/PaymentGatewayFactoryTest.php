@@ -11,9 +11,9 @@ beforeEach(function () {
     PaymentGatewayFactory::clearFake();
 });
 
-test('creates midtrans gateway', function () {
-    $gateway = PaymentGatewayFactory::make('midtrans');
-    expect($gateway)->toBeInstanceOf(MidtransGateway::class);
+test('midtrans is no longer a supported gateway', function () {
+    expect(fn () => PaymentGatewayFactory::make('midtrans'))
+        ->toThrow(InvalidArgumentException::class, 'Unsupported payment gateway: midtrans');
 });
 
 test('creates xendit gateway', function () {
@@ -50,11 +50,11 @@ test('throws exception for unsupported gateway', function () {
 test('returns available gateways', function () {
     $available = PaymentGatewayFactory::available();
 
-    expect($available)->toBe(['midtrans', 'xendit', 'manual', 'cash']);
+    expect($available)->toBe(['xendit', 'manual', 'cash']);
 });
 
 test('checks if gateway is supported', function () {
-    expect(PaymentGatewayFactory::supports('midtrans'))->toBeTrue()
+    expect(PaymentGatewayFactory::supports('midtrans'))->toBeFalse()
         ->and(PaymentGatewayFactory::supports('xendit'))->toBeTrue()
         ->and(PaymentGatewayFactory::supports('manual'))->toBeTrue()
         ->and(PaymentGatewayFactory::supports('stripe'))->toBeFalse()

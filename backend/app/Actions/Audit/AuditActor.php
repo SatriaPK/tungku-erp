@@ -21,7 +21,7 @@ final readonly class AuditActor
 
     public static function provider(string $provider): self
     {
-        if (! in_array($provider, ['midtrans', 'xendit'], true)) {
+        if (! in_array($provider, ['xendit'], true)) {
             throw new InvalidArgumentException('Unsupported audit provider.');
         }
 

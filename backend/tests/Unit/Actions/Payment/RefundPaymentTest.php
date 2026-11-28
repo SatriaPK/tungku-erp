@@ -43,7 +43,7 @@ it('refunds online payment through gateway', function () {
     $payment = Payment::factory()->create([
         'project_id' => $this->project->id,
         'status' => PaymentStatus::Paid,
-        'provider' => PaymentProvider::Midtrans,
+        'provider' => PaymentProvider::Xendit,
         'amount' => 500000,
         'paid_at' => now(),
         'gateway_charge_id' => 'charge-123',

@@ -20,7 +20,7 @@ beforeEach(function () {
         'order_id' => 'PAY-XEN-TEST',
     ]);
 
-    $this->midtransPayment = Payment::factory()->pending()->midtrans()->create([
+    $this->secondXenditPayment = Payment::factory()->pending()->xendit()->create([
         'project_id' => $this->project->id,
         'amount' => 750000,
         'provider_transaction_id' => 'mid_123',
@@ -43,7 +43,7 @@ test('sync payment status checks gateway and updates to paid', function () {
 
     expect(Artisan::output())->toContain('Synced 2 payments.');
     expect($this->xenditPayment->fresh()->status)->toBe(PaymentStatus::Paid);
-    expect($this->midtransPayment->fresh()->status)->toBe(PaymentStatus::Pending);
+    expect($this->secondXenditPayment->fresh()->status)->toBe(PaymentStatus::Pending);
 });
 
 test('sync payment status command works with dry run', function () {
@@ -53,17 +53,35 @@ test('sync payment status command works with dry run', function () {
     expect($this->xenditPayment->fresh()->status)->toBe(PaymentStatus::Pending);
 });
 
-test('sync payment status filters by gateway', function () {
+test('sync payment status only syncs xendit payments', function () {
+    $mockGateway = Mockery::mock(PaymentGatewayInterface::class);
+    $mockGateway->shouldNotReceive('getChargeStatus');
+
+    PaymentGatewayFactory::fake($mockGateway);
+    Artisan::call('payment:sync', ['--gateway' => 'cash']);
+
+    expect(Artisan::output())->toContain('No pending payments to sync.');
+    expect($this->xenditPayment->fresh()->status)->toBe(PaymentStatus::Pending);
+});
+
+test('sync payment settles a xendit payment whose webhook never arrived', function () {
+    $missed = Payment::factory()->pending()->xendit()->create([
+        'project_id' => $this->project->id,
+        'amount' => 300000,
+        'gateway_charge_id' => 'inv_missed_webhook',
+        'provider_transaction_id' => null,
+        'order_id' => 'PAY-MISSED-WEBHOOK',
+    ]);
     $mockGateway = Mockery::mock(PaymentGatewayInterface::class, function (MockInterface $mock) {
-        $mock->shouldReceive('getChargeStatus')->with('mid_123')->once()->andReturn('expired');
+        $mock->shouldReceive('getChargeStatus')->with('inv_missed_webhook')->once()->andReturn('expired');
+        $mock->shouldReceive('getChargeStatus')->with('xen_123')->andReturn('pending');
+        $mock->shouldReceive('getChargeStatus')->with('mid_123')->andReturn('pending');
     });
 
     PaymentGatewayFactory::fake($mockGateway);
-    Artisan::call('payment:sync', ['--gateway' => 'midtrans']);
+    Artisan::call('payment:sync');
 
-    expect(Artisan::output())->toContain('Synced 1 payments.');
-    expect($this->xenditPayment->fresh()->status)->toBe(PaymentStatus::Pending);
-    expect($this->midtransPayment->fresh()->status)->toBe(PaymentStatus::Expired);
+    expect($missed->fresh()->status)->toBe(PaymentStatus::Expired);
 });
 
 test('sync payment prints info dynamically with verbose flag', function () {
@@ -72,10 +90,10 @@ test('sync payment prints info dynamically with verbose flag', function () {
     });
 
     PaymentGatewayFactory::fake($mockGateway);
-    Artisan::call('payment:sync', ['--gateway' => 'midtrans', '-v' => true]);
+    Artisan::call('payment:sync', ['--gateway' => 'xendit', '-v' => true]);
 
     expect(Artisan::output())->toContain('Synced and marked payment PAY-MID-TEST as failed');
-    expect($this->midtransPayment->fresh()->status)->toBe(PaymentStatus::Failed);
+    expect($this->secondXenditPayment->fresh()->status)->toBe(PaymentStatus::Failed);
 });
 
 test('sync payment status does nothing if no pending payments', function () {
@@ -86,7 +104,7 @@ test('sync payment status does nothing if no pending payments', function () {
 
 test('sync payment ignores already paid or failed payments locally', function () {
     $this->xenditPayment->update(['status' => PaymentStatus::Paid]);
-    $this->midtransPayment->update(['status' => PaymentStatus::Failed]);
+    $this->secondXenditPayment->update(['status' => PaymentStatus::Failed]);
     Artisan::call('payment:sync');
     expect(Artisan::output())->toContain('No pending payments to sync.');
 });
@@ -120,17 +138,18 @@ test('sync payment returns success early if query matches null provider_transact
     Payment::factory()->pending()->create([
         'project_id' => $this->project->id,
         'amount' => 500000,
-        'provider' => 'midtrans',
+        'provider' => 'xendit',
         'provider_transaction_id' => null,
     ]);
 
-    Artisan::call('payment:sync', ['--gateway' => 'midtrans', '--limit' => 5]);
-    expect(Artisan::output())->toContain('Synced 1 payments.');
+    Artisan::call('payment:sync', ['--gateway' => 'xendit', '--limit' => 5]);
+    // Only the two beforeEach payments carry a gateway id; the id-less one is skipped.
+    expect(Artisan::output())->toContain('Synced 2 payments.');
 });
 
 test('sync payment command handles batch limit correctly', function () {
     for ($i = 0; $i < 5; $i++) {
-        Payment::factory()->pending()->midtrans()->create([
+        Payment::factory()->pending()->xendit()->create([
             'project_id' => $this->project->id,
             'amount' => 50000,
             'provider_transaction_id' => 'mid_batch_'.$i,
@@ -142,7 +161,7 @@ test('sync payment command handles batch limit correctly', function () {
     });
 
     PaymentGatewayFactory::fake($mockGateway);
-    Artisan::call('payment:sync', ['--gateway' => 'midtrans', '--limit' => 3]);
+    Artisan::call('payment:sync', ['--gateway' => 'xendit', '--limit' => 3]);
 
     expect(Artisan::output())->toContain('Synced 3 payments.');
 });

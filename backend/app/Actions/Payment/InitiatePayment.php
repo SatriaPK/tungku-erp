@@ -26,7 +26,7 @@ class InitiatePayment
      *
      * @throws InvalidArgumentException
      */
-    public function execute(Invoice $invoice, string $gateway = 'midtrans'): Payment
+    public function execute(Invoice $invoice, string $gateway = 'xendit'): Payment
     {
         // Validate invoice state
         if ($invoice->status !== InvoiceStatus::Issued) {
@@ -141,7 +141,6 @@ class InitiatePayment
     private function mapGatewayToProvider(string $gateway): PaymentProvider
     {
         return match ($gateway) {
-            'midtrans' => PaymentProvider::Midtrans,
             'xendit' => PaymentProvider::Xendit,
             'manual', 'cash' => PaymentProvider::Cash,
             default => throw new InvalidArgumentException("Cannot map gateway to provider: {$gateway}"),

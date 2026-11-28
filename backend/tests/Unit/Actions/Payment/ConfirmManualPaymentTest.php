@@ -70,17 +70,6 @@ it('throws exception when confirming already paid payment', function () {
         ->toThrow(InvalidArgumentException::class, 'Cannot confirm payment with status: paid');
 });
 
-it('throws exception when confirming midtrans payment', function () {
-    $payment = Payment::factory()->create([
-        'project_id' => $this->project->id,
-        'status' => PaymentStatus::Pending,
-        'provider' => PaymentProvider::Midtrans,
-    ]);
-
-    expect(fn () => app(ConfirmManualPayment::class)->execute($payment, 'note'))
-        ->toThrow(InvalidArgumentException::class, 'Cannot manually confirm midtrans payment');
-});
-
 it('throws exception when confirming xendit payment', function () {
     $payment = Payment::factory()->create([
         'project_id' => $this->project->id,

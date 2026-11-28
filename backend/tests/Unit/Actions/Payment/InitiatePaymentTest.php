@@ -34,14 +34,14 @@ it('creates payment for issued invoice', function () {
         'total' => 100000,
     ]);
 
-    $payment = app(InitiatePayment::class)->execute($invoice, 'midtrans');
+    $payment = app(InitiatePayment::class)->execute($invoice, 'xendit');
 
     expect($payment)->toBeInstanceOf(Payment::class)
         ->and($payment->invoice_id)->toBe($invoice->id)
         ->and($payment->project_id)->toBe($project->id)
         ->and($payment->amount)->toBe(100000)
         ->and($payment->status)->toBe(PaymentStatus::Pending)
-        ->and($payment->provider)->toBe(PaymentProvider::Midtrans)
+        ->and($payment->provider)->toBe(PaymentProvider::Xendit)
         ->and($payment->type)->toBe(PaymentType::Po)
         ->and($payment->order_id)->toContain('INV-')
         ->and($payment->gateway_charge_id)->not->toBeNull()
@@ -53,7 +53,7 @@ it('throws exception if invoice is not issued', function () {
         'status' => InvoiceStatus::Draft,
     ]);
 
-    app(InitiatePayment::class)->execute($invoice, 'midtrans');
+    app(InitiatePayment::class)->execute($invoice, 'xendit');
 })->throws(InvalidArgumentException::class, 'Invoice must be in Issued status');
 
 it('throws exception if invoice total is zero', function () {
@@ -62,7 +62,7 @@ it('throws exception if invoice total is zero', function () {
         'total' => 0,
     ]);
 
-    app(InitiatePayment::class)->execute($invoice, 'midtrans');
+    app(InitiatePayment::class)->execute($invoice, 'xendit');
 })->throws(InvalidArgumentException::class, 'Invoice total must be greater than zero');
 
 it('throws exception if invoice already has pending payment', function () {
@@ -81,7 +81,7 @@ it('throws exception if invoice already has pending payment', function () {
         'status' => PaymentStatus::Pending,
     ]);
 
-    app(InitiatePayment::class)->execute($invoice, 'midtrans');
+    app(InitiatePayment::class)->execute($invoice, 'xendit');
 })->throws(InvalidArgumentException::class, 'Invoice already has an active payment');
 
 it('throws exception if invoice already has paid payment', function () {
@@ -100,7 +100,7 @@ it('throws exception if invoice already has paid payment', function () {
         'status' => PaymentStatus::Paid,
     ]);
 
-    app(InitiatePayment::class)->execute($invoice, 'midtrans');
+    app(InitiatePayment::class)->execute($invoice, 'xendit');
 })->throws(InvalidArgumentException::class, 'Invoice already has an active payment');
 
 it('creates a new payment attempt after a failed attempt, including with another gateway', function () {
@@ -166,7 +166,7 @@ it('resolves project_id from recording session if invoice has no project', funct
         'total' => 100000,
     ]);
 
-    $payment = app(InitiatePayment::class)->execute($invoice, 'midtrans');
+    $payment = app(InitiatePayment::class)->execute($invoice, 'xendit');
 
     expect($payment->project_id)->toBe($project->id);
 });
@@ -181,5 +181,5 @@ it('throws exception if invoice has no project and no recording session', functi
         'total' => 100000,
     ]);
 
-    app(InitiatePayment::class)->execute($invoice, 'midtrans');
+    app(InitiatePayment::class)->execute($invoice, 'xendit');
 })->throws(InvalidArgumentException::class, 'Invoice must be associated with a project');

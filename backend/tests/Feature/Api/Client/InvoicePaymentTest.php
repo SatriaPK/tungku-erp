@@ -116,7 +116,7 @@ it('client can initiate payment for their invoice', function () {
     Sanctum::actingAs($client);
 
     $response = $this->postJson("/api/v1/client/invoices/{$invoice->id}/initiate-payment", [
-        'gateway' => 'midtrans',
+        'gateway' => 'xendit',
     ]);
 
     $response->assertCreated()
@@ -133,7 +133,7 @@ it('client can initiate payment for their invoice', function () {
         ])
         ->assertJsonPath('data.amount', 100000)
         ->assertJsonPath('data.status', 'pending')
-        ->assertJsonPath('data.provider', 'midtrans');
+        ->assertJsonPath('data.provider', 'xendit');
 
     $this->assertDatabaseHas('payments', [
         'invoice_id' => $invoice->id,
@@ -156,7 +156,7 @@ it('client cannot initiate payment for draft invoice', function () {
     Sanctum::actingAs($client);
 
     $response = $this->postJson("/api/v1/client/invoices/{$invoice->id}/initiate-payment", [
-        'gateway' => 'midtrans',
+        'gateway' => 'xendit',
     ]);
 
     $response->assertUnprocessable()
@@ -178,7 +178,7 @@ it('client cannot initiate payment for another clients invoice', function () {
     Sanctum::actingAs($client);
 
     $response = $this->postJson("/api/v1/client/invoices/{$invoice->id}/initiate-payment", [
-        'gateway' => 'midtrans',
+        'gateway' => 'xendit',
     ]);
 
     $response->assertForbidden();
@@ -253,3 +253,20 @@ it('validates gateway parameter when initiating payment', function () {
     $response->assertUnprocessable()
         ->assertJsonValidationErrors('gateway');
 });
+
+it('routes an older client asking for midtrans to xendit', function (?string $requested) {
+    $client = User::factory()->client()->create();
+    $project = Project::factory()->create(['client_id' => $client->id]);
+    $invoice = Invoice::factory()->create([
+        'client_id' => $client->id,
+        'project_id' => $project->id,
+        'status' => InvoiceStatus::Issued,
+        'total' => 100000,
+    ]);
+
+    Sanctum::actingAs($client);
+
+    $this->postJson("/api/v1/client/invoices/{$invoice->id}/initiate-payment", array_filter(['gateway' => $requested]))
+        ->assertCreated()
+        ->assertJsonPath('data.provider', 'xendit');
+})->with(['midtrans' => 'midtrans', 'no gateway' => null]);

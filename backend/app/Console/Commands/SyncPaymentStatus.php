@@ -38,8 +38,10 @@ class SyncPaymentStatus extends Command
 
         $query = Payment::query()
             ->whereIn('status', [PaymentStatus::Pending->value, PaymentStatus::PendingManualConfirmation->value])
-            ->whereNotNull('provider_transaction_id')
-            ->where('provider', '!=', 'cash'); // exclude manual cash handling since it has no gateway API
+            // The gateway charge id (Xendit invoice id) exists from creation, so a
+            // payment whose webhook never arrived can still be reconciled.
+            ->where(fn ($q) => $q->whereNotNull('gateway_charge_id')->orWhereNotNull('provider_transaction_id'))
+            ->where('provider', 'xendit');
 
         if ($gatewayFilter) {
             $query->where('provider', $gatewayFilter);
@@ -65,12 +67,13 @@ class SyncPaymentStatus extends Command
                     return;
                 }
 
-                $statusResult = $gateway->getChargeStatus($payment->provider_transaction_id);
+                $chargeId = $payment->gateway_charge_id ?? $payment->provider_transaction_id;
+                $statusResult = $gateway->getChargeStatus($chargeId);
 
                 if ($statusResult === PaymentStatus::Paid->value && in_array($payment->status, [PaymentStatus::Pending, PaymentStatus::PendingManualConfirmation], true)) {
                     $confirmAction->execute(
                         $payment,
-                        $payment->provider_transaction_id,
+                        $payment->provider_transaction_id ?? $chargeId,
                         null,
                         ['synced_by' => 'console_command']
                     );

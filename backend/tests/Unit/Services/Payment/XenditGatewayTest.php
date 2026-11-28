@@ -15,7 +15,6 @@ beforeEach(function () {
     // Set test configuration - works without actual API keys
     Config::set('payment.xendit.secret_key', 'test-secret-key');
     Config::set('payment.xendit.webhook_token', 'test-webhook-token');
-    Config::set('payment.xendit.is_production', false);
     Config::set('payment.expiration_hours', 24);
     Config::set('app.url', 'http://localhost:8000');
 });
@@ -176,4 +175,87 @@ test('parses pending webhook without paid_at', function () {
 
     expect($data['status'])->toBe(PaymentStatus::Pending->value)
         ->and($data['paid_at'])->toBeNull();
+});
+
+test('sends a valid xendit invoice request with E.164 phone and client portal redirects', function () {
+    Config::set('payment.xendit.success_redirect_url', 'https://client.example.test/client?payment=success');
+    Config::set('payment.xendit.failure_redirect_url', 'https://client.example.test/client?payment=failed');
+    Http::fake([
+        'api.xendit.co/v2/invoices' => Http::response([
+            'id' => 'inv-abc',
+            'invoice_url' => 'https://checkout-staging.xendit.co/web/inv-abc',
+            'expiry_date' => '2026-12-01T10:00:00.000Z',
+        ], 200),
+    ]);
+
+    $client = User::factory()->create(['role' => 'client', 'phone' => '0812-3456-7890']);
+    $project = Project::factory()->create(['client_id' => $client->id]);
+    $payment = Payment::factory()->xendit()->create([
+        'project_id' => $project->id,
+        'order_id' => 'INV-20261128-00001-ABCDEFGH',
+        'amount' => 750000,
+    ]);
+
+    $result = (new XenditGateway)->createCharge($payment);
+
+    expect($result['expires_at']->toIso8601String())->toBe('2026-12-01T10:00:00+00:00');
+    Http::assertSent(function ($request) use ($client) {
+        return $request->url() === 'https://api.xendit.co/v2/invoices'
+            && $request->hasHeader('Authorization', 'Basic '.base64_encode('test-secret-key:'))
+            && $request->hasHeader('X-IDEMPOTENCY-KEY', 'invoice-INV-20261128-00001-ABCDEFGH')
+            && $request['external_id'] === 'INV-20261128-00001-ABCDEFGH'
+            && $request['amount'] === 750000
+            && $request['currency'] === 'IDR'
+            && $request['payer_email'] === $client->email
+            && $request['customer']['mobile_number'] === '+6281234567890'
+            && $request['success_redirect_url'] === 'https://client.example.test/client?payment=success'
+            && $request['failure_redirect_url'] === 'https://client.example.test/client?payment=failed';
+    });
+});
+
+test('omits a phone number xendit would reject instead of failing the invoice', function () {
+    Http::fake(['api.xendit.co/v2/invoices' => Http::response(['id' => 'inv-1', 'invoice_url' => 'https://x.test/inv-1'], 200)]);
+    $client = User::factory()->create(['role' => 'client', 'phone' => '123']);
+    $payment = Payment::factory()->xendit()->create(['project_id' => Project::factory()->create(['client_id' => $client->id])->id]);
+
+    (new XenditGateway)->createCharge($payment);
+
+    Http::assertSent(fn ($request) => ! isset($request['customer']['mobile_number']));
+});
+
+test('fails clearly when the xendit secret key is missing', function () {
+    Config::set('payment.xendit.secret_key', '');
+    Http::fake();
+    $payment = Payment::factory()->xendit()->create();
+
+    expect(fn () => (new XenditGateway)->createCharge($payment))
+        ->toThrow(App\Exceptions\PaymentGatewayException::class);
+    Http::assertNothingSent();
+});
+
+test('surfaces the xendit error message when invoice creation is rejected', function () {
+    Http::fake(['api.xendit.co/v2/invoices' => Http::response(['error_code' => 'API_VALIDATION_ERROR', 'message' => 'amount must be at least 1'], 400)]);
+    $payment = Payment::factory()->xendit()->create();
+
+    expect(fn () => (new XenditGateway)->createCharge($payment))
+        ->toThrow(App\Exceptions\PaymentGatewayException::class, 'amount must be at least 1');
+});
+
+test('maps free-text refund reasons to a reason code xendit accepts', function () {
+    Http::fake(['api.xendit.co/refunds' => Http::response(['id' => 'rfd-1', 'status' => 'PENDING', 'created' => '2026-11-28T00:00:00Z'], 200)]);
+    $payment = Payment::factory()->xendit()->create(['gateway_charge_id' => 'inv-1', 'order_id' => 'ORD-RFD-1']);
+
+    (new XenditGateway)->processRefund($payment, 10000, 'Klien membatalkan sesi');
+
+    Http::assertSent(fn ($request) => $request['reason'] === 'REQUESTED_BY_CUSTOMER'
+        && $request['invoice_id'] === 'inv-1'
+        && $request['metadata']['note'] === 'Klien membatalkan sesi');
+});
+
+test('rejects every webhook when no verification token is configured', function () {
+    Config::set('payment.xendit.webhook_token', '');
+    $request = Request::create('/webhook', 'POST', [], [], [], ['HTTP_X_CALLBACK_TOKEN' => '']);
+
+    expect(fn () => (new XenditGateway)->verifyWebhookSignature($request))
+        ->toThrow(InvalidWebhookSignatureException::class);
 });

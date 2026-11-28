@@ -53,8 +53,7 @@ class PaymentFlowTest extends TestCase
             'track_count' => 1,
         ]);
 
-        config(['payment.midtrans.server_key' => 'dummy']);
-        config(['payment.midtrans.is_production' => false]);
+        config(['payment.xendit.secret_key' => 'dummy']);
     }
 
     public function test_booking_workflow_creates_invoice_and_can_initiate_payment(): void
@@ -84,11 +83,11 @@ class PaymentFlowTest extends TestCase
         $invoice = Invoice::where('recording_session_id', $sessionId)->first();
         app(IssueInvoice::class)->execute($invoice);
 
-        // Mock the gateway completely instead of Http::fake since Midtrans SDK might throw exceptions early on auth
+        // Mock the gateway completely instead of Http::fake since the gateway might throw exceptions early on auth
         PaymentGatewayFactory::fake();
 
         $payResponse = $this->actingAs($this->client)->postJson("/api/v1/client/invoices/{$invoice->id}/initiate-payment", [
-            'gateway' => 'midtrans',
+            'gateway' => 'xendit',
         ]);
 
         $payResponse->assertStatus(201);

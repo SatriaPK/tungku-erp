@@ -24,12 +24,14 @@ class PaymentController extends Controller
         $this->authorize('view', $invoice);
         abort_unless($request->user()->isClient() && $invoice->client_id === $request->user()->id, 403);
 
-        $validated = $request->validate([
-            'gateway' => 'required|string|in:midtrans,xendit',
+        // Online payments always go through Xendit. "midtrans" is still accepted so
+        // older client builds keep working, but it is routed to Xendit as well.
+        $request->validate([
+            'gateway' => 'nullable|string|in:midtrans,xendit',
         ]);
 
         try {
-            $payment = app(InitiatePayment::class)->execute($invoice, $validated['gateway']);
+            $payment = app(InitiatePayment::class)->execute($invoice, 'xendit');
             $payment->load(['project', 'invoice']);
 
             return (new PaymentResource($payment))
@@ -54,9 +56,10 @@ class PaymentController extends Controller
             'provider' => 'required|string|in:midtrans,xendit,cash',
         ]);
         abort_unless($payment->type === PaymentType::Final, 404);
+        $provider = $validated['provider'] === 'cash' ? PaymentProvider::Cash : PaymentProvider::Xendit;
 
         try {
-            $payment = app(InitiateFinalPayment::class)->execute($payment, PaymentProvider::from($validated['provider']));
+            $payment = app(InitiateFinalPayment::class)->execute($payment, $provider);
             $payment->load(['project', 'invoice']);
 
             return (new PaymentResource($payment))->response();

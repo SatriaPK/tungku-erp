@@ -37,7 +37,7 @@ class RefundPayment
             );
         }
 
-        // Online payments (midtrans/xendit) must process through gateway
+        // Online payments (xendit) must process through gateway
         if (in_array($payment->provider, [PaymentProvider::Midtrans, PaymentProvider::Xendit])) {
             return $this->processOnlineRefund($payment, $amount, $reason);
         }

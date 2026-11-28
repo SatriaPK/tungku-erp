@@ -84,8 +84,8 @@ test('outer rollback removes nested audit and business changes together', functi
 
 test('provider callbacks keep one paid audit and never use ambient authenticated actor', function () {
     Sanctum::actingAs(User::factory()->manager()->create());
-    $payment = Payment::factory()->create(['provider' => 'midtrans', 'amount' => 10000]);
-    $log = WebhookLog::query()->create(['gateway' => 'midtrans', 'event_type' => 'settlement', 'order_id' => $payment->order_id, 'payload' => ['token' => 'provider-secret'], 'status' => 'received']);
+    $payment = Payment::factory()->create(['provider' => 'xendit', 'amount' => 10000]);
+    $log = WebhookLog::query()->create(['gateway' => 'xendit', 'event_type' => 'settlement', 'order_id' => $payment->order_id, 'payload' => ['token' => 'provider-secret'], 'status' => 'received']);
     $data = ['order_id' => $payment->order_id, 'amount' => 10000, 'status' => 'paid'];
     (new HandlePaymentWebhook($log, $data))->handle();
     (new HandlePaymentWebhook($log->fresh(), $data))->handle();
@@ -93,7 +93,7 @@ test('provider callbacks keep one paid audit and never use ambient authenticated
     $entry = Activity::query()->where('event', 'payment.paid')->sole();
     expect($entry->causer_id)->toBeNull();
     expect($entry->properties['actor_kind'])->toBe('provider');
-    expect($entry->properties['actor_source'])->toBe('midtrans');
+    expect($entry->properties['actor_source'])->toBe('xendit');
     expect($entry->properties->toJson())->not->toContain('provider-secret', 'token', 'raw_payload');
     expect($payment->fresh()->status->value)->toBe('paid');
 });

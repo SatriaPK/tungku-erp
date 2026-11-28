@@ -28,7 +28,7 @@ class CreatePayment
      * @param  Project  $project
      * @param  PaymentType  $type
      * @param  int  $amount  Amount in smallest currency unit (cents/IDR)
-     * @param  string|null  $provider  Gateway name (midtrans, xendit, manual)
+     * @param  string|null  $provider  Gateway name (xendit, manual)
      *
      * @throws PaymentGatewayException
      */

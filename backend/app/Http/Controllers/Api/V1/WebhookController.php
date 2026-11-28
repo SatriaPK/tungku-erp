@@ -131,7 +131,6 @@ class WebhookController extends Controller
     protected function extractEventType(string $gateway, Request $request): ?string
     {
         return match ($gateway) {
-            'midtrans' => $request->input('transaction_status'),
             'xendit' => $request->input('status'),
             default => null,
         };

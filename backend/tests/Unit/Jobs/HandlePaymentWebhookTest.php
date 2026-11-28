@@ -7,7 +7,7 @@ use App\Models\Payment;
 use App\Models\WebhookLog;
 
 beforeEach(function () {
-    $this->payment = Payment::factory()->pending()->midtrans()->create([
+    $this->payment = Payment::factory()->pending()->xendit()->create([
         'order_id' => 'PAY-20261009-TEST',
         'amount' => 500000,
         'type' => PaymentType::Po,
@@ -15,7 +15,7 @@ beforeEach(function () {
     ]);
 
     $this->webhookLog = WebhookLog::create([
-        'gateway' => 'midtrans',
+        'gateway' => 'xendit',
         'event_type' => 'settlement',
         'transaction_id' => 'txn-123456',
         'order_id' => $this->payment->order_id,

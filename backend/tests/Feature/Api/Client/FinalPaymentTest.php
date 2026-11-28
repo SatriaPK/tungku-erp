@@ -37,7 +37,7 @@ function finalPaymentProject(User $client, int $amount = 125000): array
         'type' => PaymentType::Final,
         'amount' => $amount,
         'status' => PaymentStatus::Pending,
-        'provider' => PaymentProvider::Midtrans,
+        'provider' => PaymentProvider::Xendit,
     ]);
 
     return [$project, $payment];
@@ -48,7 +48,7 @@ test('initiates the owned final payment using the locked amount and matching inv
     [, $payment] = finalPaymentProject($client);
     Sanctum::actingAs($client);
 
-    $this->postJson("/api/v1/client/payments/{$payment->id}/final/initiate", ['provider' => 'midtrans'])
+    $this->postJson("/api/v1/client/payments/{$payment->id}/final/initiate", ['provider' => 'xendit'])
         ->assertOk()
         ->assertJsonPath('data.type', 'final')
         ->assertJsonPath('data.amount', 125000)
@@ -100,7 +100,7 @@ test('rejects unsupported providers without creating an invoice', function () {
         ->assertJsonValidationErrors(['provider']);
 
     expect(Invoice::query()->count())->toBe(0)
-        ->and($payment->fresh()->provider)->toBe(PaymentProvider::Midtrans);
+        ->and($payment->fresh()->provider)->toBe(PaymentProvider::Xendit);
 });
 
 test('keeps the invoice issued when gateway charging fails', function () {
@@ -151,7 +151,7 @@ test('keeps the invoice issued when gateway charging fails', function () {
     });
     Sanctum::actingAs($client);
 
-    $this->postJson("/api/v1/client/payments/{$payment->id}/final/initiate", ['provider' => 'midtrans'])
+    $this->postJson("/api/v1/client/payments/{$payment->id}/final/initiate", ['provider' => 'xendit'])
         ->assertOk()
         ->assertJsonPath('data.status', 'failed')
         ->assertJsonPath('data.invoice.status', 'issued');

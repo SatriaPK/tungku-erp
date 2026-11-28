@@ -63,7 +63,7 @@ test('cash and gateway PO confirmations apply settlement before notifying active
     expect(businessRecipients('project_awaiting_assignment'))->toBe([$manager->id]);
     expect(businessRecipients('payment_confirmed'))->toBe([$client->id]);
     expect(NotificationDelivery::query()->where('channel', 'mail')->count())->toBe(2);
-})->with(['cash', 'midtrans']);
+})->with(['cash', 'xendit']);
 
 test('cancelled or insufficiently paid projects do not announce readiness', function (string $status, int $amount) {
     User::factory()->manager()->create();
@@ -212,7 +212,7 @@ test('duplicate provider callbacks do not duplicate payment or project readiness
     $project = Project::factory()->create(['status' => 'pending_payment', 'po_amount' => 100000]);
     $payment = Payment::factory()->create(['project_id' => $project->id, 'amount' => 100000]);
     foreach ([1, 2] as $attempt) {
-        $log = WebhookLog::query()->create(['gateway' => 'midtrans', 'order_id' => $payment->order_id,
+        $log = WebhookLog::query()->create(['gateway' => 'xendit', 'order_id' => $payment->order_id,
             'event_type' => 'settlement', 'status' => 'pending', 'payload' => [], 'headers' => []]);
         (new HandlePaymentWebhook($log, ['order_id' => $payment->order_id, 'status' => 'paid', 'amount' => 100000]))->handle();
     }

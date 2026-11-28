@@ -43,12 +43,12 @@ test('allows one PO and one final payment with different providers for a project
     $action = new CreatePayment;
 
     $poPayment = $action->execute($project, PaymentType::Po, 1000000, 'cash');
-    $finalPayment = $action->execute($project, PaymentType::Final, 500000, 'midtrans');
+    $finalPayment = $action->execute($project, PaymentType::Final, 500000, 'xendit');
 
     expect($poPayment->type)->toBe(PaymentType::Po)
         ->and($poPayment->provider)->toBe(PaymentProvider::Cash)
         ->and($finalPayment->type)->toBe(PaymentType::Final)
-        ->and($finalPayment->provider)->toBe(PaymentProvider::Midtrans)
+        ->and($finalPayment->provider)->toBe(PaymentProvider::Xendit)
         ->and($project->payments()->count())->toBe(2);
 });
 

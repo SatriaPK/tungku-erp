@@ -52,7 +52,7 @@ test('invoice viewing permission does not grant permission to initiate payment',
     $invoice = Invoice::factory()->create();
 
     $this->actingAs($manager)->getJson("/api/v1/client/invoices/{$invoice->id}")->assertOk();
-    $this->postJson("/api/v1/client/invoices/{$invoice->id}/initiate-payment", ['gateway' => 'midtrans'])->assertForbidden();
+    $this->postJson("/api/v1/client/invoices/{$invoice->id}/initiate-payment", ['gateway' => 'xendit'])->assertForbidden();
 
     $this->assertDatabaseCount('payments', 0);
 });

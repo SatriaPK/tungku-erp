@@ -195,7 +195,7 @@ class ReviewTrackResult
             ->exists();
 
         if ($amount > 0 && ! $finalPaymentExists) {
-            $configuredProvider = (string) config('payment.default_gateway', 'midtrans');
+            $configuredProvider = (string) config('payment.default_gateway', 'xendit');
             $provider = match ($configuredProvider) {
                 'cash', 'manual' => PaymentProvider::Cash,
                 default => PaymentProvider::from($configuredProvider),

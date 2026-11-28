@@ -17,7 +17,7 @@ it('cancels pending payment successfully', function () {
     $payment = Payment::factory()->create([
         'project_id' => $this->project->id,
         'status' => PaymentStatus::Pending,
-        'provider' => PaymentProvider::Midtrans,
+        'provider' => PaymentProvider::Xendit,
     ]);
 
     $reason = 'Client requested cancellation';
