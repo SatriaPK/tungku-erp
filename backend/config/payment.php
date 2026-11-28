@@ -1,5 +1,9 @@
 <?php
 
+// Client portal origin. The value may be entered with or without a trailing
+// "/client", so strip it to avoid redirecting to a non-existent /client/client.
+$clientPortal = preg_replace('#/client/?$#', '', rtrim((string) env('CLIENT_PORTAL_URL', env('FRONTEND_URL', 'http://localhost:5173')), '/'));
+
 return [
 
     /*
@@ -40,8 +44,8 @@ return [
         'secret_key' => env('XENDIT_SECRET_KEY'),
         'webhook_token' => env('XENDIT_WEBHOOK_TOKEN'),
         'base_url' => env('XENDIT_BASE_URL', 'https://api.xendit.co'),
-        'success_redirect_url' => env('XENDIT_SUCCESS_REDIRECT_URL', rtrim((string) env('CLIENT_PORTAL_URL', env('FRONTEND_URL', 'http://localhost:5173')), '/').'/client?payment=success'),
-        'failure_redirect_url' => env('XENDIT_FAILURE_REDIRECT_URL', rtrim((string) env('CLIENT_PORTAL_URL', env('FRONTEND_URL', 'http://localhost:5173')), '/').'/client?payment=failed'),
+        'success_redirect_url' => env('XENDIT_SUCCESS_REDIRECT_URL', $clientPortal.'/client/transaksi?payment=success'),
+        'failure_redirect_url' => env('XENDIT_FAILURE_REDIRECT_URL', $clientPortal.'/client/transaksi?payment=failed'),
     ],
 
     /*
