@@ -3,7 +3,7 @@ import { Link, useSearchParams } from 'react-router-dom'
 import { Badge, Button } from '../../components/ui'
 import { getApiErrorMessage } from '../../lib/auth-api'
 import {
-  previewCoupon, type CouponPreview, checkAvailability, getPackages, getBookings, getDelivery, getInvoice, getInvoices, getProjects, getQuotations, getRooms, holdBooking, initiateInvoicePayment, offerDate, rupiah,
+  previewCoupon, type CouponPreview, checkAvailability, getPackages, getBookings, getDelivery, downloadInvoicePdf, getInvoice, getInvoices, getProjects, getQuotations, getRooms, holdBooking, initiateInvoicePayment, offerDate, rupiah,
   type BookingAvailability, type ClientBooking, type ClientInvoice, type ClientProject, type Collection, type Delivery, type Quotation,
 } from './client-api'
 import './client-workspace.css'
@@ -169,6 +169,11 @@ function TransactionsPage() {
     catch (failure) { setError(getApiErrorMessage(failure)) }
     finally { setLoading(false) }
   }
+  async function download(id: number, invoiceNumber: string) {
+    setError('')
+    try { await downloadInvoicePdf(id, invoiceNumber) }
+    catch (failure) { setError(getApiErrorMessage(failure)) }
+  }
   async function show(id: number) {
     setLoading(true); setError(''); setPaymentUrl(''); setDetail(null)
     try { setDetail((await getInvoice(id)).data) }
@@ -179,9 +184,9 @@ function TransactionsPage() {
     {paymentReturn === 'success' && <p role="status" className="client-workspace-success">Pembayaran diterima. Status invoice diperbarui otomatis dalam beberapa saat.</p>}
     {paymentReturn === 'failed' && <p role="alert" className="client-workspace-error">Pembayaran belum berhasil. Silakan buka invoice dan coba lagi.</p>}
     <State loading={invoices.loading} error={invoices.error} reload={invoices.reload} empty="Belum ada invoice. Tagihan akan muncul setelah booking dibuat." count={invoices.data.length} />
-    <div className="client-record-grid">{invoices.data.map((item: ClientInvoice) => <article key={item.id}><div><h3>{item.invoice_number}</h3><Badge tone={item.status === 'paid' ? 'success' : item.is_overdue ? 'error' : 'primary'}>{item.status_label}</Badge></div><p>{item.project?.name ?? 'Booking Rekaman'}</p><strong>{rupiah(item.total)}</strong><small>Terbit {item.issue_date ? offerDate(item.issue_date) : '—'} · Jatuh tempo {item.due_date ? offerDate(item.due_date) : '—'}</small><Button variant="text" onClick={() => void show(item.id)}>Lihat Rincian</Button></article>)}</div>
+    <div className="client-record-grid">{invoices.data.map((item: ClientInvoice) => <article key={item.id}><div><h3>{item.invoice_number}</h3><Badge tone={item.status === 'paid' ? 'success' : item.is_overdue ? 'error' : 'primary'}>{item.status_label}</Badge></div><p>{item.project?.name ?? 'Booking Rekaman'}</p><strong>{rupiah(item.total)}</strong><small>Terbit {item.issue_date ? offerDate(item.issue_date) : '—'} · Jatuh tempo {item.due_date ? offerDate(item.due_date) : '—'}</small><Button variant="text" onClick={() => void show(item.id)}>Lihat Rincian</Button>{item.status !== 'draft' && <Button variant="text" onClick={() => void download(item.id, item.invoice_number)}>Unduh PDF</Button>}</article>)}</div>
     <Pager current={page} last={invoices.meta?.last_page ?? 1} onChange={setPage} />
-    {(loading || error || detail) && <section className="client-workspace-panel"><header><h2>Rincian Invoice</h2><button className="client-inline-link" onClick={() => { setDetail(null); setError('') }}>Tutup</button></header>{loading && <p role="status">Memuat invoice…</p>}{error && <p role="alert" className="client-workspace-error">{error}</p>}{detail && <><div className="client-invoice-top"><h3>{detail.invoice_number}</h3><strong>{rupiah(detail.total)}</strong></div><p>{detail.status_label}</p>{detail.coupon && <p className="client-workspace-success">Kupon {detail.coupon.code} ? Hemat {rupiah(detail.coupon.discount)}</p>}<ul className="client-simple-list">{detail.items?.map((item) => <li key={item.id}><span>{item.description}</span><strong>{rupiah(item.total)}</strong></li>)}</ul>{detail.status === 'issued' && (paymentUrl || (detail.payment?.payment_url && (!detail.payment.status || detail.payment.status === 'pending'))) && <a className="ts-button" href={paymentUrl || detail.payment?.payment_url || '#'}>Buka Pembayaran</a>}{detail.status === 'issued' && !paymentUrl && (!detail.payment || ['expired', 'failed', 'cancelled'].includes(detail.payment.status ?? '')) && <div className="client-payment-actions"><p>Pembayaran melalui Xendit: transfer bank (VA), QRIS, e-wallet, atau kartu.</p><Button disabled={loading} onClick={() => void pay(detail.id)}>Buat Pembayaran</Button></div>}{detail.payment && <p>Status pembayaran: {detail.payment.status_label} · {detail.payment.provider_label}</p>}</>}</section>}
+    {(loading || error || detail) && <section className="client-workspace-panel"><header><h2>Rincian Invoice</h2><button className="client-inline-link" onClick={() => { setDetail(null); setError('') }}>Tutup</button></header>{loading && <p role="status">Memuat invoice…</p>}{error && <p role="alert" className="client-workspace-error">{error}</p>}{detail && <><div className="client-invoice-top"><h3>{detail.invoice_number}</h3><strong>{rupiah(detail.total)}</strong></div><p>{detail.status_label}</p>{detail.coupon && <p className="client-workspace-success">Kupon {detail.coupon.code} ? Hemat {rupiah(detail.coupon.discount)}</p>}<ul className="client-simple-list">{detail.items?.map((item) => <li key={item.id}><span>{item.description}</span><strong>{rupiah(item.total)}</strong></li>)}</ul>{detail.status === 'issued' && (paymentUrl || (detail.payment?.payment_url && (!detail.payment.status || detail.payment.status === 'pending'))) && <a className="ts-button" href={paymentUrl || detail.payment?.payment_url || '#'}>Buka Pembayaran</a>}{detail.status === 'issued' && !paymentUrl && (!detail.payment || ['expired', 'failed', 'cancelled'].includes(detail.payment.status ?? '')) && <div className="client-payment-actions"><p>Pembayaran melalui Xendit: transfer bank (VA), QRIS, e-wallet, atau kartu.</p><Button disabled={loading} onClick={() => void pay(detail.id)}>Buat Pembayaran</Button></div>}{detail.payment && <p>Status pembayaran: {detail.payment.status_label} · {detail.payment.provider_label}</p>}{detail.status !== 'draft' && <Button variant="outlined" onClick={() => void download(detail.id, detail.invoice_number)}>Unduh PDF</Button>}</>}</section>}
   </>
 }
 

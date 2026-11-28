@@ -72,7 +72,23 @@ export const getBookings = (page = 1) => request<Collection<ClientBooking>>(`boo
 export const getProjects = (page = 1) => request<Collection<ClientProject>>(`projects?page=${page}`)
 export const getInvoices = (page = 1) => request<Collection<ClientInvoice>>(`invoices?page=${page}`)
 export const getInvoice = (id: number) => request<{ data: ClientInvoice & { payment?: ClientPayment; items?: { id: number; description: string; total: number }[] } }>(`invoices/${id}`)
-export const initiateInvoicePayment = (id: number, gateway: 'midtrans' | 'xendit') => request<{ data: ClientPayment }>(`invoices/${id}/initiate-payment`, { gateway })
+export async function downloadInvoicePdf(id: number, invoiceNumber: string): Promise<void> {
+  const response = await fetch(`${origin}/api/v1/client/invoices/${id}/pdf`, { credentials: 'include', headers: { Accept: 'application/pdf' } })
+  if (!response.ok) {
+    const error: ApiError = new Error(response.status === 401 ? 'Sesi berakhir. Silakan masuk kembali.' : 'Invoice belum dapat diunduh. Silakan coba lagi.')
+    error.status = response.status
+    throw error
+  }
+  const url = URL.createObjectURL(await response.blob())
+  const link = document.createElement('a')
+  link.href = url
+  link.download = `${invoiceNumber}.pdf`
+  document.body.appendChild(link)
+  link.click()
+  link.remove()
+  setTimeout(() => URL.revokeObjectURL(url), 1000)
+}
+export const initiateInvoicePayment =(id: number, gateway: 'midtrans' | 'xendit') => request<{ data: ClientPayment }>(`invoices/${id}/initiate-payment`, { gateway })
 export const getDelivery = (projectId: number) => request<Collection<Delivery>>(`projects/${projectId}/final-delivery`)
 export const checkAvailability = (room_id: number, start_at: string, end_at: string) => request<{ data: BookingAvailability }>('bookings/check-availability', { room_id, start_at, end_at })
 export const holdBooking = (room_id: number, start_at: string, end_at: string, target: ({ package_id: number } | { quotation_id: number }) & { coupon_code?: string }) => request<{ data: BookingHold }>('bookings/hold', { room_id, start_at, end_at, ...target })
