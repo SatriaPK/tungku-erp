@@ -61,14 +61,12 @@ class AppServiceProvider extends ServiceProvider
      */
     public function boot(): void
     {
-        // EthioDeploy Free does not guarantee a persistent database session
-        // table between deploys. Keep SPA authentication available by using
-        // the local session store when the platform selects database sessions
-        // but the table is unavailable. This does not change authorization or
-        // business flows; it only prevents login from failing during session
-        // regeneration.
-        if ($this->app->environment('production') && config('session.driver') === 'database') {
-            config(['session.driver' => 'file']);
+        // EthioDeploy Free may not provide a persistent database session table,
+        // and local session files are lost on every redeploy and are not shared
+        // between instances, which logged SPA users out within seconds. Keep the
+        // session in the encrypted session cookie so it survives both.
+        if ($this->app->environment('production') && in_array(config('session.driver'), ['database', 'file'], true)) {
+            config(['session.driver' => 'cookie']);
         }
 
         Scramble::configure()->withOperationTransformers(DescribeApiContracts::class)
