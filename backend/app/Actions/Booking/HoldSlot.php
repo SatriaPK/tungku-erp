@@ -5,6 +5,7 @@ namespace App\Actions\Booking;
 use App\Actions\Audit\AuditActor;
 use App\Actions\Audit\RecordBusinessChange;
 use App\Actions\Invoice\GenerateInvoice;
+use App\Actions\Invoice\IssueInvoice;
 use App\Actions\Notification\NotifyBusinessEvent;
 use App\Enum\ProjectStatus;
 use App\Enum\QuotationStatus;
@@ -159,6 +160,14 @@ class HoldSlot
 
             if ($couponCode) {
                 app(ApplyBookingCoupon::class)->apply($invoice, $couponCode, $packageId);
+            }
+
+            // The client must pay this invoice before the hold expires, so it is
+            // issued straight away; a Draft invoice cannot be paid. A zero-total
+            // invoice has nothing to pay and stays Draft.
+            $invoice = $invoice->fresh();
+            if ($invoice->status === \App\Enum\InvoiceStatus::Draft && $invoice->total > 0 && $invoice->items()->exists()) {
+                app(IssueInvoice::class)->execute($invoice);
             }
 
             return $session;

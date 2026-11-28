@@ -166,7 +166,7 @@ test('quotation booking announces project creation separately from PO readiness'
     expect(businessRecipients('project_created'))->toBe([$client->id, $manager->id]);
     expect(businessRecipients('project_awaiting_assignment'))->toBe([]);
     $invoice = Invoice::query()->where('project_id', $session->project_id)->sole();
-    app(IssueInvoice::class)->execute($invoice);
+    expect($invoice->status->value)->toBe('issued');
     $payment = app(InitiatePayment::class)->execute($invoice->fresh(), 'cash');
     app(ConfirmManualPayment::class)->execute($payment, 'Cash received');
     expect($session->fresh()->status->value)->toBe('confirmed');

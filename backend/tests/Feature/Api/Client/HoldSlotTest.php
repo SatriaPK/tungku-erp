@@ -503,3 +503,24 @@ test('inactive user returns 403', function () {
 
     $response->assertStatus(403);
 });
+
+test('holding a slot issues the invoice so the client can pay it right away', function () {
+    Carbon::setTestNow('2026-10-10 08:00:00 Asia/Jakarta');
+    \App\Services\Payment\PaymentGatewayFactory::fake();
+
+    $this->actingAs($this->client)->postJson('/api/v1/client/bookings/hold', [
+        'room_id' => $this->room->id,
+        'start_at' => '2026-10-11 10:00:00', 'end_at' => '2026-10-11 12:00:00',
+        'package_id' => $this->package->id,
+    ])->assertCreated();
+
+    $invoice = Invoice::query()->where('client_id', $this->client->id)->latest('id')->firstOrFail();
+    expect($invoice->status)->toBe(\App\Enum\InvoiceStatus::Issued);
+
+    $this->actingAs($this->client)
+        ->postJson("/api/v1/client/invoices/{$invoice->id}/initiate-payment", ['gateway' => 'xendit'])
+        ->assertCreated()
+        ->assertJsonPath('data.provider', 'xendit');
+
+    \App\Services\Payment\PaymentGatewayFactory::clearFake();
+});
