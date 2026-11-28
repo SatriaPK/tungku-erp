@@ -6,7 +6,9 @@ use App\Http\Controllers\Controller;
 use App\Http\Resources\InvoiceListResource;
 use App\Http\Resources\InvoiceResource;
 use App\Models\Invoice;
+use Barryvdh\DomPDF\Facade\Pdf;
 use Illuminate\Http\JsonResponse;
+use Illuminate\Http\Response;
 
 class InvoiceController extends Controller
 {
@@ -33,5 +35,20 @@ class InvoiceController extends Controller
         $invoice->load(['client', 'project', 'recordingSession', 'items', 'latestPayment']);
 
         return (new InvoiceResource($invoice))->response();
+    }
+
+    /**
+     * Download the invoice as a PDF.
+     */
+    public function pdf(Invoice $invoice): Response
+    {
+        $this->authorize('view', $invoice);
+
+        $invoice->load(['client', 'project', 'items']);
+
+        return Pdf::loadView('pdf.invoice', [
+            'invoice' => $invoice,
+            'studioName' => config('app.name') === 'Laravel' ? 'Tungku Studio' : config('app.name'),
+        ])->setPaper('a4')->download($invoice->invoice_number.'.pdf');
     }
 }

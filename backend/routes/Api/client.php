@@ -44,6 +44,7 @@ Route::prefix('client')
         Route::prefix('invoices')->group(function () {
             Route::get('/', [InvoiceController::class, 'index']);
             Route::get('{invoice}', [InvoiceController::class, 'show']);
+            Route::get('{invoice}/pdf', [InvoiceController::class, 'pdf']);
             Route::post('{invoice}/initiate-payment', [PaymentController::class, 'initiatePayment'])->middleware('throttle:payment-initiation');
         });
 

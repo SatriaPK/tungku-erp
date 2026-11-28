@@ -270,3 +270,26 @@ it('routes an older client asking for midtrans to xendit', function (?string $re
         ->assertCreated()
         ->assertJsonPath('data.provider', 'xendit');
 })->with(['midtrans' => 'midtrans', 'no gateway' => null]);
+
+it('client can download their own invoice as pdf', function () {
+    $client = User::factory()->client()->create();
+    $invoice = Invoice::factory()->create(['client_id' => $client->id, 'status' => InvoiceStatus::Issued, 'total' => 100000]);
+    InvoiceItem::factory()->create(['invoice_id' => $invoice->id, 'description' => 'Sesi Rekaman', 'total' => 100000]);
+
+    Sanctum::actingAs($client);
+
+    $response = $this->get("/api/v1/client/invoices/{$invoice->id}/pdf");
+
+    $response->assertOk()->assertHeader('content-type', 'application/pdf');
+    expect($response->headers->get('content-disposition'))->toContain($invoice->invoice_number.'.pdf');
+    expect(substr($response->getContent(), 0, 4))->toBe('%PDF');
+});
+
+it('client cannot download another clients invoice pdf', function () {
+    $client = User::factory()->client()->create();
+    $invoice = Invoice::factory()->create(['client_id' => User::factory()->client()->create()->id]);
+
+    Sanctum::actingAs($client);
+
+    $this->get("/api/v1/client/invoices/{$invoice->id}/pdf")->assertForbidden();
+});
